@@ -1,2 +1,2 @@
 # ibm.spectrum_virtualize
-IBM Spectrum Virtualize
+IBM Spectrum Virtualize Collections
