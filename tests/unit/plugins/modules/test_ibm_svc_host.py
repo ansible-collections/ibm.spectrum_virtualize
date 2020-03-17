@@ -1,0 +1,260 @@
+# Copyright (C) 2020 IBM CORPORATION
+# Author(s): Peng Wang <wangpww@cn.ibm.com>
+#
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+""" unit tests IBM Spectrum Virtualize Ansible module: ibm_svc_host """
+
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
+import unittest
+import pytest
+import json
+from mock import patch
+from ansible.module_utils import basic
+from ansible.module_utils._text import to_bytes
+from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi
+from ansible_collections.ibm.spectrum_virtualize.plugins.modules.ibm_svc_host import IBMSVChost
+
+
+def set_module_args(args):
+    """prepare arguments so that they will be picked up during module
+    creation """
+    args = json.dumps({'ANSIBLE_MODULE_ARGS': args})
+    basic._ANSIBLE_ARGS = to_bytes(args)  # pylint: disable=protected-access
+
+
+class AnsibleExitJson(Exception):
+    """Exception class to be raised by module.exit_json and caught by the
+    test case """
+    pass
+
+
+class AnsibleFailJson(Exception):
+    """Exception class to be raised by module.fail_json and caught by the
+    test case """
+    pass
+
+
+def exit_json(*args, **kwargs):  # pylint: disable=unused-argument
+    """function to patch over exit_json; package return data into an
+    exception """
+    if 'changed' not in kwargs:
+        kwargs['changed'] = False
+    raise AnsibleExitJson(kwargs)
+
+
+def fail_json(*args, **kwargs):  # pylint: disable=unused-argument
+    """function to patch over fail_json; package return data into an
+    exception """
+    kwargs['failed'] = True
+    raise AnsibleFailJson(kwargs)
+
+
+class TestIBMSVChost(unittest.TestCase):
+    """ a group of related Unit Tests"""
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def setUp(self, connect):
+        self.mock_module_helper = patch.multiple(basic.AnsibleModule,
+                                                 exit_json=exit_json,
+                                                 fail_json=fail_json)
+        self.mock_module_helper.start()
+        self.addCleanup(self.mock_module_helper.stop)
+        self.restapi = IBMSVCRestApi(self.mock_module_helper, '1.2.3.4',
+                                     'domain.ibm.com', 'username', 'password',
+                                     False, '/tmp/test.log')
+
+    def set_default_args(self):
+        return dict({
+            'name': 'test',
+            'state': 'present'
+        })
+
+    def test_module_fail_when_required_args_missing(self):
+        """ required arguments are reported as errors """
+        with pytest.raises(AnsibleFailJson) as exc:
+            set_module_args({})
+            IBMSVChost()
+        print('Info: %s' % exc.value.args[0]['msg'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_get_existing_host(self, svc_authorize_mock, svc_obj_info_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test_get_existing_host',
+        })
+        host_ret = [{"id": "1", "name": "ansible_host", "port_count": "1",
+                     "iogrp_count": "4", "status": "offline",
+                     "site_id": "", "site_name": "",
+                     "host_cluster_id": "", "host_cluster_name": "",
+                     "protocol": "nvme", "owner_id": "",
+                     "owner_name": ""}]
+        svc_obj_info_mock.return_value = host_ret
+        host = IBMSVChost().get_existing_host()
+        self.assertEqual('ansible_host', host['name'])
+        self.assertEqual('1', host['id'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.get_existing_host')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_host_create_get_existing_host_called(self, svc_authorize_mock,
+                                                  get_existing_host_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test_host_create_get_existing_host_called',
+        })
+        host_created = IBMSVChost()
+        with pytest.raises(AnsibleExitJson) as exc:
+            host_created.apply()
+        self.assertFalse(exc.value.args[0]['changed'])
+        get_existing_host_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.get_existing_host')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.host_probe')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_create_host_but_host_existed(self, svc_authorize_mock,
+                                          host_probe_mock,
+                                          get_existing_host_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'name': 'ansible_host',
+        })
+        host_ret = [{"id": "1", "name": "ansible_host", "port_count": "1",
+                     "iogrp_count": "4", "status": "offline",
+                     "site_id": "", "site_name": "",
+                     "host_cluster_id": "", "host_cluster_name": "",
+                     "protocol": "nvme", "owner_id": "",
+                     "owner_name": ""}]
+        get_existing_host_mock.return_value = host_ret
+        host_probe_mock.return_value = []
+        host_created = IBMSVChost()
+        with pytest.raises(AnsibleExitJson) as exc:
+            host_created.apply()
+        self.assertFalse(exc.value.args[0]['changed'])
+        get_existing_host_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.get_existing_host')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.host_create')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_create_host_successfully(self, svc_authorize_mock,
+                                      host_create_mock,
+                                      get_existing_host_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'name': 'ansible_host',
+            'fcwwpn': '100000109B570216'
+        })
+        host = {u'message': u'Host, id [14], '
+                            u'successfully created', u'id': u'14'}
+        host_create_mock.return_value = host
+        get_existing_host_mock.return_value = []
+        host_created = IBMSVChost()
+        with pytest.raises(AnsibleExitJson) as exc:
+            host_created.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+        get_existing_host_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.get_existing_host')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_create_host_failed_since_missed_required_param(
+            self, svc_authorize_mock, get_existing_host_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'name': 'ansible_host',
+        })
+        get_existing_host_mock.return_value = []
+        host_created = IBMSVChost()
+        with pytest.raises(AnsibleFailJson) as exc:
+            host_created.apply()
+        self.assertTrue(exc.value.args[0]['failed'])
+        get_existing_host_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.get_existing_host')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_delete_host_but_host_not_existed(self, svc_authorize_mock,
+                                              get_existing_host_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'absent',
+            'username': 'username',
+            'password': 'password',
+            'name': 'ansible_host',
+        })
+        get_existing_host_mock.return_value = []
+        host_deleted = IBMSVChost()
+        with pytest.raises(AnsibleExitJson) as exc:
+            host_deleted.apply()
+        self.assertFalse(exc.value.args[0]['changed'])
+        get_existing_host_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.get_existing_host')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.host_delete')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_delete_host_successfully(self, svc_authorize_mock,
+                                      host_delete_mock,
+                                      get_existing_host_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'absent',
+            'username': 'username',
+            'password': 'password',
+            'name': 'ansible_host',
+        })
+        host_ret = [{"id": "1", "name": "ansible_host", "port_count": "1",
+                     "iogrp_count": "4", "status": "offline",
+                     "site_id": "", "site_name": "",
+                     "host_cluster_id": "", "host_cluster_name": "",
+                     "protocol": "nvme", "owner_id": "",
+                     "owner_name": ""}]
+        get_existing_host_mock.return_value = host_ret
+        host_deleted = IBMSVChost()
+        with pytest.raises(AnsibleExitJson) as exc:
+            host_deleted.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+        get_existing_host_mock.assert_called_with()
+
+
+if __name__ == '__main__':
+    unittest.main()
