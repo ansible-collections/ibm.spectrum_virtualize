@@ -56,6 +56,7 @@ Alternatively, you can add a full namepsace and collection name in the `collecti
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
+  hosts: localhost
   tasks:
     - name: Gather info from storage
       ibm_svc_info:

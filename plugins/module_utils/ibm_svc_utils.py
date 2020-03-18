@@ -13,7 +13,6 @@ __metaclass__ = type
 import json
 import logging
 
-from ansible.module_utils.basic import jsonify
 from ansible.module_utils.urls import open_url
 from ansible.module_utils.six.moves.urllib.parse import quote
 from ansible.module_utils.six.moves.urllib.error import HTTPError
@@ -136,7 +135,7 @@ class IBMSVCRestApi(object):
         self.debug("_svc_rest: url=%s", url)
 
         payload = cmdopts if cmdopts else None
-        data = jsonify(payload, encoding="utf-8")
+        data = self.module.jsonify(payload).encode('utf8')
         r['data'] = cmdopts  # Original payload data has nicer formatting
         self.debug("_svc_rest: payload=%s", payload)
 
