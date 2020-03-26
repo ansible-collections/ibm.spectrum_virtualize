@@ -4,7 +4,7 @@
 [![Code of conduct](https://img.shields.io/badge/code%20of%20conduct-Ansible-silver.svg)](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html)
 [![License](https://img.shields.io/badge/license-GPL%20v3.0-brightgreen.svg)](LICENSE)
 
-This collection provides a series of Ansible modules and plugins for interacting with the IBM Spectrum Virtualize Family. These products include the IBM SAN Volume Controller, IBM FlashSystem family members built with IBM Spectrum Virtualize (FlashSystem 5010, 5030, 5100, 7200, 9100, 9200, 9200R), and IBM Spectrum Virtualize for Public Cloud. For more information regarding these products see the [IBM Knowledge Center](https://www.ibm.com/support/knowledgecenter/en/) .
+This collection provides a series of Ansible modules and plugins for interacting with the IBM Spectrum Virtualize Family. These products include the IBM SAN Volume Controller, IBM FlashSystem family members built with IBM Spectrum Virtualize (FlashSystem 5010, 5030, 5100, 7200, 9100, 9200, 9200R, and V9000), IBM Storwize family, and IBM Spectrum Virtualize for Public Cloud. For more information regarding these products see the [IBM Knowledge Center](https://www.ibm.com/support/knowledgecenter/en/) .
 
 ## Requirements
 
