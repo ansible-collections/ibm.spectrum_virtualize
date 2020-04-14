@@ -139,7 +139,7 @@ EXAMPLES = '''
         state: present
         fcwwpn: 100000109B570216
         iogrp: 0:1:2:3
-        protocol: fc
+        protocol: scsi
         type: generic
 
 - name: Using the IBM Spectrum Virtualize collection to delete a host
