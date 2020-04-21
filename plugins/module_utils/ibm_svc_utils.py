@@ -35,6 +35,18 @@ def svc_argument_spec():
     )
 
 
+def get_logger(module_name, log_file_name, log_level=logging.INFO):
+    FORMAT = '%(asctime)s.%(msecs)03d %(levelname)5s %(thread)d %(filename)s:%(funcName)s():%(lineno)s %(message)s'
+    DATEFORMAT = '%Y-%m-%dT%H:%M:%S'
+    log_path = '/tmp/IBMSV_ansible_collections.log'
+    if log_file_name:
+        log_path = log_file_name
+    logging.basicConfig(filename=log_path, format=FORMAT, datefmt=DATEFORMAT)
+    log = logging.getLogger(module_name)
+    log.setLevel(log_level)
+    return log
+
+
 class IBMSVCRestApi(object):
     """ Communicate with SVC via RestApi
     SVC commands usually have the format
@@ -66,14 +78,12 @@ class IBMSVCRestApi(object):
         self.validate_certs = validate_certs
 
         # logging setup
-        self._logger = logging.getLogger(self.__class__.__name__)
-        self.debug = self._logger.debug
-        if log_path:
-            logging.basicConfig(level=logging.DEBUG, filename=log_path)
+        log = get_logger(self.__class__.__name__, log_path)
+        self.log = log.info
 
         # Make sure we can connect via the RestApi
         self.token = self._svc_authorize()
-        self.debug("_connect by using token")
+        self.log("_connect by using token")
         if not self.token:
             self.module.fail_json(msg='Failed to obtain access token')
 
@@ -132,31 +142,31 @@ class IBMSVCRestApi(object):
             postfix = '/'.join([postfix] + [quote(str(a)) for a in cmdargs])
         url = '/'.join([self.resturl] + [postfix])
         r['url'] = url  # Pass back in result for error handling
-        self.debug("_svc_rest: url=%s", url)
+        self.log("_svc_rest: url=%s", url)
 
         payload = cmdopts if cmdopts else None
         data = self.module.jsonify(payload).encode('utf8')
         r['data'] = cmdopts  # Original payload data has nicer formatting
-        self.debug("_svc_rest: payload=%s", payload)
+        self.log("_svc_rest: payload=%s", payload)
 
         try:
             o = open_url(url, method=method, headers=headers,
                          validate_certs=self.validate_certs, data=bytes(data))
         except HTTPError as e:
-            self.debug('_svc_rest: httperror %s', str(e))
+            self.log('_svc_rest: httperror %s', str(e))
             r['code'] = e.getcode()
             r['out'] = e.read()
             r['err'] = "HTTPError %s", str(e)
             return r
         except Exception as e:
-            self.debug('_svc_rest: exception : %s', str(e))
+            self.log('_svc_rest: exception : %s', str(e))
             r['err'] = "Exception %s", str(e)
             return r
 
         try:
             j = json.load(o)
         except ValueError as e:
-            self.debug("_svc_rest: value error pass: %s", str(e))
+            self.log("_svc_rest: value error pass: %s", str(e))
             # pass, will mean both data and error are None.
             return r
 
@@ -222,7 +232,7 @@ class IBMSVCRestApi(object):
         """
 
         rest = self._svc_token_wrap(cmd, cmdopts, cmdargs)
-        self.debug("svc_run_command rest=%s", rest)
+        self.log("svc_run_command rest=%s", rest)
 
         if rest['err']:
             msg = rest
@@ -245,7 +255,7 @@ class IBMSVCRestApi(object):
         """
 
         rest = self._svc_token_wrap(cmd, cmdopts, cmdargs)
-        self.debug("svc_obj_info rest=%s", rest)
+        self.log("svc_obj_info rest=%s", rest)
 
         if rest['code']:
             if rest['code'] == 500:
