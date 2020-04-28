@@ -81,6 +81,13 @@ Alternatively, you can add a full namepsace and collection name in the `collecti
 - ibm_svc_vdisk - Volume management for IBM Spectrum Virtualize
 - ibm_svc_vol_map - Volume mapping management for IBM Spectrum Virtualize
 
+## Limitation
+
+The IBM Spectrum Virtualize Ansible collections leverage REST APIs to connect to the  IBM Spectrum Virtualize storage system. This creates the following limitations:
+1. Using the REST API to list more than 2000 objects may create a loss of service from the API side, as it automatically restarts due to memory constraints.
+2. It is not possible to access the REST API using an IPv6 address on a cluster.
+3. To run the Ansible collections, Spectrum Virtualize storage system must be at Version 8.1.3 or higher.
+
 ## Contributing
 
 Currently we are not accepting community contributions.

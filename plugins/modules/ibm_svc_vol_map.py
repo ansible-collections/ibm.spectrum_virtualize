@@ -112,10 +112,9 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
-import logging
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi, svc_argument_spec
+from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi, svc_argument_spec, get_logger
 from ansible.module_utils._text import to_native
 
 
@@ -137,10 +136,8 @@ class IBMSVCvdiskhostmap(object):
 
         # logging setup
         log_path = self.module.params['log_path']
-        self._logger = logging.getLogger(self.__class__.__name__)
-        self.debug = self._logger.debug
-        if log_path:
-            logging.basicConfig(level=logging.DEBUG, filename=log_path)
+        log = get_logger(self.__class__.__name__, log_path)
+        self.log = log.info
 
         # Required
         self.volname = self.module.params['volname']
@@ -176,7 +173,7 @@ class IBMSVCvdiskhostmap(object):
     # TBD: Implement a more generic way to check for properties to modify.
     def vdiskhostmap_probe(self, data):
         props = []
-        self.debug("vdiskhostmap_probe props='%s'", data)
+        self.log("vdiskhostmap_probe props='%s'", data)
         # TBD: The parameter is easytier but the view has easy_tier label.
 
         if (self.host != data['host_name']):
@@ -188,7 +185,7 @@ class IBMSVCvdiskhostmap(object):
         if props is []:
             props = None
 
-        self.debug("vdiskhostmap_probe props='%s'", data)
+        self.log("vdiskhostmap_probe props='%s'", data)
         return props
 
     def vdiskhostmap_create(self):
@@ -203,7 +200,7 @@ class IBMSVCvdiskhostmap(object):
             self.module.fail_json(msg="You must pass in host "
                                       "name to the module.")
 
-        self.debug("creating vdiskhostmap '%s' '%s'", self.volname, self.host)
+        self.log("creating vdiskhostmap '%s' '%s'", self.volname, self.host)
 
         # Make command
         cmd = 'mkvdiskhostmap'
@@ -211,35 +208,34 @@ class IBMSVCvdiskhostmap(object):
         cmdopts['host'] = self.host
         cmdargs = [self.volname]
 
-        self.debug("creating vdiskhostmap command %s opts %s args %s",
-                   cmd, cmdopts, cmdargs)
+        self.log("creating vdiskhostmap command %s opts %s args %s",
+                 cmd, cmdopts, cmdargs)
 
         # Run command
         result = self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-        self.debug("create vdiskhostmap result %s", result)
+        self.log("create vdiskhostmap result %s", result)
 
         if 'message' in result:
             self.changed = True
-            self.debug("create vdiskhostmap result message %s",
-                       result['message'])
+            self.log("create vdiskhostmap result message %s",
+                     result['message'])
         else:
-            self.module.fail_json(
-                msg="Failed to create vdiskhostmap [%s]" % self.name)
+            self.module.fail_json(msg="Failed to create vdiskhostmap.")
 
     def vdiskhostmap_update(self, modify):
         # update the vdiskhostmap
-        self.debug("updating vdiskhostmap")
+        self.log("updating vdiskhostmap")
 
         if 'host_name' in modify:
-            self.debug("host name is changed. ")
+            self.log("host name is changed.")
 
         if 'volname' in modify:
-            self.debug("vol name is changed. ")
+            self.log("vol name is changed.")
 
         self.changed = True
 
     def vdiskhostmap_delete(self):
-        self.debug("deleting vdiskhostmap '%s'", self.volname)
+        self.log("deleting vdiskhostmap '%s'", self.volname)
 
         cmd = 'rmvdiskhostmap'
         cmdopts = {}
@@ -258,12 +254,12 @@ class IBMSVCvdiskhostmap(object):
         modify = []
 
         vdiskhostmap_data = self.get_existing_vdiskhostmap()
-        self.debug("Chun 1 : '%s'", vdiskhostmap_data)
+        self.log("volume mapping data is : '%s'", vdiskhostmap_data)
 
         if vdiskhostmap_data:
             if self.state == 'absent':
-                self.debug("CHANGED: vdiskhostmap exists, "
-                           "but requested state is 'absent'")
+                self.log("vdiskhostmap exists, "
+                         "and requested state is 'absent'")
                 changed = True
             elif self.state == 'present':
                 # This is where we detect if chvdisk should be called
@@ -272,13 +268,13 @@ class IBMSVCvdiskhostmap(object):
                     changed = True
         else:
             if self.state == 'present':
-                self.debug("CHANGED: vdiskhostmap does not exist, "
-                           "but requested state is 'present'")
+                self.log("vdiskhostmap does not exist, "
+                         "but requested state is 'present'")
                 changed = True
 
         if changed:
             if self.module.check_mode:
-                self.debug('skipping changes due to check mode')
+                self.log('skipping changes due to check mode')
             else:
                 if self.state == 'present':
                     if not vdiskhostmap_data:
@@ -294,7 +290,7 @@ class IBMSVCvdiskhostmap(object):
                     self.vdiskhostmap_delete()
                     msg = "vdiskhostmap [%s] has been deleted." % self.volname
         else:
-            self.debug("exiting with no changes")
+            self.log("exiting with no changes")
             if self.state == 'absent':
                 msg = "vdiskhostmap [%s] did not exist." % self.volname
             else:
@@ -308,7 +304,7 @@ def main():
     try:
         v.apply()
     except Exception as e:
-        v.debug("Exception in apply(): \n%s", format_exc())
+        v.log("Exception in apply(): \n%s", format_exc())
         v.module.fail_json(msg="Module failed. Error [%s]." % to_native(e))
 
 

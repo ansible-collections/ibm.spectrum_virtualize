@@ -137,9 +137,9 @@ EXAMPLES = '''
         log_path: /tmp/playbook.debug
         name: host4test
         state: present
-        fcwwpn: 100000109B570216
+        fcwwpn: 100000109B570216:1000001AA0570266
         iogrp: 0:1:2:3
-        protocol: fc
+        protocol: scsi
         type: generic
 
 - name: Using the IBM Spectrum Virtualize collection to delete a host
@@ -163,11 +163,9 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
-import logging
 from traceback import format_exc
-
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi, svc_argument_spec
+from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi, svc_argument_spec, get_logger
 from ansible.module_utils._text import to_native
 
 
@@ -195,10 +193,8 @@ class IBMSVChost(object):
 
         # logging setup
         log_path = self.module.params['log_path']
-        self._logger = logging.getLogger(self.__class__.__name__)
-        self.debug = self._logger.debug
-        if log_path:
-            logging.basicConfig(level=logging.DEBUG, filename=log_path)
+        log = get_logger(self.__class__.__name__, log_path)
+        self.log = log.info
 
         # Required
         self.name = self.module.params['name']
@@ -247,7 +243,7 @@ class IBMSVChost(object):
         if props is []:
             props = None
 
-        self.debug("host_probe props='%s'", data)
+        self.log("host_probe props='%s'", data)
         return props
 
     def host_create(self):
@@ -266,11 +262,11 @@ class IBMSVChost(object):
             self.module.fail_json(msg="You must pass in protocol "
                                       "to the module.")
 
-        self.debug("creating host '%s'", self.name)
+        self.log("creating host '%s'", self.name)
 
         # Make command
         cmd = 'mkhost'
-        cmdopts = {}
+        cmdopts = {'name': self.name, 'force': True}
         if self.fcwwpn:
             cmdopts['fcwwpn'] = self.fcwwpn
         elif self.iscsiname:
@@ -283,24 +279,23 @@ class IBMSVChost(object):
         if self.type:
             cmdopts['type'] = self.type
 
-        cmdopts['name'] = self.name
-        self.debug("creating host command '%s' opts '%s'",
-                   self.fcwwpn, self.type)
+        self.log("creating host command '%s' opts '%s'",
+                 self.fcwwpn, self.type)
 
         # Run command
         result = self.restapi.svc_run_command(cmd, cmdopts, cmdargs=None)
-        self.debug("create host result '%s'", result)
+        self.log("create host result '%s'", result)
 
         if 'message' in result:
             self.changed = True
-            self.debug("create host result message '%s'", (result['message']))
+            self.log("create host result message '%s'", (result['message']))
         else:
             self.module.fail_json(
                 msg="Failed to create host [%s]" % self.name)
 
     def host_update(self, modify):
         # update the host
-        self.debug("updating host '%s'", self.name)
+        self.log("updating host '%s'", self.name)
 
         cmd = 'chhost'
         cmdopts = {}
@@ -317,7 +312,7 @@ class IBMSVChost(object):
         self.changed = True
 
     def host_delete(self):
-        self.debug("deleting host '%s'", self.name)
+        self.log("deleting host '%s'", self.name)
 
         cmd = 'rmhost'
         cmdopts = None
@@ -338,8 +333,8 @@ class IBMSVChost(object):
 
         if host_data:
             if self.state == 'absent':
-                self.debug("CHANGED: host exists, but requested "
-                           "state is 'absent'")
+                self.log("CHANGED: host exists, but requested "
+                         "state is 'absent'")
                 changed = True
             elif self.state == 'present':
                 # This is where we detect if chhost should be called
@@ -348,31 +343,31 @@ class IBMSVChost(object):
                     changed = True
         else:
             if self.state == 'present':
-                self.debug("CHANGED: host does not exist, "
-                           "but requested state is 'present'")
+                self.log("CHANGED: host does not exist, "
+                         "but requested state is 'present'")
                 changed = True
 
         if changed:
             if self.module.check_mode:
-                self.debug('skipping changes due to check mode')
+                self.log('skipping changes due to check mode')
             else:
                 if self.state == 'present':
                     if not host_data:
                         self.host_create()
-                        msg = "host %s has been created." % (self.name)
+                        msg = "host %s has been created." % self.name
                     else:
                         # This is where we would modify
                         self.host_update(modify)
-                        msg = "host [%s] has been modified." % (self.name)
+                        msg = "host [%s] has been modified." % self.name
                 elif self.state == 'absent':
                     self.host_delete()
-                    msg = "host [%s] has been deleted." % (self.name)
+                    msg = "host [%s] has been deleted." % self.name
         else:
-            self.debug("exiting with no changes")
+            self.log("exiting with no changes")
             if self.state == 'absent':
-                msg = "host [%s] did not exist." % (self.name)
+                msg = "host [%s] did not exist." % self.name
             else:
-                msg = "host [%s] already exists." % (self.name)
+                msg = "host [%s] already exists." % self.name
 
         self.module.exit_json(msg=msg, changed=changed)
 
@@ -382,7 +377,7 @@ def main():
     try:
         v.apply()
     except Exception as e:
-        v.debug("Exception in apply(): \n%s", format_exc())
+        v.log("Exception in apply(): \n%s", format_exc())
         v.module.fail_json(msg="Module failed. Error [%s]." % to_native(e))
 
 

@@ -91,11 +91,10 @@ options:
                      view of FlashCopy consistency groups
     - iscsiport - lists information for iSCSI ports
     - vdiskcopy - lists information for volume copy
-    - nf - lists information for NVMe fabric
     - array - lists information for array MDisks
     - system - displays the storage system information
     choices: [vol, pool, node, iog, host, hc, fcport
-              , iscsiport, nf, fcmap, fc, fcconsistgrp
+              , iscsiport, fcmap, fc, fcconsistgrp
               , vdiskcopy, 'targetportfc', array, system, all]
     default: "all"
 '''
@@ -140,11 +139,9 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
-import logging
 from traceback import format_exc
-
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi, svc_argument_spec
+from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi, svc_argument_spec, get_logger
 from ansible.module_utils._text import to_native
 
 
@@ -169,7 +166,6 @@ class IBMSVCGatherInfo(object):
                                             'targetportfc',
                                             'iscsiport',
                                             'fcmap',
-                                            'nf',
                                             'fcconsistgrp',
                                             'vdiskcopy',
                                             'array',
@@ -184,9 +180,7 @@ class IBMSVCGatherInfo(object):
 
         # logging setup
         log_path = self.module.params['log_path']
-        self.log = logging.getLogger(self.__class__.__name__)
-        if log_path:
-            logging.basicConfig(level=logging.DEBUG, filename=log_path)
+        self.log = get_logger(self.__class__.__name__, log_path)
         self.name = self.module.params['name']
 
         self.restapi = IBMSVCRestApi(
@@ -344,19 +338,6 @@ class IBMSVCGatherInfo(object):
             self.log.error(msg)
             self.module.fail_json(msg=msg)
 
-    def get_nvme_fabric_list(self):
-        try:
-            nf = self.restapi.svc_obj_info(cmd='lsnvmefabric', cmdopts=None,
-                                           cmdargs=None)
-            self.log.info('Successfully listed %d nvme fabric from array %s',
-                          len(nf), self.module.params['clustername'])
-            return nf
-        except Exception as e:
-            msg = ('Get NvMe Fabric from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
     def get_array_list(self):
         try:
             array = self.restapi.svc_obj_info(cmd='lsarray', cmdopts=None,
@@ -419,7 +400,7 @@ class IBMSVCGatherInfo(object):
         if len(subset) == 0 or 'all' in subset:
             self.log.info("The default value for gather_subset is all")
             subset = ['vol', 'pool', 'node', 'iog', 'host', 'hc', 'fc',
-                      'fcport', 'iscsiport', 'fcmap', 'nf', 'fcconsistgrp',
+                      'fcport', 'iscsiport', 'fcmap', 'fcconsistgrp',
                       'vdiskcopy', 'targetportfc', 'array', 'system']
 
         vol = []
@@ -433,7 +414,6 @@ class IBMSVCGatherInfo(object):
         targetportfc = []
         iscsiport = []
         fcmap = []
-        nf = []
         fcconsistgrp = []
         vdiskcopy = []
         array = []
@@ -461,8 +441,6 @@ class IBMSVCGatherInfo(object):
             iscsiport = self.get_iscsi_ports_list()
         if 'fcmap' in subset:
             fcmap = self.get_fc_map_list()
-        if 'nf' in subset:
-            nf = self.get_nvme_fabric_list()
         if 'fcconsistgrp' in subset:
             fcconsistgrp = self.get_fcconsistgrp_list()
         if 'vdiskcopy' in subset:
@@ -486,7 +464,6 @@ class IBMSVCGatherInfo(object):
             TargetPortFC=targetportfc,
             iSCSIPorts=iscsiport,
             FCMaps=fcmap,
-            NvMeFabric=nf,
             Array=array,
             System=system)
 

@@ -128,11 +128,9 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
-import logging
 from traceback import format_exc
-
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi, svc_argument_spec
+from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi, svc_argument_spec, get_logger
 from ansible.module_utils._text import to_native
 
 
@@ -160,10 +158,8 @@ class IBMSVCvdisk(object):
 
         # logging setup
         log_path = self.module.params['log_path']
-        self._logger = logging.getLogger(self.__class__.__name__)
-        self.debug = self._logger.debug
-        if log_path:
-            logging.basicConfig(level=logging.DEBUG, filename=log_path)
+        log = get_logger(self.__class__.__name__, log_path)
+        self.log = log.info
 
         # Required
         self.name = self.module.params['name']
@@ -211,7 +207,7 @@ class IBMSVCvdisk(object):
         if props is []:
             props = None
 
-        self.debug("vdisk_probe props='%s'", data)
+        self.log("vdisk_probe props='%s'", data)
         return props
 
     def vdisk_create(self):
@@ -227,7 +223,7 @@ class IBMSVCvdisk(object):
         if not self.unit:
             self.module.fail_json(msg="You must pass in unit to the module.")
 
-        self.debug("creating vdisk '%s'", self.name)
+        self.log("creating vdisk '%s'", self.name)
 
         # Make command
         cmd = 'mkvdisk'
@@ -241,22 +237,22 @@ class IBMSVCvdisk(object):
         if self.easytier:
             cmdopts['easytier'] = self.easytier
         cmdopts['name'] = self.name
-        self.debug("creating vdisk command %s opts %s", cmd, cmdopts)
+        self.log("creating vdisk command %s opts %s", cmd, cmdopts)
 
         # Run command
         result = self.restapi.svc_run_command(cmd, cmdopts, cmdargs=None)
-        self.debug("create vdisk result %s", result)
+        self.log("create vdisk result %s", result)
 
         if 'message' in result:
             self.changed = True
-            self.debug("create vdisk result message %s", result['message'])
+            self.log("create vdisk result message %s", result['message'])
         else:
             self.module.fail_json(
                 msg="Failed to create vdisk [%s]" % self.name)
 
     def vdisk_update(self, modify):
         # update the vdisk
-        self.debug("updating vdisk '%s'", self.name)
+        self.log("updating vdisk '%s'", self.name)
 
         cmd = 'chvdisk'
         cmdopts = {}
@@ -273,7 +269,7 @@ class IBMSVCvdisk(object):
         self.changed = True
 
     def vdisk_delete(self):
-        self.debug("deleting vdisk '%s'", self.name)
+        self.log("deleting vdisk '%s'", self.name)
 
         cmd = 'rmvdisk'
         cmdopts = None
@@ -294,8 +290,8 @@ class IBMSVCvdisk(object):
 
         if vdisk_data:
             if self.state == 'absent':
-                self.debug("CHANGED: vdisk exists, but requested "
-                           "state is 'absent'")
+                self.log("CHANGED: vdisk exists, but requested "
+                         "state is 'absent'")
                 changed = True
             elif self.state == 'present':
                 # This is where we detect if chvdisk should be called
@@ -304,13 +300,13 @@ class IBMSVCvdisk(object):
                     changed = True
         else:
             if self.state == 'present':
-                self.debug("CHANGED: vdisk does not exist, "
-                           "but requested state is 'present'")
+                self.log("CHANGED: vdisk does not exist, "
+                         "but requested state is 'present'")
                 changed = True
 
         if changed:
             if self.module.check_mode:
-                self.debug('skipping changes due to check mode')
+                self.log('skipping changes due to check mode')
             else:
                 if self.state == 'present':
                     if not vdisk_data:
@@ -324,7 +320,7 @@ class IBMSVCvdisk(object):
                     self.vdisk_delete()
                     msg = "vdisk [%s] has been deleted." % self.name
         else:
-            self.debug("exiting with no changes")
+            self.log("exiting with no changes")
             if self.state == 'absent':
                 msg = "vdisk [%s] did not exist." % self.name
             else:
@@ -338,7 +334,7 @@ def main():
     try:
         v.apply()
     except Exception as e:
-        v.debug("Exception in apply(): \n%s", format_exc())
+        v.log("Exception in apply(): \n%s", format_exc())
         v.module.fail_json(msg="Module failed. Error [%s]." % to_native(e))
 
 

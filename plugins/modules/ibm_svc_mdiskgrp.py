@@ -138,12 +138,10 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
-import logging
 from traceback import format_exc
-
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_native
-from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi, svc_argument_spec
+from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi, svc_argument_spec, get_logger
 
 
 class IBMSVCmdiskgrp(object):
@@ -174,10 +172,8 @@ class IBMSVCmdiskgrp(object):
 
         # logging setup
         log_path = self.module.params['log_path']
-        self._logger = logging.getLogger(self.__class__.__name__)
-        self.debug = self._logger.debug
-        if log_path:
-            logging.basicConfig(level=logging.DEBUG, filename=log_path)
+        log = get_logger(self.__class__.__name__, log_path)
+        self.log = log.info
 
         # Required
         self.name = self.module.params['name']
@@ -217,7 +213,7 @@ class IBMSVCmdiskgrp(object):
         # if not self.ext:
         #    self.module.fail_json(msg="You must pass in ext to the module.")
 
-        self.debug("creating mdisk group '%s'", self.name)
+        self.log("creating mdisk group '%s'", self.name)
 
         # Make command
         cmd = 'mkmdiskgrp'
@@ -241,22 +237,22 @@ class IBMSVCmdiskgrp(object):
             if self.ext:
                 cmdopts['ext'] = str(self.ext)
         cmdopts['name'] = self.name
-        self.debug("creating mdisk group command %s opts %s", cmd, cmdopts)
+        self.log("creating mdisk group command %s opts %s", cmd, cmdopts)
 
         # Run command
         result = self.restapi.svc_run_command(cmd, cmdopts, cmdargs=None)
-        self.debug("creating mdisk group result %s", result)
+        self.log("creating mdisk group result %s", result)
 
         if 'message' in result:
             self.changed = True
-            self.debug("creating mdisk group command result message %s",
-                       result['message'])
+            self.log("creating mdisk group command result message %s",
+                     result['message'])
         else:
             self.module.fail_json(
                 msg="Failed to create mdisk group [%s]" % (self.name))
 
     def mdiskgrp_delete(self):
-        self.debug("deleting mdiskgrp '%s'", self.name)
+        self.log("deleting mdiskgrp '%s'", self.name)
 
         cmd = 'rmmdiskgrp'
         cmdopts = None
@@ -270,7 +266,7 @@ class IBMSVCmdiskgrp(object):
 
     def mdiskgrp_update(self, modify):
         # updte the mdisk group
-        self.debug("updating mdiskgrp '%s'", self.name)
+        self.log("updating mdiskgrp '%s'", self.name)
 
         # cmd = 'chmdiskgrp'
         # cmdopts = {}
@@ -297,7 +293,7 @@ class IBMSVCmdiskgrp(object):
         if props is []:
             props = None
 
-        self.debug("mdiskgrp_probe props='%s'", data)
+        self.log("mdiskgrp_probe props='%s'", data)
         return props
 
     def apply(self):
@@ -309,8 +305,8 @@ class IBMSVCmdiskgrp(object):
 
         if mdiskgrp_data:
             if self.state == 'absent':
-                self.debug("CHANGED: mdisk group exists, "
-                           "but requested state is 'absent'")
+                self.log("CHANGED: mdisk group exists, "
+                         "but requested state is 'absent'")
                 changed = True
             elif self.state == 'present':
                 # This is where we detect if chmdiskgrp should be called.
@@ -319,13 +315,13 @@ class IBMSVCmdiskgrp(object):
                     changed = True
         else:
             if self.state == 'present':
-                self.debug("CHANGED: mdisk group does not exist, "
-                           "but requested state is 'present'")
+                self.log("CHANGED: mdisk group does not exist, "
+                         "but requested state is 'present'")
                 changed = True
 
         if changed:
             if self.module.check_mode:
-                self.debug('skipping changes due to check mode')
+                self.log('skipping changes due to check mode')
             else:
                 if self.state == 'present':
                     if not mdiskgrp_data:
@@ -340,7 +336,7 @@ class IBMSVCmdiskgrp(object):
                     self.mdiskgrp_delete()
                     msg = "Volume [%s] has been deleted." % self.name
         else:
-            self.debug("exiting with no changes")
+            self.log("exiting with no changes")
             if self.state == 'absent':
                 msg = "Mdisk group [%s] did not exist." % self.name
             else:
@@ -354,7 +350,7 @@ def main():
     try:
         v.apply()
     except Exception as e:
-        v.debug("Exception in apply(): \n%s", format_exc())
+        v.log("Exception in apply(): \n%s", format_exc())
         v.module.fail_json(msg="Module failed. Error [%s]." % to_native(e))
 
 

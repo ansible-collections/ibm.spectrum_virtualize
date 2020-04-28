@@ -123,11 +123,10 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
-import logging
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_native
-from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi, svc_argument_spec
+from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi, svc_argument_spec, get_logger
 
 
 class IBMSVCmdisk(object):
@@ -154,10 +153,8 @@ class IBMSVCmdisk(object):
 
         # logging setup
         log_path = self.module.params['log_path']
-        self._logger = logging.getLogger(self.__class__.__name__)
-        self.debug = self._logger.debug
-        if log_path:
-            logging.basicConfig(level=logging.DEBUG, filename=log_path)
+        log = get_logger(self.__class__.__name__, log_path)
+        self.log = log.info
 
         # Required
         self.name = self.module.params['name']
@@ -198,7 +195,7 @@ class IBMSVCmdisk(object):
             self.module.fail_json(msg="You must pass in "
                                       "mdiskgrp to the module.")
 
-        self.debug("creating mdisk '%s'", self.name)
+        self.log("creating mdisk '%s'", self.name)
 
         # Make command
         cmd = 'mkarray'
@@ -211,22 +208,22 @@ class IBMSVCmdisk(object):
             cmdopts['encrypt'] = self.encrypt
         cmdopts['name'] = self.name
         cmdargs = [self.mdiskgrp]
-        self.debug("creating mdisk command=%s opts=%s args=%s",
-                   cmd, cmdopts, cmdargs)
+        self.log("creating mdisk command=%s opts=%s args=%s",
+                 cmd, cmdopts, cmdargs)
 
         # Run command
         result = self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-        self.debug("create mdisk result %s", result)
+        self.log("create mdisk result %s", result)
 
         if 'message' in result:
             self.changed = True
-            self.debug("create mdisk result message %s", result['message'])
+            self.log("create mdisk result message %s", result['message'])
         else:
             self.module.fail_json(
-                msg="Failed to create mdisk [%s]" % (self.name))
+                msg="Failed to create mdisk [%s]" % self.name)
 
     def mdisk_delete(self):
-        self.debug("deleting mdisk '%s'", self.name)
+        self.log("deleting mdisk '%s'", self.name)
         cmd = 'rmmdisk'
         cmdopts = {}
         cmdopts['mdisk'] = self.name
@@ -240,7 +237,7 @@ class IBMSVCmdisk(object):
 
     def mdisk_update(self, modify):
         # update the mdisk
-        self.debug("updating mdisk '%s'", self.name)
+        self.log("updating mdisk '%s'", self.name)
 
         # cmd = 'chmdisk'
         # cmdopts = {}
@@ -265,7 +262,7 @@ class IBMSVCmdisk(object):
         if props is []:
             props = None
 
-        self.debug("mdisk_probe props='%s'", data)
+        self.log("mdisk_probe props='%s'", data)
         return props
 
     def apply(self):
@@ -277,8 +274,8 @@ class IBMSVCmdisk(object):
 
         if mdisk_data:
             if self.state == 'absent':
-                self.debug("CHANGED: mdisk exists, but "
-                           "requested state is 'absent'")
+                self.log("CHANGED: mdisk exists, but "
+                         "requested state is 'absent'")
                 changed = True
             elif self.state == 'present':
                 # This is where we detect if chmdisk should be called.
@@ -287,13 +284,13 @@ class IBMSVCmdisk(object):
                     changed = True
         else:
             if self.state == 'present':
-                self.debug("CHANGED: mdisk does not exist, "
-                           "but requested state is 'present'")
+                self.log("CHANGED: mdisk does not exist, "
+                         "but requested state is 'present'")
                 changed = True
 
         if changed:
             if self.module.check_mode:
-                self.debug('skipping changes due to check mode')
+                self.log('skipping changes due to check mode')
             else:
                 if self.state == 'present':
                     if not mdisk_data:
@@ -308,7 +305,7 @@ class IBMSVCmdisk(object):
                     self.mdisk_delete()
                     msg = "Volume [%s] has been deleted." % self.name
         else:
-            self.debug("exiting with no changes")
+            self.log("exiting with no changes")
             if self.state == 'absent':
                 msg = "Mdisk [%s] did not exist." % self.name
             else:
@@ -322,7 +319,7 @@ def main():
     try:
         v.apply()
     except Exception as e:
-        v.debug("Exception in apply(): \n%s", format_exc())
+        v.log("Exception in apply(): \n%s", format_exc())
         v.module.fail_json(msg="Module failed. Error [%s]." % to_native(e))
 
 
