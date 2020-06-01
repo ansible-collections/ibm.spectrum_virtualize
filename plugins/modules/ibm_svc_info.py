@@ -67,6 +67,11 @@ options:
     description:
     - Validate certification
     type: bool
+  objectname:
+    description:
+    - If specified, only the instance with the 'objectname' will be returned. If
+      not specified, all the instances will be returned.
+    type: str
   gather_subset:
     type: list
     required: False
@@ -87,15 +92,18 @@ options:
                      FC zoning and to display the current failover status
                      of host I/O ports
     - fcmap - lists information for FC maps
+    - rcrelationship - lists information for RemoteCopy relationships
     - fcconsistgrp - displays a concise list or a detailed
                      view of FlashCopy consistency groups
+    - rcconsistgrp - displays a concise list or a detailed
+                     view of RemoteCopy consistency groups
     - iscsiport - lists information for iSCSI ports
     - vdiskcopy - lists information for volume copy
     - array - lists information for array MDisks
     - system - displays the storage system information
     choices: [vol, pool, node, iog, host, hc, fcport
-              , iscsiport, fcmap, fc, fcconsistgrp
-              , vdiskcopy, 'targetportfc', array, system, all]
+              , iscsiport, fc, fcmap, fcconsistgrp, rcrelationship, rcconsistgrp
+              , vdiskcopy, targetportfc, array, system, all]
     default: "all"
 '''
 
@@ -153,6 +161,7 @@ class IBMSVCGatherInfo(object):
             dict(
                 name=dict(type='str', required=True),
                 state=dict(type='str', default='info', choices=['info']),
+                objectname=dict(type='str'),
                 gather_subset=dict(type='list', required=False,
                                    default=['all'],
                                    choices=['vol',
@@ -166,7 +175,9 @@ class IBMSVCGatherInfo(object):
                                             'targetportfc',
                                             'iscsiport',
                                             'fcmap',
+                                            'rcrelationship',
                                             'fcconsistgrp',
+                                            'rcconsistgrp',
                                             'vdiskcopy',
                                             'array',
                                             'system',
@@ -182,6 +193,7 @@ class IBMSVCGatherInfo(object):
         log_path = self.module.params['log_path']
         self.log = get_logger(self.__class__.__name__, log_path)
         self.name = self.module.params['name']
+        self.objectname = self.module.params['objectname']
 
         self.restapi = IBMSVCRestApi(
             module=self.module,
@@ -195,8 +207,9 @@ class IBMSVCGatherInfo(object):
 
     def get_volumes_list(self):
         try:
+            cmdargs = [self.objectname] if self.objectname else None
             vols = self.restapi.svc_obj_info(cmd='lsvdisk', cmdopts=None,
-                                             cmdargs=None)
+                                             cmdargs=cmdargs)
             self.log.info("Successfully listed %d volumes from array %s",
                           len(vols), self.module.params['clustername'])
             return vols
@@ -208,8 +221,9 @@ class IBMSVCGatherInfo(object):
 
     def get_pools_list(self):
         try:
+            cmdargs = [self.objectname] if self.objectname else None
             pools = self.restapi.svc_obj_info(cmd='lsmdiskgrp', cmdopts=None,
-                                              cmdargs=None)
+                                              cmdargs=cmdargs)
             self.log.info('Successfully listed %d pools from array '
                           '%s', len(pools), self.module.params['clustername'])
             return pools
@@ -221,8 +235,9 @@ class IBMSVCGatherInfo(object):
 
     def get_nodes_list(self):
         try:
+            cmdargs = [self.objectname] if self.objectname else None
             nodes = self.restapi.svc_obj_info(cmd='lsnode', cmdopts=None,
-                                              cmdargs=None)
+                                              cmdargs=cmdargs)
             self.log.info('Successfully listed %d pools from array %s',
                           len(nodes), self.module.params['clustername'])
             return nodes
@@ -234,8 +249,9 @@ class IBMSVCGatherInfo(object):
 
     def get_hosts_list(self):
         try:
+            cmdargs = [self.objectname] if self.objectname else None
             hosts = self.restapi.svc_obj_info(cmd='lshost', cmdopts=None,
-                                              cmdargs=None)
+                                              cmdargs=cmdargs)
             self.log.info('Successfully listed %d hosts from array '
                           '%s', len(hosts), self.module.params['clustername'])
             return hosts
@@ -247,8 +263,9 @@ class IBMSVCGatherInfo(object):
 
     def get_iogroups_list(self):
         try:
+            cmdargs = [self.objectname] if self.objectname else None
             iogrps = self.restapi.svc_obj_info(cmd='lsiogrp', cmdopts=None,
-                                               cmdargs=None)
+                                               cmdargs=cmdargs)
             self.log.info('Successfully listed %d hosts from array '
                           '%s', len(iogrps), self.module.params['clustername'])
             return iogrps
@@ -260,8 +277,9 @@ class IBMSVCGatherInfo(object):
 
     def get_host_clusters_list(self):
         try:
+            cmdargs = [self.objectname] if self.objectname else None
             hcs = self.restapi.svc_obj_info(cmd='lshostcluster', cmdopts=None,
-                                            cmdargs=None)
+                                            cmdargs=cmdargs)
             self.log.info('Successfully listed %d host clusters from array '
                           '%s', len(hcs), self.module.params['clustername'])
             return hcs
@@ -273,8 +291,9 @@ class IBMSVCGatherInfo(object):
 
     def get_fc_connectivity_list(self):
         try:
+            cmdargs = [self.objectname] if self.objectname else None
             fc = self.restapi.svc_obj_info(cmd='lsfabric', cmdopts=None,
-                                           cmdargs=None)
+                                           cmdargs=cmdargs)
             self.log.info('Successfully listed %d fc connectivity from array '
                           '%s', len(fc), self.module.params['clustername'])
             return fc
@@ -286,8 +305,9 @@ class IBMSVCGatherInfo(object):
 
     def get_fc_ports_list(self):
         try:
+            cmdargs = [self.objectname] if self.objectname else None
             fcports = self.restapi.svc_obj_info(cmd='lsportfc', cmdopts=None,
-                                                cmdargs=None)
+                                                cmdargs=cmdargs)
             self.log.info('Successfully listed %d fc ports from array %s',
                           len(fcports), self.module.params['clustername'])
             return fcports
@@ -299,9 +319,10 @@ class IBMSVCGatherInfo(object):
 
     def get_target_port_fc_list(self):
         try:
+            cmdargs = [self.objectname] if self.objectname else None
             targetportfc = self.restapi.svc_obj_info(cmd='lstargetportfc',
                                                      cmdopts=None,
-                                                     cmdargs=None)
+                                                     cmdargs=cmdargs)
             self.log.info('Successfully listed %d target port fc '
                           'from array %s', len(targetportfc),
                           self.module.params['clustername'])
@@ -314,8 +335,9 @@ class IBMSVCGatherInfo(object):
 
     def get_iscsi_ports_list(self):
         try:
+            cmdargs = [self.objectname] if self.objectname else None
             ipports = self.restapi.svc_obj_info(cmd='lsportip', cmdopts=None,
-                                                cmdargs=None)
+                                                cmdargs=cmdargs)
             self.log.info('Successfully listed %d iscsi ports from array %s',
                           len(ipports), self.module.params['clustername'])
             return ipports
@@ -327,8 +349,9 @@ class IBMSVCGatherInfo(object):
 
     def get_fc_map_list(self):
         try:
+            cmdargs = [self.objectname] if self.objectname else None
             fcmaps = self.restapi.svc_obj_info(cmd='lsfcmap', cmdopts=None,
-                                               cmdargs=None)
+                                               cmdargs=cmdargs)
             self.log.info('Successfully listed %d fc maps from array %s',
                           len(fcmaps), self.module.params['clustername'])
             return fcmaps
@@ -338,10 +361,26 @@ class IBMSVCGatherInfo(object):
             self.log.error(msg)
             self.module.fail_json(msg=msg)
 
+    def get_rcrel_list(self):
+        try:
+            cmdargs = [self.objectname] if self.objectname else None
+            rcrel = self.restapi.svc_obj_info(cmd='lsrcrelationship',
+                                              cmdopts=None,
+                                              cmdargs=cmdargs)
+            self.log.info('Successfully listed %d remotecopy from array %s',
+                          len(rcrel), self.module.params['clustername'])
+            return rcrel
+        except Exception as e:
+            msg = ('Get remotecopies from array %s failed with error %s ',
+                   self.module.params['clustername'], str(e))
+            self.log.error(msg)
+            self.module.fail_json(msg=msg)
+
     def get_array_list(self):
         try:
+            cmdargs = [self.objectname] if self.objectname else None
             array = self.restapi.svc_obj_info(cmd='lsarray', cmdopts=None,
-                                              cmdargs=None)
+                                              cmdargs=cmdargs)
             self.log.info('Successfully listed %d array info from array %s',
                           len(array), self.module.params['clustername'])
             return array
@@ -353,6 +392,10 @@ class IBMSVCGatherInfo(object):
 
     def get_system_list(self):
         try:
+            cmdargs = [self.objectname] if self.objectname else None
+            if self.objectname:
+                self.log.warn('The objectname %s is ignored when retrieving '
+                              'the system information', self.objectname)
             system = self.restapi.svc_obj_info(cmd='lssystem', cmdopts=None,
                                                cmdargs=None)
             self.log.info('Successfully listed %d system info from array %s',
@@ -366,9 +409,10 @@ class IBMSVCGatherInfo(object):
 
     def get_fcconsistgrp_list(self):
         try:
+            cmdargs = [self.objectname] if self.objectname else None
             fcconsistgrp = self.restapi.svc_obj_info(cmd='lsfcconsistgrp',
                                                      cmdopts=None,
-                                                     cmdargs=None)
+                                                     cmdargs=cmdargs)
             self.log.info('Successfully listed %d fcconsistgrp info '
                           'from array %s', len(fcconsistgrp),
                           self.module.params['clustername'])
@@ -379,11 +423,28 @@ class IBMSVCGatherInfo(object):
             self.log.error(msg)
             self.module.fail_json(msg=msg)
 
+    def get_rcconsistgrp_list(self):
+        try:
+            cmdargs = [self.objectname] if self.objectname else None
+            rcconsistgrp = self.restapi.svc_obj_info(cmd='lsrcconsistgrp',
+                                                     cmdopts=None,
+                                                     cmdargs=cmdargs)
+            self.log.info('Successfully listed %d rcconsistgrp info '
+                          'from array %s', len(rcconsistgrp),
+                          self.module.params['clustername'])
+            return rcconsistgrp
+        except Exception as e:
+            msg = ('Get rcconsistgrp info from array %s failed with error %s ',
+                   self.module.params['clustername'], str(e))
+            self.log.error(msg)
+            self.module.fail_json(msg=msg)
+
     def get_vdiskcopy_list(self):
         try:
+            cmdargs = [self.objectname] if self.objectname else None
             vdiskcopy = self.restapi.svc_obj_info(cmd='lsvdiskcopy',
                                                   cmdopts=None,
-                                                  cmdargs=None)
+                                                  cmdargs=cmdargs)
             self.log.info('Successfully listed %d vdiskcopy info '
                           'from array %s', len(vdiskcopy),
                           self.module.params['clustername'])
@@ -395,13 +456,18 @@ class IBMSVCGatherInfo(object):
             self.module.fail_json(msg=msg)
 
     def apply(self):
-
+        all = ['vol', 'pool', 'node', 'iog', 'host', 'hc', 'fc',
+               'fcport', 'iscsiport', 'fcmap', 'rcrelationship',
+               'fcconsistgrp', 'rcconsistgrp', 'vdiskcopy',
+               'targetportfc', 'array', 'system']
         subset = self.module.params['gather_subset']
+        if self.objectname and len(subset) != 1:
+            msg = ("objectname(%s) is specified while gather_subset(%s) is not "
+                   "one of %s" % (self.objectname, self.subset, all))
+            self.module.fail_json(msg=msg)
         if len(subset) == 0 or 'all' in subset:
             self.log.info("The default value for gather_subset is all")
-            subset = ['vol', 'pool', 'node', 'iog', 'host', 'hc', 'fc',
-                      'fcport', 'iscsiport', 'fcmap', 'fcconsistgrp',
-                      'vdiskcopy', 'targetportfc', 'array', 'system']
+            subset = all
 
         vol = []
         pool = []
@@ -415,6 +481,8 @@ class IBMSVCGatherInfo(object):
         iscsiport = []
         fcmap = []
         fcconsistgrp = []
+        rcrelationship = []
+        rcconsistgrp = []
         vdiskcopy = []
         array = []
         system = []
@@ -443,6 +511,10 @@ class IBMSVCGatherInfo(object):
             fcmap = self.get_fc_map_list()
         if 'fcconsistgrp' in subset:
             fcconsistgrp = self.get_fcconsistgrp_list()
+        if 'rcrelationship' in subset:
+            rcrelationship = self.get_rcrel_list()
+        if 'rcconsistgrp' in subset:
+            rcconsistgrp = self.get_rcconsistgrp_list()
         if 'vdiskcopy' in subset:
             vdiskcopy = self.get_vdiskcopy_list()
         if 'array' in subset:
@@ -451,19 +523,21 @@ class IBMSVCGatherInfo(object):
             system = self.get_system_list()
 
         self.module.exit_json(
-            Volumes=vol,
-            Pools=pool,
-            Nodes=node,
+            Volume=vol,
+            Pool=pool,
+            Node=node,
             IOGroup=iog,
-            Hosts=host,
-            HostClusters=hc,
-            FCConnectivity=fc,
+            Host=host,
+            HostCluster=hc,
+            FCConnectivitie=fc,
             FCConsistgrp=fcconsistgrp,
+            RCConsistgrp=rcconsistgrp,
             VdiskCopy=vdiskcopy,
-            FCPorts=fcport,
+            FCPort=fcport,
             TargetPortFC=targetportfc,
-            iSCSIPorts=iscsiport,
-            FCMaps=fcmap,
+            iSCSIPort=iscsiport,
+            FCMap=fcmap,
+            RemoteCopy=rcrelationship,
             Array=array,
             System=system)
 
