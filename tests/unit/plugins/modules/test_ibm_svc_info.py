@@ -153,7 +153,7 @@ class TestIBMSVCGatherInfo(unittest.TestCase):
         with pytest.raises(AnsibleExitJson) as exc:
             IBMSVCGatherInfo().apply()
         self.assertFalse(exc.value.args[0]['changed'])
-        self.assertDictEqual(exc.value.args[0]['Hosts'][0], host_ret[0])
+        self.assertDictEqual(exc.value.args[0]['Host'][0], host_ret[0])
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
@@ -196,8 +196,8 @@ class TestIBMSVCGatherInfo(unittest.TestCase):
         with pytest.raises(AnsibleExitJson) as exc:
             IBMSVCGatherInfo().apply()
         self.assertFalse(exc.value.args[0]['changed'])
-        self.assertDictEqual(exc.value.args[0]['Hosts'][0], host_ret[0])
-        self.assertDictEqual(exc.value.args[0]['Volumes'][0], vol_ret[0])
+        self.assertDictEqual(exc.value.args[0]['Host'][0], host_ret[0])
+        self.assertDictEqual(exc.value.args[0]['Volume'][0], vol_ret[0])
 
 
 if __name__ == '__main__':
