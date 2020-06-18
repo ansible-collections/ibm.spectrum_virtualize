@@ -80,6 +80,9 @@ Alternatively, you can add a full namepsace and collection name in the `collecti
 - ibm_svc_mdiskgrp - Pool management for IBM Spectrum Virtualize
 - ibm_svc_vdisk - Volume management for IBM Spectrum Virtualize
 - ibm_svc_vol_map - Volume mapping management for IBM Spectrum Virtualize
+- ibm_svc_volume_clone - Volume clone management for IBM Spectrum Virtualize
+- ibm_svc_volume_snapshot - Volume snapshot management for IBM Spectrum Virtualize
+- ibm_svc_volume_fcconsistgrp - FlashCopy consistency groups management for IBM Spectrum Virtualize
 
 ## Limitation
 
