@@ -198,7 +198,7 @@ class IBMSVCsshClient(object):
                 stdin, stdout, stderr = self.ssh_client.client.exec_command(cmd)
                 for line in stdout.readlines():
                     message += line
-                self.log(message)
+                    self.log(line)
                 rc = stdout.channel.recv_exit_status()
                 if rc > 0:
                     result = stderr.read()
