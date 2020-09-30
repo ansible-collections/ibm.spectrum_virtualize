@@ -3,6 +3,7 @@
 
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
+#            Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
 #
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -44,21 +45,21 @@ options:
         required: true
     domain:
         description:
-            - Domain for the IBM Spectrum Virtualize storage system
+            - Domain for the Spectrum Virtualize storage system
         type: str
     username:
         description:
-            - REST API username for the IBM Spectrum Virtualize storage system
+            - REST API username for the Spectrum Virtualize storage system
         required: true
         type: str
     password:
         description:
-            - REST API password for the IBM Spectrum Virtualize storage system
+            - REST API password for the Spectrum Virtualize storage system
         required: true
         type: str
     fcwwpn:
         description:
-            - List of Initiator WWN to be added to the host
+            - List of Initiator WWPNs to be added to the host. The complete list of WWPNs must be provided.
         required: false
         type: str
     iscsiname:
@@ -69,7 +70,7 @@ options:
     iogrp:
         description:
             - Specifies a set of one or more input/output (I/O)
-              groups that the host can access the volumes from
+              groups from which the host can access the volumes
         default: '0:1:2:3'
         required: false
         type: str
@@ -89,14 +90,14 @@ options:
         type: str
     log_path:
         description:
-            - Debugs log for this file
+            - Path of debug log file
         type: str
     validate_certs:
         description:
-            - Validate certification
+            - Validates certification
         type: bool
 author:
-    - Peng Wang (@wangpww)
+    - Sreshtant Bohidar (@Sreshtant-Bohidar)
 '''
 
 EXAMPLES = '''
@@ -234,11 +235,16 @@ class IBMSVChost(object):
     # TBD: Implement a more generic way to check for properties to modify.
     def host_probe(self, data):
         props = []
-
         # TBD: The parameter is fcwwpn but the view has fcwwpn label.
         if self.type:
             if self.type != data['type']:
                 props += ['type']
+
+        if self.fcwwpn:
+            self.existing_fcwwpn = [node["WWPN"] for node in data['nodes'] if "WWPN" in node]
+            self.input_fcwwpn = self.fcwwpn.split(":")
+            if set(self.existing_fcwwpn).symmetric_difference(set(self.input_fcwwpn)):
+                props += ['fcwwpn']
 
         if props is []:
             props = None
@@ -293,23 +299,42 @@ class IBMSVChost(object):
             self.module.fail_json(
                 msg="Failed to create host [%s]" % self.name)
 
+    def host_fcwwpn_update(self):
+        to_be_removed = ':'.join(list(set(self.existing_fcwwpn) - set(self.input_fcwwpn)))
+        if to_be_removed:
+            self.restapi.svc_run_command(
+                'rmhostport',
+                {'fcwwpn': to_be_removed, 'force': True},
+                [self.name]
+            )
+            self.log('%s removed from %s', to_be_removed, self.name)
+        to_be_added = ':'.join(list(set(self.input_fcwwpn) - set(self.existing_fcwwpn)))
+        if to_be_added:
+            self.restapi.svc_run_command(
+                'addhostport',
+                {'fcwwpn': to_be_added, 'force': True},
+                [self.name]
+            )
+            self.log('%s added to %s', to_be_added, self.name)
+
     def host_update(self, modify):
         # update the host
         self.log("updating host '%s'", self.name)
-
-        cmd = 'chhost'
-        cmdopts = {}
-
         # TBD: Be smarter handling many properties.
+        if 'fcwwpn' in modify:
+            self.host_fcwwpn_update()
+            self.changed = True
+            self.log("fcwwpn of %s updated", self.name)
         if 'type' in modify:
+            cmd = 'chhost'
+            cmdopts = {}
             cmdopts['type'] = self.type
-        cmdargs = [self.name]
-
-        self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-
-        # Any error will have been raised in svc_run_command
-        # chhost does not output anything when successful.
-        self.changed = True
+            cmdargs = [self.name]
+            self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
+            # Any error will have been raised in svc_run_command
+            # chhost does not output anything when successful.
+            self.changed = True
+            self.log("type of %s updated", self.name)
 
     def host_delete(self):
         self.log("deleting host '%s'", self.name)

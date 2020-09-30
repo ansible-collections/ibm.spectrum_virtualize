@@ -3,7 +3,7 @@
 
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
-#
+#            Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
@@ -48,25 +48,25 @@ options:
     required: true
   domain:
     description:
-      - Domain for the IBM Spectrum Virtualize storage system
+      - Domain for the Spectrum Virtualize storage system
     type: str
   username:
     description:
-      - REST API username for the IBM Spectrum Virtualize storage system
+      - REST API username for the Spectrum Virtualize storage system
     required: true
     type: str
   password:
     description:
-      - REST API password for the IBM Spectrum Virtualize storage system
+      - REST API password for the Spectrum Virtualize storage system
     required: true
     type: str
   log_path:
     description:
-    - Debugs log for this file
+    - Path of debug log file
     type: str
   validate_certs:
     description:
-    - Validate certification
+    - Validates certification
     type: bool
 author:
     - Peng Wang(@wangpww)
@@ -157,35 +157,36 @@ class IBMSVCvdiskhostmap(object):
         )
 
     def get_existing_vdiskhostmap(self):
-        merged_result = {}
+        merged_result = []
 
         data = self.restapi.svc_obj_info(cmd='lsvdiskhostmap', cmdopts=None,
                                          cmdargs=[self.volname])
 
         if isinstance(data, list):
             for d in data:
-                merged_result.update(d)
-        else:
-            merged_result = data
+                merged_result.append(d)
+        elif data:
+            merged_result = [data]
 
         return merged_result
 
     # TBD: Implement a more generic way to check for properties to modify.
-    def vdiskhostmap_probe(self, data):
+    def vdiskhostmap_probe(self, mdata):
         props = []
-        self.log("vdiskhostmap_probe props='%s'", data)
+        self.log("vdiskhostmap_probe props='%s'", mdata)
         # TBD: The parameter is easytier but the view has easy_tier label.
+        mapping_exist = False
+        for data in mdata:
+            if (self.host == data['host_name']) and (self.volname == data['name']):
+                mapping_exist = True
 
-        if (self.host != data['host_name']):
-            props += ['host']
-
-        if (self.volname != data['name']):
-            props += ['volname']
+        if not mapping_exist:
+            props += ["map"]
 
         if props is []:
             props = None
 
-        self.log("vdiskhostmap_probe props='%s'", data)
+        self.log("vdiskhostmap_probe props='%s'", props)
         return props
 
     def vdiskhostmap_create(self):
@@ -204,7 +205,7 @@ class IBMSVCvdiskhostmap(object):
 
         # Make command
         cmd = 'mkvdiskhostmap'
-        cmdopts = {}
+        cmdopts = {'force': True}
         cmdopts['host'] = self.host
         cmdargs = [self.volname]
 
@@ -223,6 +224,7 @@ class IBMSVCvdiskhostmap(object):
             self.module.fail_json(msg="Failed to create vdiskhostmap.")
 
     def vdiskhostmap_update(self, modify):
+        # vdiskhostmap_update() doesn't actually update anything as of now, it is here just as a placeholder.
         # update the vdiskhostmap
         self.log("updating vdiskhostmap")
 
@@ -262,9 +264,9 @@ class IBMSVCvdiskhostmap(object):
                          "and requested state is 'absent'")
                 changed = True
             elif self.state == 'present':
-                # This is where we detect if chvdisk should be called
-                modify = self.vdiskhostmap_probe(vdiskhostmap_data)
-                if modify:
+                probe_data = self.vdiskhostmap_probe(vdiskhostmap_data)
+                if probe_data:
+                    self.log("vdiskhostmap does not exist, but requested state is 'present'")
                     changed = True
         else:
             if self.state == 'present':
@@ -275,17 +277,12 @@ class IBMSVCvdiskhostmap(object):
         if changed:
             if self.module.check_mode:
                 self.log('skipping changes due to check mode')
+                msg = 'skipping changes due to check mode'
             else:
                 if self.state == 'present':
-                    if not vdiskhostmap_data:
-                        self.vdiskhostmap_create()
-                        msg = "vdiskhostmap %s %s has been created." % (
-                            self.volname, self.host)
-                    else:
-                        # This is where we would modify
-                        self.vdiskhostmap_update(modify)
-                        msg = "vdiskhostmap [%s] has been modified." % (
-                            self.volname)
+                    self.vdiskhostmap_create()
+                    msg = "vdiskhostmap %s %s has been created." % (
+                        self.volname, self.host)
                 elif self.state == 'absent':
                     self.vdiskhostmap_delete()
                     msg = "vdiskhostmap [%s] has been deleted." % self.volname
