@@ -4,7 +4,7 @@
 [![Code of conduct](https://img.shields.io/badge/code%20of%20conduct-Ansible-silver.svg)](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html)
 [![License](https://img.shields.io/badge/license-GPL%20v3.0-brightgreen.svg)](LICENSE)
 
-This collection provides a series of Ansible modules and plugins for interacting with the IBM Spectrum Virtualize Family. These products include the IBM SAN Volume Controller, IBM FlashSystem family members built with IBM Spectrum Virtualize (FlashSystem 5010, 5030, 5100, 7200, 9100, 9200, 9200R, and V9000), IBM Storwize family, and IBM Spectrum Virtualize for Public Cloud. For more information regarding these products see the [IBM Knowledge Center](https://www.ibm.com/support/knowledgecenter/en/) .
+This collection provides a series of Ansible modules and plugins for interacting with the IBM Spectrum Virtualize Family storage products. These products include the IBM SAN Volume Controller, IBM FlashSystem family members built with IBM Spectrum Virtualize (FlashSystem 5010, 5030, 5100, 7200, 9100, 9200, 9200R, and V9000), IBM Storwize family, and IBM Spectrum Virtualize for Public Cloud. For more information regarding these products, see the [IBM Knowledge Center](https://www.ibm.com/support/knowledgecenter/en/ ).
 
 ## Requirements
 
@@ -74,22 +74,28 @@ Alternatively, you can add a full namepsace and collection name in the `collecti
 
 ### Modules
 
-- ibm_svc_info - Collects information on the IBM Spectrum Virtualize system
-- ibm_svc_host - Host management for IBM Spectrum Virtualize
-- ibm_svc_mdisk - MDisk managment for IBM Spectrum Virtualize
-- ibm_svc_mdiskgrp - Pool management for IBM Spectrum Virtualize
-- ibm_svc_vdisk - Volume management for IBM Spectrum Virtualize
-- ibm_svc_vol_map - Volume mapping management for IBM Spectrum Virtualize
-- ibm_svc_volume_clone - Volume clone management for IBM Spectrum Virtualize
-- ibm_svc_volume_snapshot - Volume snapshot management for IBM Spectrum Virtualize
-- ibm_svc_volume_fcconsistgrp - FlashCopy consistency groups management for IBM Spectrum Virtualize
+- ibm_svc_info - Collects information on IBM Spectrum Virtualize system
+- ibm_svc_host - Manages hosts for IBM Spectrum Virtualize
+- ibm_svc_mdisk - Manages MDisks for IBM Spectrum Virtualize
+- ibm_svc_mdiskgrp - Manages pools for IBM Spectrum Virtualize
+- ibm_svc_vdisk - Manages volumes for IBM Spectrum Virtualize
+- ibm_svc_vol_map - Manages volume mapping for IBM Spectrum Virtualize
+- ibm_svc_volume_clone - Manages volume clones for IBM Spectrum Virtualize
+- ibm_svc_volume_snapshot - Manages volume snapshots for IBM Spectrum Virtualize
+- ibm_svc_volume_fcconsistgrp - Manages FlashCopy consistency groups for IBM Spectrum Virtualize
+- ibm_svctask_command - Runs svctask CLI command(s) on IBM Spectrum Virtualize over SSH session
+- ibm_svcinfo_command - Runs svcinfo CLI command on IBM Spectrum Virtualize over SSH session
+
+### Prerequisites
+
+- Paramiko must be installed to use ibm_svctask_command and ibm_svcinfo_command modules.
 
 ## Limitation
 
-The IBM Spectrum Virtualize Ansible collections leverage REST APIs to connect to the  IBM Spectrum Virtualize storage system. This creates the following limitations:
-1. Using the REST API to list more than 2000 objects may create a loss of service from the API side, as it automatically restarts due to memory constraints.
-2. It is not possible to access the REST API using an IPv6 address on a cluster.
-3. To run the Ansible collections, Spectrum Virtualize storage system must be at Version 8.1.3 or higher.
+The modules in the IBM Spectrum Virtualize Ansible collection leverage REST APIs to connect to the IBM Spectrum Virtualize storage system. This has following limitations:
+1. Using the REST APIs to list more than 2000 objects may create a loss of service from the API side, as it automatically restarts due to memory constraints.
+2. It is not possible to access REST APIs using an IPv6 address on a cluster.
+3. To run the Ansible collection, the IBM Spectrum Virtualize storage system must have Version 8.1.3 or higher.
 
 ## Contributing
 
