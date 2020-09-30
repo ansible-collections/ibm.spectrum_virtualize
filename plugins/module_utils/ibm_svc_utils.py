@@ -35,10 +35,26 @@ def svc_argument_spec():
     )
 
 
+def svc_ssh_argument_spec():
+    """
+    Returns argument_spec of options common to ibm_svcinfo_command
+    and ibm_svctask_command modules
+
+    :returns: argument_spec
+    :rtype: dict
+    """
+    return dict(
+        clustername=dict(type='str', required=True),
+        username=dict(type='str', required=True),
+        password=dict(type='str', required=True, no_log=True),
+        log_path=dict(type='str')
+    )
+
+
 def get_logger(module_name, log_file_name, log_level=logging.INFO):
     FORMAT = '%(asctime)s.%(msecs)03d %(levelname)5s %(thread)d %(filename)s:%(funcName)s():%(lineno)s %(message)s'
     DATEFORMAT = '%Y-%m-%dT%H:%M:%S'
-    log_path = '/tmp/IBMSV_ansible_collections.log'
+    log_path = 'IBMSV_ansible_collections.log'
     if log_file_name:
         log_path = log_file_name
     logging.basicConfig(filename=log_path, format=FORMAT, datefmt=DATEFORMAT)
