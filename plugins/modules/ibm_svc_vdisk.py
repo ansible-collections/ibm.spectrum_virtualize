@@ -3,7 +3,7 @@
 
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
-#
+#            Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
@@ -41,21 +41,21 @@ options:
     required: true
   domain:
     description:
-    - Domain for the IBM Spectrum Virtualize storage system
+    - Domain for the Spectrum Virtualize storage system
     type: str
   username:
     description:
-    - REST API username for the IBM Spectrum Virtualize storage system
+    - REST API username for the Spectrum Virtualize storage system
     required: true
     type: str
   password:
     description:
-    - REST API password for the IBM Spectrum Virtualize storage system
+    - REST API password for the Spectrum Virtualize storage system
     required: true
     type: str
   mdiskgrp:
     description:
-    - Specifies one or more storage pools name to use when you are
+    - Specifies one or more storage pool names to use when
       creating this volume
     type: str
   easytier:
@@ -70,20 +70,29 @@ options:
     type: str
   unit:
     description:
-    - Defines the size optoin for the storage unit
+    - Defines the size option for the storage unit
     type: str
     choices: [ b, kb, mb, gb, tb, pb ]
     default: mb
   validate_certs:
     description:
-    - Validate certification
+    - Validates certification
     type: bool
   log_path:
     description:
-    - Debugs log for this file
+    - Path of debug log file
     type: str
+  rsize:
+    description:
+    - Defines how much physical space is initially allocated to the thin-provisioned volume in %.
+      If rsize is not passed, the volume created is a standard volume.
+    type: str
+  autoexpand:
+    description:
+    - Specifies that thin-provisioned volume copies can automatically expand their real capacities
+    type: bool
 author:
-    - Peng Wang(@wangpww)
+    - Sreshtant Bohidar(@Sreshtant-Bohidar)
 '''
 
 EXAMPLES = '''
@@ -107,6 +116,29 @@ EXAMPLES = '''
         easytier: 'off'
         size: "4294967296"
         unit: b
+
+- name: Using the IBM Spectrum Virtualize collection to create a thin-provisioned volume
+  hosts: localhost
+  collections:
+    - ibm.spectrum_virtualize
+  gather_facts: no
+  connection: local
+  tasks:
+    - name: Create volume
+      ibm_svc_vdisk:
+        clustername: "{{clustername}}"
+        domain: "{{domain}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        log_path: /tmp/playbook.debug
+        name: volume0
+        state: present
+        mdiskgrp: Pool0
+        easytier: 'off'
+        size: "4294967296"
+        unit: b
+        rsize: '20%'
+        autoexpand: true
 
 - name: Using the IBM Spectrum Virtualize collection to delete a volume
   hosts: localhost
@@ -149,7 +181,9 @@ class IBMSVCvdisk(object):
                                                              'mb', 'gb',
                                                              'tb', 'pb']),
                 easytier=dict(type='str', default='off', choices=['on', 'off',
-                                                                  'auto'])
+                                                                  'auto']),
+                rsize=dict(type='str', required=False),
+                autoexpand=dict(type='bool', required=False)
             )
         )
 
@@ -170,6 +204,8 @@ class IBMSVCvdisk(object):
         self.size = self.module.params['size']
         self.unit = self.module.params['unit']
         self.easytier = self.module.params.get('easytier', None)
+        self.rsize = self.module.params['rsize']
+        self.autoexpand = self.module.params['autoexpand']
 
         self.restapi = IBMSVCRestApi(
             module=self.module,
@@ -222,7 +258,6 @@ class IBMSVCvdisk(object):
             self.module.fail_json(msg="You must pass in size to the module.")
         if not self.unit:
             self.module.fail_json(msg="You must pass in unit to the module.")
-
         self.log("creating vdisk '%s'", self.name)
 
         # Make command
@@ -236,6 +271,10 @@ class IBMSVCvdisk(object):
             cmdopts['unit'] = self.unit
         if self.easytier:
             cmdopts['easytier'] = self.easytier
+        if self.rsize:
+            cmdopts['rsize'] = self.rsize
+        if self.autoexpand:
+            cmdopts['autoexpand'] = self.autoexpand
         cmdopts['name'] = self.name
         self.log("creating vdisk command %s opts %s", cmd, cmdopts)
 

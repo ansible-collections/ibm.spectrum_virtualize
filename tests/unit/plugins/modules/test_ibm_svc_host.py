@@ -1,5 +1,6 @@
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
+#            Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
 #
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -65,7 +66,8 @@ class TestIBMSVChost(unittest.TestCase):
         self.addCleanup(self.mock_module_helper.stop)
         self.restapi = IBMSVCRestApi(self.mock_module_helper, '1.2.3.4',
                                      'domain.ibm.com', 'username', 'password',
-                                     False, '/tmp/test.log')
+                                     False, 'test.log')
+        self.existing_fcwwpn = []
 
     def set_default_args(self):
         return dict({
@@ -254,6 +256,120 @@ class TestIBMSVChost(unittest.TestCase):
             host_deleted.apply()
         self.assertTrue(exc.value.args[0]['changed'])
         get_existing_host_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.host_fcwwpn_update')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.get_existing_host')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_fcwwpn_update_when_existing_absent(self, svc_authorize_mock, get_existing_host_mock, host_fcwwpn_update_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test',
+            'state': 'present',
+            'fcwwpn': '1000001AA0570262',
+            'protocol': 'scsi',
+            'type': 'generic'
+        })
+        lshost_data = {'id': '24', 'name': 'test', 'port_count': '5', 'type': 'generic',
+                       'mask': '1111111', 'iogrp_count': '4', 'status': 'offline',
+                       'site_id': '', 'site_name': '', 'host_cluster_id': '', 'host_cluster_name': '',
+                       'protocol': 'scsi', 'nodes': [{'WWPN': '1000001AA0570260', 'node_logged_in_count': '0', 'state': 'online'},
+                                                     {'WWPN': '1000001AA0570261', 'node_logged_in_count': '0', 'state': 'online'},
+                                                     {'WWPN': '1000001AA0570262', 'node_logged_in_count': '0', 'state': 'online'}]}
+        get_existing_host_mock.return_value = lshost_data
+        host_created = IBMSVChost()
+        with pytest.raises(AnsibleExitJson) as exc:
+            host_created.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+        get_existing_host_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.host_fcwwpn_update')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.get_existing_host')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_fcwwpn_update_when_new_added(self, svc_authorize_mock, get_existing_host_mock, host_fcwwpn_update_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test',
+            'state': 'present',
+            'fcwwpn': '1000001AA0570260:1000001AA0570261:1000001AA0570262:1000001AA0570264',
+            'protocol': 'scsi',
+            'type': 'generic'
+        })
+        lshost_data = {'id': '24', 'name': 'test', 'port_count': '5', 'type': 'generic',
+                       'mask': '1111111', 'iogrp_count': '4', 'status': 'offline',
+                       'site_id': '', 'site_name': '', 'host_cluster_id': '', 'host_cluster_name': '',
+                       'protocol': 'scsi', 'nodes': [{'WWPN': '1000001AA0570260', 'node_logged_in_count': '0', 'state': 'online'},
+                                                     {'WWPN': '1000001AA0570261', 'node_logged_in_count': '0', 'state': 'online'},
+                                                     {'WWPN': '1000001AA0570262', 'node_logged_in_count': '0', 'state': 'online'}]}
+        get_existing_host_mock.return_value = lshost_data
+        host_created = IBMSVChost()
+        with pytest.raises(AnsibleExitJson) as exc:
+            host_created.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+        get_existing_host_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.host_fcwwpn_update')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.get_existing_host')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_fcwwpn_update_when_existing_removes_and_new_added(self, svc_authorize_mock, get_existing_host_mock, host_fcwwpn_update_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test',
+            'state': 'present',
+            'fcwwpn': '1000001AA0570264:1000001AA0570265:1000001AA0570266',
+            'protocol': 'scsi',
+            'type': 'generic'
+        })
+        lshost_data = {'id': '24', 'name': 'test', 'port_count': '5', 'type': 'generic',
+                       'mask': '1111111', 'iogrp_count': '4', 'status': 'offline',
+                       'site_id': '', 'site_name': '', 'host_cluster_id': '', 'host_cluster_name': '',
+                       'protocol': 'scsi', 'nodes': [{'WWPN': '1000001AA0570260', 'node_logged_in_count': '0', 'state': 'online'},
+                                                     {'WWPN': '1000001AA0570261', 'node_logged_in_count': '0', 'state': 'online'},
+                                                     {'WWPN': '1000001AA0570262', 'node_logged_in_count': '0', 'state': 'online'}]}
+        get_existing_host_mock.return_value = lshost_data
+        host_created = IBMSVChost()
+        with pytest.raises(AnsibleExitJson) as exc:
+            host_created.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+        get_existing_host_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_host_fcwwpn_update(self, svc_authorize_mock, svc_run_command_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test',
+            'state': 'present',
+            'fcwwpn': '1000001AA0570264:1000001AA0570265:1000001AA0570266',
+            'protocol': 'scsi',
+            'type': 'generic'
+        })
+        obj = IBMSVChost()
+        obj.existing_fcwwpn = ['1000001AA0570262', '1000001AA0570263', '1000001AA0570264']
+        obj.input_fcwwpn = ['1000001AA0570264', '1000001AA0570265', '1000001AA0570266']
+        self.assertEqual(obj.host_fcwwpn_update(), None)
 
 
 if __name__ == '__main__':

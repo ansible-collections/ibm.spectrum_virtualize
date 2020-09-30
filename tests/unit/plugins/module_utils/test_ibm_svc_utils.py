@@ -63,7 +63,7 @@ class TestIBMSVModuleUtils(unittest.TestCase):
         self.addCleanup(self.mock_module_helper.stop)
         self.restapi = IBMSVCRestApi(self.mock_module_helper, '1.2.3.4',
                                      'domain.ibm.com', 'username', 'password',
-                                     False, '/tmp/test.log')
+                                     False, 'test.log')
 
     def set_default_args(self):
         return dict({
@@ -101,7 +101,7 @@ class TestIBMSVModuleUtils(unittest.TestCase):
         mock_svc_token_wrap.return_value = {'err': 'err', 'out': []}
         self.restapi = IBMSVCRestApi(mock_module, '1.2.3.4',
                                      'domain.ibm.com', 'username', 'password',
-                                     False, '/tmp/test.log')
+                                     False, 'test.log')
 
         self.restapi.svc_run_command('lshost', {}, [])
 

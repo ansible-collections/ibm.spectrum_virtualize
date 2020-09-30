@@ -65,7 +65,7 @@ class TestIBMSVCvdisk(unittest.TestCase):
         self.addCleanup(self.mock_module_helper.stop)
         self.restapi = IBMSVCRestApi(self.mock_module_helper, '1.2.3.4',
                                      'domain.ibm.com', 'username', 'password',
-                                     False, '/tmp/test.log')
+                                     False, 'test.log')
 
     def set_default_args(self):
         return dict({
@@ -333,6 +333,112 @@ class TestIBMSVCvdisk(unittest.TestCase):
         volume_deleted = IBMSVCvdisk()
         with pytest.raises(AnsibleExitJson) as exc:
             volume_deleted.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+        get_existing_volume_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_vdisk.IBMSVCvdisk.get_existing_vdisk')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_vdisk.IBMSVCvdisk.vdisk_probe')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_create_thin_volume_but_volume_existed(self, svc_authorize_mock, volume_probe_mock, get_existing_volume_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test_create_volume_but_volume_existed',
+            'mdiskgrp': 'Ansible-Pool',
+            'easytier': 'off',
+            'size': '4294967296',
+            'unit': 'b',
+            'rsize': '20%',
+            'autoexpand': True
+        })
+        vol_ret = [{"id": "0", "name": "volume_Ansible_collections",
+                    "IO_group_id": "0", "IO_group_name": "io_grp0",
+                    "status": "online", "mdisk_grp_id": "0",
+                    "mdisk_grp_name": "Pool_Ansible_collections",
+                    "capacity": "4.00GB", "type": "striped", "FC_id": "",
+                    "FC_name": "", "RC_id": "", "RC_name": "",
+                    "vdisk_UID": "6005076810CA0166C00000000000019F",
+                    "fc_map_count": "0", "copy_count": "1",
+                    "fast_write_state": "empty", "se_copy_count": "0",
+                    "RC_change": "no", "compressed_copy_count": "0",
+                    "parent_mdisk_grp_id": "0",
+                    "parent_mdisk_grp_name": "Pool_Ansible_collections",
+                    "owner_id": "", "owner_name": "", "formatting": "no",
+                    "encrypt": "no", "volume_id": "0",
+                    "volume_name": "volume_Ansible_collections",
+                    "function": "", "protocol": "scsi"}]
+        get_existing_volume_mock.return_value = vol_ret
+        volume_probe_mock.return_value = []
+        volume_created = IBMSVCvdisk()
+        with pytest.raises(AnsibleExitJson) as exc:
+            volume_created.apply()
+        self.assertFalse(exc.value.args[0]['changed'])
+        get_existing_volume_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_vdisk.IBMSVCvdisk.get_existing_vdisk')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_vdisk.IBMSVCvdisk.vdisk_create')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_create_thin_volume_successfully(self, svc_authorize_mock, volume_create_mock, get_existing_volume_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test_create_volume_but_volume_existed',
+            'mdiskgrp': 'Ansible-Pool',
+            'easytier': 'off',
+            'size': '4294967296',
+            'unit': 'b',
+            'rsize': '20%'
+        })
+        volume = {u'message': u'Storage volume, id [0], '
+                              u'successfully created', u'id': u'0'}
+        volume_create_mock.return_value = volume
+        get_existing_volume_mock.return_value = []
+        volume_created = IBMSVCvdisk()
+        with pytest.raises(AnsibleExitJson) as exc:
+            volume_created.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+        get_existing_volume_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_vdisk.IBMSVCvdisk.get_existing_vdisk')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_vdisk.IBMSVCvdisk.vdisk_create')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_create_thin_volume_successfully_with_autoexpand(self, svc_authorize_mock, volume_create_mock, get_existing_volume_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test_create_volume_but_volume_existed',
+            'mdiskgrp': 'Ansible-Pool',
+            'easytier': 'off',
+            'size': '4294967296',
+            'unit': 'b',
+            'rsize': '20%',
+            'autoexpand': True
+        })
+        volume = {u'message': u'Storage volume, id [0], '
+                              u'successfully created', u'id': u'0'}
+        volume_create_mock.return_value = volume
+        get_existing_volume_mock.return_value = []
+        volume_created = IBMSVCvdisk()
+        with pytest.raises(AnsibleExitJson) as exc:
+            volume_created.apply()
         self.assertTrue(exc.value.args[0]['changed'])
         get_existing_volume_mock.assert_called_with()
 
