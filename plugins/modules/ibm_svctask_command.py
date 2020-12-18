@@ -17,7 +17,7 @@ DOCUMENTATION = '''
 module: ibm_svctask_command
 short_description: This module implements SSH Client which helps to run
                    svctask CLI command(s) on IBM Spectrum Virtualize Family storage systems.
-version_added: "2.10"
+version_added: "2.10.0"
 description:
 - Runs svctask CLI command(s) on IBM Spectrum Virtualize Family storage systems.
   In case any svctask command fails while running this module, then the
@@ -31,6 +31,7 @@ options:
     - A list containing svctask CLI commands to be executed on storage.
       Each command must start with svctask keyword.
     type: list
+    elements: str
   usesshkey:
     description:
     - For key-pair based SSH connection, set this field as "yes".
@@ -47,40 +48,40 @@ options:
   clustername:
     description:
     - The hostname or management IP of the
-      Spectrum Virtualize storage system
+      Spectrum Virtualize storage system.
     type: str
     required: true
   username:
     description:
-    - Username for the Spectrum Virtualize storage system
+    - Username for the Spectrum Virtualize storage system.
     required: true
     type: str
   password:
     description:
-    - Password for the Spectrum Virtualize storage system
+    - Password for the Spectrum Virtualize storage system.
     required: true
     type: str
   log_path:
     description:
-    - Path of debug log file
+    - Path of debug log file.
     type: str
 '''
 
 EXAMPLES = '''
-- name: Using the IBM Spectrum Virtualize collection to run svctask CLI command using password
+- name: Using Spectrum Virtualize collection to run svctask CLI command using password
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   vars:
-    - volname: vol0
-    - pool: pool0
-    - easy_tier: off
-    - unit: gb
+    - volname: 'vol0'
+    - pool: 'pool0'
+    - easy_tier: 'off'
+    - unit: 'gb'
     - size: 1
   tasks:
-    - name: Run svctask CLI commands using SSH client with password.
+    - name: Run svctask CLI commands using SSH client with password
       ibm_svctask_command:
         command: [
             "svctask mkvdisk -name {{ volname }} -mdiskgrp '{{ pool }}' -easytier '{{ easy_tier }}' -size {{ size }} -unit {{ unit }}",
@@ -91,14 +92,14 @@ EXAMPLES = '''
         password: "{{password}}"
         log_path: /tmp/ansible.log
 
-- name: Using the IBM Spectrum Virtualize collection to run svctask CLI command using key
+- name: Using Spectrum Virtualize collection to run svctask CLI command using key
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Run svctask CLI command using password-less SSH Client
+    - name: Run svctask CLI command using passwordless SSH Client
       ibm_svctask_command:
         command: [
             "svctask mkvdisk -name vol0 -mdiskgrp pool0 -easytier off -size 1 -unit gb",
@@ -134,7 +135,7 @@ class IBMSVCsshClient(object):
 
         argument_spec.update(
             dict(
-                command=dict(type='list', required=False),
+                command=dict(type='list', elements='str', required=False),
                 usesshkey=dict(type='str', required=False, default='no', choices=['yes', 'no']),
                 key_filename=dict(type='str', required=False)
             )
