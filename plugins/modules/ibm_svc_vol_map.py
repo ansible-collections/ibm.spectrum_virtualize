@@ -22,65 +22,66 @@ short_description: This module manages volume mapping on IBM Spectrum
 description:
   - Ansible interface to manage volume mapping commands
     'mkvdiskhostmap' and 'rmvdiskhostmap' commands.
-version_added: "2.10"
+version_added: "2.10.0"
 options:
   volname:
     description:
-      - Specifies the volume name for host mapping
+      - Specifies the volume name for host mapping.
     required: true
     type: str
   host:
     description:
-      - Specifies the host name for host mapping
+      - Specifies the host name for host mapping.
     required: true
     type: str
   state:
     description:
-      - Creates (C(present)) or removes (C(absent)) a volume mapping
+      - Creates (C(present)) or removes (C(absent)) a volume mapping.
     choices: [ absent, present ]
     required: true
     type: str
   clustername:
     description:
       - The hostname or management IP of the
-        Spectrum Virtualize storage system
+        Spectrum Virtualize storage system.
     type: str
     required: true
   domain:
     description:
-      - Domain for the Spectrum Virtualize storage system
+      - Domain for the Spectrum Virtualize storage system.
     type: str
   username:
     description:
-      - REST API username for the Spectrum Virtualize storage system
+      - REST API username for the Spectrum Virtualize storage system.
     required: true
     type: str
   password:
     description:
-      - REST API password for the Spectrum Virtualize storage system
+      - REST API password for the Spectrum Virtualize storage system.
     required: true
     type: str
   log_path:
     description:
-    - Path of debug log file
+    - Path of debug log file.
     type: str
   validate_certs:
     description:
-    - Validates certification
+    - Validates certification.
+    default: false
     type: bool
 author:
     - Peng Wang(@wangpww)
 '''
 
 EXAMPLES = '''
-- name: Using the IBM Spectrum Virtualize collection to map a volume to a host
+- name: Using Spectrum Virtualize collection to map a volume to a host
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: map volume to host
+    - name: Map a volume to a host
       ibm_svc_vol_map:
         clustername: "{{clustername}}"
         domain: "{{domain}}"
@@ -91,14 +92,14 @@ EXAMPLES = '''
         host: host4test
         state: present
 
-- name: Using the IBM Spectrum Virtualize collection to unmap a volume from a host
+- name: Using Spectrum Virtualize collection to unmap a volume from a host
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: unmap volume from host
+    - name: Unmap a volume from a host
       ibm_svc_vol_map:
         clustername: "{{clustername}}"
         domain: "{{domain}}"
