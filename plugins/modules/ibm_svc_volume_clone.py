@@ -22,130 +22,129 @@ short_description: This module manages clones on IBM Spectrum Virtualize
 description:
   - Ansible interface to manage 'mkfcmap', 'prestartfcmap', 'startfcmap',
     'stopfcmap' and 'rmfcmap' volume commands.
-version_added: "2.10.0"
+version_added: "2.10"
 options:
   state:
     description:
-      - Creates (C(present)) or removes (C(absent)) a clone.
-        Used to prestart, start or stop a FlashCopy mapping.
+      - Creates (C(present)) or removes (C(absent)) a clone;
+        prestart, start or stop a FlashCopy mapping
     choices: [ absent, present, prestart, start, stop ]
     required: true
     type: str
   clustername:
     description:
-    - The hostname or management IP of the Spectrum Virtualize storage system.
+    - The hostname or management IP of the Spectrum Virtualize storage system
     type: str
     required: true
   domain:
     description:
-    - Domain for the Spectrum Virtualize storage system.
+    - Domain for the IBM Spectrum Virtualize storage system
     type: str
   username:
     description:
-    - REST API username for the Spectrum Virtualize storage system.
+    - REST API username for the IBM Spectrum Virtualize storage system
     required: true
     type: str
   password:
     description:
-    - REST API password for the Spectrum Virtualize storage system.
+    - REST API password for the IBM Spectrum Virtualize storage system
     required: true
     type: str
   name:
     description:
-      - Specifies the name to assign to the new mapping.
+      - Specifies the name to assign to the new mapping
     type: str
     required: true
   volume:
     description:
-    - Name of the volume on which the clone is to be created.
+    - Name of the volume on which the clone is to be created
     required: true
     type: str
   clone:
     description:
-    - Name of the clone volume to be managed.
+    - Name of the clone volume to be managed
     required: true
     type: str
   mdiskgrp:
     description:
     - Specifies one storage pool name to use when you are
-      creating this clone volume.
+      creating this clone volume
     type: str
   consistgrp:
     description:
-    - Specifies the consistency group to which the new mapping is to be added.
+    - Specifies the consistency group to add the new mapping to
     type: str
   grainsize:
     description:
-    - Specifies the grain size for the mapping.
+    - Specifies the grain size for the mapping
     choices: [ '64', '256' ]
     type: str
   iogrp:
     description:
-    - Specifies the I/O group for the FlashCopy bitmap.
+    - Specifies the I/O group for the FlashCopy bitmap
     type: str
   copyrate:
     description:
-    - Specifies the copy rate.
+    - Specifies the copy rate
     type: str
     default: '50'
   cleanrate:
     description:
-    - Sets the cleaning rate for the mapping.
+    - Sets the cleaning rate for the mapping
     type: str
     default: '50'
   autodelete:
     description:
     - Specifies that a mapping is to be deleted when the
-      background copy completes.
+      background copy completes
     choices: [ 'on', 'off' ]
     default: 'on'
     type: str
   keeptarget:
     description:
     - Specifies that the target volume and source volume
-      availability must be kept the same.
+      availability should be kept the same
     type: bool
   restore:
     description:
-    - Specifies the restore flag.
+    - Specifies the restore flag
     type: bool
   prep:
     description:
-    - Specifies that the designated mapping be prepared before
-      starting the mapping.
+    - Specifies that the designated mapping be prepared prior to
+      starting the mapping
     type: bool
   force:
     description:
-    - Specifies that all processing associated with the
-      designated mapping be immediately stopped.
+    - Specifies that all processing that is associated with the
+      designated mapping be stopped immediately
     type: bool
   split:
     description:
     - Breaks the dependency on the source volume of any mappings
-      that are also dependent on the target disk.
+      that are also dependent on the target disk
     type: bool
   validate_certs:
     description:
-    - Validates certification.
-    default: false
+    - Validate certification
     type: bool
   log_path:
     description:
-    - Path of debug log file.
+    - Debugs log for this file
     type: str
 author:
     - Peng Wang(@wangpww)
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create a FlashCopy Mapping
+- name: Using the IBM Spectrum Virtualize collection to create a Flash Copy Mapping
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Create FlashCopy Mapping for clone volume
+    - name: Create Flash Copy Mapping for clone volume
       ibm_svc_volume_clone:
         clustername: "{{clustername}}"
         domain: "{{domain}}"
@@ -160,14 +159,14 @@ EXAMPLES = '''
         copyrate: 100
         cleanrate: 100
 
-- name: Using Spectrum Virtualize collection to prestart a FlashCopy Mapping
+- name: Using the IBM Spectrum Virtualize collection to prestart a Flash Copy Mapping
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Prestart a FlashCopy Mapping
+    - name: prestart a Flash Copy Mapping
       ibm_svc_volume_clone:
         clustername: "{{clustername}}"
         domain: "{{domain}}"
@@ -180,14 +179,14 @@ EXAMPLES = '''
         clone: cloneofvol4
         restore: true
 
-- name: Using Spectrum Virtualize collection to start a FlashCopy Mapping
+- name: Using the IBM Spectrum Virtualize collection to start a Flash Copy Mapping
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Start a FlashCopy Mapping
+    - name: start a Flash Copy Mapping
       ibm_svc_volume_clone:
         clustername: "{{clustername}}"
         domain: "{{domain}}"
@@ -200,14 +199,14 @@ EXAMPLES = '''
         clone: cloneofvol4
         restore: true
 
-- name: Using Spectrum Virtualize collection to stop a FlashCopy Mapping
+- name: Using the IBM Spectrum Virtualize collection to stop a Flash Copy Mapping
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Stop a FlashCopy Mapping
+    - name: stop a Flash Copy Mapping
       ibm_svc_volume_clone:
         clustername: "{{clustername}}"
         domain: "{{domain}}"
@@ -220,14 +219,14 @@ EXAMPLES = '''
         clone: cloneofvol4
         force: true
 
-- name: Using Spectrum Virtualize collection to delete a FlashCopy Mapping
+- name: Using the IBM Spectrum Virtualize collection to delete a Flash Copy Mapping
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Delete a FlashCopy Mapping for clone colume
+    - name: Delete a Flash Copy Mapping for clone colume
       ibm_svc_volume_clone:
         clustername: "{{clustername}}"
         domain: "{{domain}}"

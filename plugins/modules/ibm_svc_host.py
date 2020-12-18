@@ -20,7 +20,7 @@ DOCUMENTATION = '''
 module: ibm_svc_host
 short_description: This module manages hosts on IBM Spectrum Virtualize
                    Family storage systems.
-version_added: "2.10.0"
+version_added: "2.10"
 
 description:
   - Ansible interface to manage 'mkhost' and 'rmhost' host commands.
@@ -28,33 +28,33 @@ description:
 options:
     name:
         description:
-            - Specifies a name or label for the new host object.
+            - Specifies a name or label for the new host object
         required: true
         type: str
     state:
         description:
-            - Creates (C(present)) or removes (C(absent)) a host.
+            - Creates (C(present)) or removes (C(absent)) a host
         choices: [ absent, present ]
         required: true
         type: str
     clustername:
         description:
             - The hostname or management IP of the
-              Spectrum Virtualize storage system.
+              Spectrum Virtualize storage system
         type: str
         required: true
     domain:
         description:
-            - Domain for the Spectrum Virtualize storage system.
+            - Domain for the Spectrum Virtualize storage system
         type: str
     username:
         description:
-            - REST API username for the Spectrum Virtualize storage system.
+            - REST API username for the Spectrum Virtualize storage system
         required: true
         type: str
     password:
         description:
-            - REST API password for the Spectrum Virtualize storage system.
+            - REST API password for the Spectrum Virtualize storage system
         required: true
         type: str
     fcwwpn:
@@ -64,45 +64,44 @@ options:
         type: str
     iscsiname:
         description:
-            - Initiator IQN to be added to the host.
+            - Initiator IQN to be added to the host
         required: false
         type: str
     iogrp:
         description:
             - Specifies a set of one or more input/output (I/O)
-              groups from which the host can access the volumes.
+              groups from which the host can access the volumes
         default: '0:1:2:3'
         required: false
         type: str
     protocol:
         description:
             - Specifies the protocol used by the host to
-              communicate with the storage system.
+              communicate with the storage system
         default: 'scsi'
         type: str
         required: false
         choices: [ "scsi", "nvme" ]
     type:
         description:
-            - Specifies the type of host.
+            - Specifies the type of host
         default:
         required: false
         type: str
     log_path:
         description:
-            - Path of debug log file.
+            - Path of debug log file
         type: str
     validate_certs:
         description:
-            - Validates certification.
-        default: false
+            - Validates certification
         type: bool
 author:
     - Sreshtant Bohidar (@Sreshtant-Bohidar)
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create an iSCSI host
+- name: Using the IBM Spectrum Virtualize collection to create an iSCSI host
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
@@ -123,7 +122,7 @@ EXAMPLES = '''
         protocol: scsi
         type: generic
 
-- name: Using Spectrum Virtualize collection to create FC host
+- name: Using the IBM Spectrum Virtualize collection to create an FC host
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
@@ -144,14 +143,14 @@ EXAMPLES = '''
         protocol: scsi
         type: generic
 
-- name: Using Spectrum Virtualize collection to delete a host
+- name: Using the IBM Spectrum Virtualize collection to delete a host
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Delete a host
+    - name: Delete host
       ibm_svc_host:
         clustername: "{{clustername}}"
         domain: "{{domain}}"
@@ -243,7 +242,7 @@ class IBMSVChost(object):
 
         if self.fcwwpn:
             self.existing_fcwwpn = [node["WWPN"] for node in data['nodes'] if "WWPN" in node]
-            self.input_fcwwpn = self.fcwwpn.upper().split(":")
+            self.input_fcwwpn = self.fcwwpn.split(":")
             if set(self.existing_fcwwpn).symmetric_difference(set(self.input_fcwwpn)):
                 props += ['fcwwpn']
 

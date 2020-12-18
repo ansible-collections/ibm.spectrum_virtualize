@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
-#            Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
 #
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -17,10 +16,10 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_info
 short_description: This module gathers various information from the
-                   IBM Spectrum Virtualize Family storage systems.
-version_added: "2.10.0"
+                   IBM Spectrum Virtualize storage systems.
+version_added: "2.10"
 description:
-- Gathers the list of specified IBM Spectrum Virtualize Family storage system
+- Gathers the list of specified IBM Spectrum Virtualize storage system
   entities. These include the list of nodes, pools, volumes, hosts,
   host clusters, FC ports, iSCSI ports, target port FC, FC consistgrp,
   vdiskcopy, I/O groups, FC map, FC connectivity, NVMe fabric,
@@ -28,34 +27,45 @@ description:
 author:
 - Peng Wang (@wangpww)
 options:
+  name:
+    description:
+    - Collects storage information
+    required: true
+    type: str
+  state:
+    type: str
+    required: False
+    description:
+    - Returns "info"
+    default: "info"
+    choices: ['info']
   clustername:
     description:
     - The hostname or management IP of the
-      Spectrum Virtualize storage system.
+      Spectrum Virtualize storage system
     type: str
     required: true
   domain:
     description:
-    - Domain for the Spectrum Virtualize storage system.
+    - Domain for the IBM Spectrum Virtualize storage system
     type: str
   username:
     description:
-    - REST API username for the Spectrum Virtualize storage system.
+    - REST API username for the IBM Spectrum Virtualize storage system
     required: true
     type: str
   password:
     description:
-    - REST API password for the Spectrum Virtualize storage system.
+    - REST API password for the IBM Spectrum Virtualize storage system
     required: true
     type: str
   log_path:
     description:
-    - Path of debug log file.
+    - Debugs log for this file
     type: str
   validate_certs:
     description:
-    - Validates certification.
-    default: false
+    - Validate certification
     type: bool
   objectname:
     description:
@@ -64,34 +74,33 @@ options:
     type: str
   gather_subset:
     type: list
-    elements: str
     required: False
     description:
-    - List of string variables to specify the Spectrum Virtualize entities
+    - List of string variables to specify the IBM Spectrum Virtualize entities
       for which information is required.
-    - all - list of all Spectrum Virtualize entities
-            supported by the module.
-    - vol - lists information for VDisks.
-    - pool - lists information for mdiskgrps.
-    - node - lists information for nodes.
-    - iog - lists information for I/O groups.
-    - host - lists information for hosts.
-    - hc - lists information for host clusters.
-    - fc - lists information for FC connectivity.
-    - fcport - lists information for FC ports.
+    - all - list of all IBM Spectrum Virtualize entities
+            supported by the module
+    - vol - lists information for VDisks
+    - pool - lists information for mdiskgrps
+    - node - lists information for nodes
+    - iog - lists information for I/O groups
+    - host - lists information for hosts
+    - hc - lists information for host clusters
+    - fc - lists information for FC connectivity
+    - fcport - lists information for FC ports
     - targetportfc - lists information for WWPN which is required to set up
                      FC zoning and to display the current failover status
-                     of host I/O ports.
-    - fcmap - lists information for FC maps.
-    - rcrelationship - lists information for remote copy relationships.
+                     of host I/O ports
+    - fcmap - lists information for FC maps
+    - rcrelationship - lists information for RemoteCopy relationships
     - fcconsistgrp - displays a concise list or a detailed
-                     view of flash copy consistency groups.
+                     view of FlashCopy consistency groups
     - rcconsistgrp - displays a concise list or a detailed
-                     view of remote copy consistency groups.
-    - iscsiport - lists information for iSCSI ports.
-    - vdiskcopy - lists information for volume copy.
-    - array - lists information for array MDisks.
-    - system - displays the storage system information.
+                     view of RemoteCopy consistency groups
+    - iscsiport - lists information for iSCSI ports
+    - vdiskcopy - lists information for volume copy
+    - array - lists information for array MDisks
+    - system - displays the storage system information
     choices: [vol, pool, node, iog, host, hc, fcport
               , iscsiport, fc, fcmap, fcconsistgrp, rcrelationship, rcconsistgrp
               , vdiskcopy, targetportfc, array, system, all]
@@ -99,7 +108,7 @@ options:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to gather storage information
+- name: Using the IBM Spectrum Virtualize collection to gather storage information
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
@@ -113,26 +122,10 @@ EXAMPLES = '''
         username: "{{username}}"
         password: "{{password}}"
         log_path: /tmp/ansible.log
+        state: info
         gather_subset: vol
 
-- name: Using Spectrum Virtualize collection to gather storage information with objectname
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Get volume info
-      ibm_svc_info:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/ansible.log
-        objectname: volumename
-        gather_subset: vol
-
-- name: Using Spectrum Virtualize collection to gather storage information
+- name: Using the IBM Spectrum Virtualize collection to gather storage information
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
@@ -146,6 +139,7 @@ EXAMPLES = '''
         username: "{{username}}"
         password: "{{password}}"
         log_path: /tmp/ansible.log
+        state: info
         gather_subset: pool
 
 '''
@@ -165,8 +159,10 @@ class IBMSVCGatherInfo(object):
 
         argument_spec.update(
             dict(
+                name=dict(type='str', required=True),
+                state=dict(type='str', default='info', choices=['info']),
                 objectname=dict(type='str'),
-                gather_subset=dict(type='list', elements='str', required=False,
+                gather_subset=dict(type='list', required=False,
                                    default=['all'],
                                    choices=['vol',
                                             'pool',
@@ -196,6 +192,7 @@ class IBMSVCGatherInfo(object):
         # logging setup
         log_path = self.module.params['log_path']
         self.log = get_logger(self.__class__.__name__, log_path)
+        self.name = self.module.params['name']
         self.objectname = self.module.params['objectname']
 
         self.restapi = IBMSVCRestApi(
