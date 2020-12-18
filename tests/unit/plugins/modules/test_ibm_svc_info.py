@@ -1,5 +1,6 @@
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
+#            Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
 #
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -89,8 +90,6 @@ class TestIBMSVCGatherInfo(unittest.TestCase):
         set_module_args({
             'clustername': 'clustername',
             'domain': 'domain',
-            'state': 'info',
-            'name': 'test_get_host_list_called',
             'username': 'username',
             'password': 'password',
             'gather_subset': 'host',
@@ -115,8 +114,6 @@ class TestIBMSVCGatherInfo(unittest.TestCase):
         set_module_args({
             'clustername': 'clustername',
             'domain': 'domain',
-            'state': 'info',
-            'name': 'test_get_host_list_called',
             'username': 'username',
             'password': 'password',
             'gather_subset': 'pool,host,vol',
@@ -137,8 +134,6 @@ class TestIBMSVCGatherInfo(unittest.TestCase):
         set_module_args({
             'clustername': 'clustername',
             'domain': 'domain',
-            'state': 'info',
-            'name': 'test_get_host_list_called',
             'username': 'username',
             'password': 'password',
             'gather_subset': 'host',
@@ -164,8 +159,6 @@ class TestIBMSVCGatherInfo(unittest.TestCase):
         set_module_args({
             'clustername': 'clustername',
             'domain': 'domain',
-            'state': 'info',
-            'name': 'test_get_host_list_called',
             'username': 'username',
             'password': 'password',
             'gather_subset': 'host,vol',
