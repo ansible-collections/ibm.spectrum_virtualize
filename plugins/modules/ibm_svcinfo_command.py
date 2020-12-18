@@ -17,7 +17,7 @@ DOCUMENTATION = '''
 module: ibm_svcinfo_command
 short_description: This module implements SSH Client which helps to run
                    svcinfo CLI command on IBM Spectrum Virtualize Family storage systems.
-version_added: "2.10.0"
+version_added: "2.10"
 description:
 - Runs single svcinfo CLI command on IBM Spectrum Virtualize Family storage systems.
   Filter options like filtervalue or pipe '|' with grep, awk, and others are
@@ -47,27 +47,27 @@ options:
   clustername:
     description:
     - The hostname or management IP of the
-      Spectrum Virtualize storage system.
+      Spectrum Virtualize storage system
     type: str
     required: true
   username:
     description:
-    - Username for the Spectrum Virtualize storage system.
+    - Username for the Spectrum Virtualize storage system
     required: true
     type: str
   password:
     description:
-    - Password for the Spectrum Virtualize storage system.
+    - Password for the Spectrum Virtualize storage system
     required: true
     type: str
   log_path:
     description:
-    - Path of debug log file.
+    - Path of debug log file
     type: str
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to run svcinfo CLI command
+- name: Using the IBM Spectrum Virtualize collection to run svcinfo CLI command
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
@@ -76,7 +76,7 @@ EXAMPLES = '''
   vars:
     - user: user1
   tasks:
-    - name: Run svcinfo CLI command using SSH client with password
+    - name: Run CLI command using SSH client with password.
       ibm_svcinfo_command:
         command: "svcinfo lsuser {{user}}"
         clustername: "{{clustername}}"
@@ -84,14 +84,14 @@ EXAMPLES = '''
         password: "{{password}}"
         log_path: /tmp/ansible.log
 
-- name: Using Spectrum Virtualize collection to run svcinfo CLI command using passwordless SSH connection
+- name: Using the IBM Spectrum Virtualize collection to run svcinfo CLI command using password-less SSH connection
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Run svcinfo CLI command using passwordless SSH Client
+    - name: Run CLI command using password-less SSH Client
       ibm_svcinfo_command:
         command: "svcinfo lsuser"
         usesshkey: "yes"
