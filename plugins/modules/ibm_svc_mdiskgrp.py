@@ -19,94 +19,93 @@ short_description: This module manages pools on IBM Spectrum Virtualize
                    Family storage systems.
 description:
   - Ansible interface to manage 'mkmdiskgrp' and 'rmmdiskgrp' pool commands.
-version_added: "2.10.0"
+version_added: "2.10"
 options:
   name:
     description:
-      - Specifies the name to assign to the new pool.
+      - Specifies a name to assign to the new pool
     required: true
     type: str
   state:
     description:
-      - Creates (C(present)) or removes (C(absent)) an MDisk group.
+      - Creates (C(present)) or removes (C(absent)) an MDisk group
     choices: [ absent, present ]
     required: true
     type: str
   clustername:
     description:
-    - The hostname or management IP of the Spectrum Virtualize storage system.
+    - The hostname or management IP of the Spectrum Virtualize storage system
     type: str
     required: true
   domain:
     description:
-    - Domain for the Spectrum Virtualize storage system.
+    - Domain for the IBM Spectrum Virtualize storage system
     type: str
   username:
     description:
-    - REST API username for the Spectrum Virtualize storage system.
+    - REST API username for the IBM Spectrum Virtualize storage system
     required: true
     type: str
   password:
     description:
-    - REST API password for the Spectrum Virtualize storage system.
+    - REST API password for the IBM Spectrum Virtualize storage system
     required: true
     type: str
   datareduction:
     description:
-    - Defines use of data reduction pools (DRPs) on the MDisk group.
+    - Defines use of data reduction pools (DRPs) on the MDisk group
     type: str
     default: 'no'
     choices: ['yes', 'no']
   easytier:
     description:
-    - Defines use of easytier with the MDisk group.
+    - Defines use of easytier with the MDisk group
     type: str
     default: 'off'
     choices: ['on', 'off', 'auto']
   encrypt:
     description:
-    - Defines use of encryption with the MDisk group.
+    - Defines use of encryption with the MDisk group
     type: str
     default: 'no'
     choices: ['yes', 'no']
   ext:
     description:
-    - Specifies the size of the extents for this group in MB.
+    - Specifies the size of the extents for this group in MB
     type: int
   log_path:
     description:
-    - Path of debug log file.
+    - Debugs log for this file
     type: str
   validate_certs:
     description:
-      - Validates certification.
-    default: false
+      - Validate certification
     type: bool
   parentmdiskgrp:
     description:
-      - Parentmdiskgrp for subpool.
+      - parentmdiskgrp for subpool
     type: str
   unit:
     description:
-      - Unit for subpool.
+      - Unit for subpool
     type: str
   size:
     description:
       - Specifies the child pool capacity. The value must be
-        a numeric value (and an integer multiple of the extent size).
+        a numeric value (and an integer multiple of the extent size)
     type: int
 author:
     - Peng Wang(@wangpww)
 '''
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create a pool
+- name: Using the IBM Spectrum Virtualize collection to create a pool
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Make mdisk group
+    - name: make mdisk group
       ibm_svc_mdiskgrp:
         clustername: "{{clustername}}"
         domain: "{{domain}}"
@@ -119,14 +118,14 @@ EXAMPLES = '''
         encrypt: no
         ext: 1024
 
-- name: Using Spectrum Virtualize collection to delete a pool
+- name: Using the IBM Spectrum Virtualize collection to delete a pool
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Delete mdisk group
+    - name: delete mdisk group
       ibm_svc_mdiskgrp:
         clustername: "{{clustername}}"
         domain: "{{domain}}"
