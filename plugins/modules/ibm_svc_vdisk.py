@@ -21,66 +21,66 @@ short_description: This module manages volumes on IBM Spectrum Virtualize
                    Family storage systems.
 description:
   - Ansible interface to manage 'mkvdisk' and 'rmvdisk' volume commands.
-version_added: "2.10"
+version_added: "2.10.0"
 options:
   name:
     description:
-      - Specifies a name to assign to the new volume
+      - Specifies the name to assign to the new volume.
     required: true
     type: str
   state:
     description:
-      - Creates (C(present)) or removes (C(absent)) a volume
+      - Creates (C(present)) or removes (C(absent)) a volume.
     choices: [ absent, present ]
     required: true
     type: str
   clustername:
     description:
-    - The hostname or management IP of the Spectrum Virtualize storage system
+    - The hostname or management IP of the Spectrum Virtualize storage system.
     type: str
     required: true
   domain:
     description:
-    - Domain for the Spectrum Virtualize storage system
+    - Domain for the Spectrum Virtualize storage system.
     type: str
   username:
     description:
-    - REST API username for the Spectrum Virtualize storage system
+    - REST API username for the Spectrum Virtualize storage system.
     required: true
     type: str
   password:
     description:
-    - REST API password for the Spectrum Virtualize storage system
+    - REST API password for the Spectrum Virtualize storage system.
     required: true
     type: str
   mdiskgrp:
     description:
-    - Specifies one or more storage pool names to use when
-      creating this volume
+    - Specifies the name of the storage pool to use when
+      creating this volume.
     type: str
   easytier:
     description:
-    - Defines use of easytier with VDisk
+    - Defines use of easytier with VDisk.
     type: str
-    default: 'off'
-    choices: [ 'on', 'off', 'auto' ]
+    choices: [ 'on', 'off' ]
   size:
     description:
-    - Defines size of VDisk
+    - Defines size of VDisk.
     type: str
   unit:
     description:
-    - Defines the size option for the storage unit
+    - Defines the size option for the storage unit.
     type: str
     choices: [ b, kb, mb, gb, tb, pb ]
     default: mb
   validate_certs:
     description:
-    - Validates certification
+    - Validates certification.
+    default: false
     type: bool
   log_path:
     description:
-    - Path of debug log file
+    - Path of debug log file.
     type: str
   rsize:
     description:
@@ -89,21 +89,21 @@ options:
     type: str
   autoexpand:
     description:
-    - Specifies that thin-provisioned volume copies can automatically expand their real capacities
+    - Specifies that thin-provisioned volume copies can automatically expand their real capacities.
     type: bool
 author:
     - Sreshtant Bohidar(@Sreshtant-Bohidar)
 '''
 
 EXAMPLES = '''
-- name: Using the IBM Spectrum Virtualize collection to create a volume
+- name: Using Spectrum Virtualize collection to create a volume
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Create volume
+    - name: Create a volume
       ibm_svc_vdisk:
         clustername: "{{clustername}}"
         domain: "{{domain}}"
@@ -117,14 +117,14 @@ EXAMPLES = '''
         size: "4294967296"
         unit: b
 
-- name: Using the IBM Spectrum Virtualize collection to create a thin-provisioned volume
+- name: Using Spectrum Virtualize collection to create a thin-provisioned volume
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Create volume
+    - name: Create a thin-provisioned volume
       ibm_svc_vdisk:
         clustername: "{{clustername}}"
         domain: "{{domain}}"
@@ -140,14 +140,14 @@ EXAMPLES = '''
         rsize: '20%'
         autoexpand: true
 
-- name: Using the IBM Spectrum Virtualize collection to delete a volume
+- name: Using Spectrum Virtualize collection to delete a volume
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Delete volume
+    - name: Delete a volume
       ibm_svc_vdisk:
         clustername: "{{clustername}}"
         domain: "{{domain}}"
@@ -180,8 +180,7 @@ class IBMSVCvdisk(object):
                 unit=dict(type='str', default='mb', choices=['b', 'kb',
                                                              'mb', 'gb',
                                                              'tb', 'pb']),
-                easytier=dict(type='str', default='off', choices=['on', 'off',
-                                                                  'auto']),
+                easytier=dict(type='str', choices=['on', 'off']),
                 rsize=dict(type='str', required=False),
                 autoexpand=dict(type='bool', required=False)
             )
