@@ -19,64 +19,63 @@ short_description: This module manages MDisks on IBM Spectrum Virtualize
                    Family storage systems.
 description:
   - Ansible interface to manage 'mkarray' and 'rmmdisk' MDisk commands.
-version_added: "2.10.0"
+version_added: "2.10"
 options:
   name:
     description:
-      - The MDisk name.
+      - The MDisk name
     required: true
     type: str
   state:
     description:
-      - Creates (C(present)) or removes (C(absent)) the MDisk.
+      - Creates (C(present)) or removes (C(absent)) the MDisk
     choices: [ absent, present ]
     required: true
     type: str
   clustername:
     description:
-      - The hostname or management IP of the Spectrum Virtualize storage system.
+      - The hostname or management IP of the Spectrum Virtualize storage system
     type: str
     required: true
   domain:
     description:
-      - Domain for the Spectrum Virtualize storage system.
+      - Domain for the IBM Spectrum Virtualize storage system
     type: str
   username:
     description:
-      - REST API username for the Spectrum Virtualize storage system.
+      - REST API username for the IBM Spectrum Virtualize storage system
     required: true
     type: str
   password:
     description:
-      - REST API password for the Spectrum Virtualize storage system.
+      - REST API password for the IBM Spectrum Virtualize storage system
     required: true
     type: str
   drive:
     description:
-      - Drive(s) to use as members of the RAID array.
+      - Drive(s) to use as members of the RAID array
     type: str
   mdiskgrp:
     description:
-      - The storage pool (mdiskgrp) to which you want to add the MDisk.
+      - The storage pool (mdiskgrp) to which you want to add the MDisk
     type: str
     required: true
   log_path:
     description:
-      - Path of debug log file.
+      - Debugs log for this file
     type: str
   validate_certs:
     description:
-      - Validates certification.
-    default: false
+      - Validate certification
     type: bool
   level:
     description:
-      - Specifies the RAID level.
+      - level
     type: str
     choices: ['raid0', 'raid1', 'raid5', 'raid6', 'raid10']
   encrypt:
     description:
-      - Defines use of encryption with the MDisk group.
+      - encrypt
     type: str
     default: 'no'
     choices: ['yes', 'no']
@@ -84,14 +83,14 @@ author:
     - Peng Wang(@wangpww)
 '''
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create a new MDisk array
+- name: Using the IBM Spectrum Virtualize collection to create a new MDisk array
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Create MDisk and name as mdisk20
+    - name: Create MDisk and named mdisk20
       ibm_svc_mdisk:
         clustername: "{{clustername}}"
         domain: "{{domain}}"
@@ -104,7 +103,7 @@ EXAMPLES = '''
         encrypt: no
         mdiskgrp: pool20
 
-- name: Using Spectrum Virtualize collection to delete an MDisk array
+- name: Using the IBM Spectrum Virtualize collection to delete an MDisk array
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize

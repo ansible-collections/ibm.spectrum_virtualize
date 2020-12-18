@@ -19,7 +19,7 @@ DOCUMENTATION = '''
 module: ibm_svc_fcconsistgrp
 short_description: This module manages FlashCopy consistency group on
                    IBM Spectrum Virtualize Family storage systems.
-version_added: "2.10.0"
+version_added: "2.10"
 
 description:
   - Ansible interface to manage 'mkfcconsistgrp', 'lsfcconsistgrp',
@@ -29,81 +29,80 @@ description:
 options:
     name:
         description:
-            - Specifies the name for the consistency group.
+            - Specifies a name for the consistency group
         required: true
         type: str
     state:
         description:
             - Creates (C(present)) or removes (C(absent)) a FlashCopy
-              consistency group. Used to prestart, start or stop a FlashCopy
-              consistency group.
+              consistency group; or prestart, start or stop a FlashCopy
+              consistency group
         choices: [ absent, present, prestart, start, stop ]
         required: true
         type: str
     clustername:
         description:
-            - The hostname or management IP of the
-              Spectrum Virtualize storage system.
+            - The hostname or management IP of
+              Spectrum Virtualize storage
         type: str
         required: true
     domain:
         description:
-            - Domain for the Spectrum Virtualize storage system.
+            - Domain for IBM Spectrum Virtualize storage system
         type: str
     username:
         description:
-            - REST API username for the Spectrum Virtualize storage system.
+            - REST API username for IBM Spectrum Virtualize storage system
         required: true
         type: str
     password:
         description:
-            - REST API password for the Spectrum Virtualize storage system.
+            - REST API password for IBM Spectrum Virtualize storage system
         required: true
         type: str
     autodelete:
         description:
             - Deletes the consistency group when the last mapping that it
-              contains is deleted or removed from the consistency group.
+              contains is deleted or removed from the consistency group
         choices: [ 'on', 'off' ]
         default: 'off'
         type: str
     prep:
         description:
             - Specifies that the designated FlashCopy consistency group be
-              prepared before starting the FlashCopy consistency group.
+              prepared prior to starting the FlashCopy consistency group
         default: false
         type: bool
     restore:
         description:
-            - Specifies the restore flag.
+            - Specifies the restore flag
         default: false
         type: bool
     split:
         description:
             - Breaks the dependency on the source volumes of any
-              mappings that are also dependent on the target volume.
+              mappings that are also dependent on the target volume
         default: false
         type: bool
     force:
         description:
-            - Specifies the force flag.
+            - Specifies the force flag
         default: false
         type: bool
     log_path:
         description:
-            - Path of debug log file.
+            - Debugs log for this file
         type: str
     validate_certs:
         description:
-            - Validates certification.
-        default: false
+            - Validate certification
         type: bool
 author:
     - Peng Wang (@wangpww)
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create fc consistency group
+- name: Using IBM Spectrum Virtualize collection to create fc consistency group
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
@@ -121,14 +120,14 @@ EXAMPLES = '''
         state: present
         autodelete: on
 
-- name: Using Spectrum Virtualize collection to start fc consistency group
+- name: Using IBM Spectrum Virtualize collection to start a fc cg
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Start a fc consistency group
+    - name: start a fc consistency group
       ibm_svc_fcconsistgrp:
         clustername: "{{clustername}}"
         domain: "{{domain}}"
@@ -140,14 +139,14 @@ EXAMPLES = '''
         prep: true
         restore: true
 
-- name: Using Spectrum Virtualize collection to stop fc consistency group
+- name: Using IBM Spectrum Virtualize collection to stop a fc consistency group
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Stop a fc consistency group
+    - name: stop a fc consistency group
       ibm_svc_fcconsistgrp:
         clustername: "{{clustername}}"
         domain: "{{domain}}"
@@ -158,14 +157,14 @@ EXAMPLES = '''
         state: stop
         force: true
 
-- name: Using Spectrum Virtualize collection to delete fc consistency group
+- name: Using IBM Spectrum Virtualize collection to delete fc consistency group
   hosts: localhost
   collections:
     - ibm.spectrum_virtualize
   gather_facts: no
   connection: local
   tasks:
-    - name: Delete a fc consistency group
+    - name: Delete fc consistency group
       ibm_svc_fcconsistgrp:
         clustername: "{{clustername}}"
         domain: "{{domain}}"
@@ -198,10 +197,10 @@ class IBMSVCFCCG(object):
                                                                'prestart',
                                                                'start',
                                                                'stop']),
-                restore=dict(type='bool', required=False, default=False),
-                prep=dict(type='bool', required=False, default=False),
-                force=dict(type='bool', required=False, default=False),
-                split=dict(type='bool', required=False, default=False),
+                restore=dict(type='bool', required=False),
+                prep=dict(type='bool', required=False),
+                force=dict(type='bool', required=False),
+                split=dict(type='bool', required=False),
                 autodelete=dict(type='str', required=False,
                                 choices=['on', 'off'], default='off')
             )
