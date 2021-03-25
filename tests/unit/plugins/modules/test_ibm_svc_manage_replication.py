@@ -579,55 +579,6 @@ class TestIBMSVCManageReplication(unittest.TestCase):
             obj.delete()
         self.assertEqual(True, exc.value.args[0]['failed'])
 
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
-           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_ishyperswap(self, svc_authorize_mock):
-        set_module_args({
-            'clustername': 'clustername',
-            'domain': 'domain',
-            'state': 'present',
-            'username': 'username',
-            'password': 'password',
-            'name': 'test_name',
-            'remotecluster': 'test_remotecluster',
-            'master': 'test_master',
-            'aux': 'test_aux',
-            'copytype': 'metro',
-            'sync': 'true',
-            'consistgrp': 'test_consistency_group',
-        })
-        rc_data = {
-            'id': '157',
-            'name': 'test_name',
-            'master_cluster_id': '0000020321E04566',
-            'master_cluster_name': 'FlashSystem V9000',
-            'master_vdisk_id': '157',
-            'master_vdisk_name': 'test_master',
-            'aux_cluster_id': '0000020321E04566',
-            'aux_cluster_name': 'FlashSystem V9000',
-            'aux_vdisk_id': '161',
-            'aux_vdisk_name': 'test_aux',
-            'primary': 'aux',
-            'consistency_group_id': '8',
-            'consistency_group_name': 'test_consistency_group',
-            'state': 'consistent_synchronized',
-            'bg_copy_priority': '50',
-            'progress': '',
-            'freeze_time': '',
-            'status': 'online',
-            'sync': '',
-            'copy_type': 'activeactive',
-            'cycling_mode': '',
-            'cycle_period_seconds': '300',
-            'master_change_vdisk_id': '',
-            'master_change_vdisk_name': '',
-            'aux_change_vdisk_id': '',
-            'aux_change_vdisk_name': ''
-        }
-        obj = IBMSVCManageReplication()
-        return_data = obj.ishyperswap(rc_data)
-        self.assertEqual(True, return_data)
-
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_manage_replication.IBMSVCManageReplication.create')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'

@@ -10,11 +10,8 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-import json
-import logging
-
 from ansible.module_utils.compat.paramiko import paramiko
-from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import svc_argument_spec, get_logger
+from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import get_logger
 
 
 class IBMSVCssh(object):
