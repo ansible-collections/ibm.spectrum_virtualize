@@ -4,6 +4,7 @@
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
 #            Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
+#            Rohit Kumar <rohit.kumar6@ibm.com>
 #
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -41,8 +42,8 @@ options:
         description:
             - The hostname or management IP of the
               Spectrum Virtualize storage system.
-        type: str
         required: true
+        type: str
     domain:
         description:
             - Domain for the Spectrum Virtualize storage system.
@@ -59,20 +60,18 @@ options:
         type: str
     fcwwpn:
         description:
-            - List of Initiator WWPNs to be added to the host. The complete list of WWPNs must be provided.
-        required: false
+            - List of Initiator WWPNs to be added to the host.
+              The complete list of WWPNs must be provided.
         type: str
     iscsiname:
         description:
             - Initiator IQN to be added to the host.
-        required: false
         type: str
     iogrp:
         description:
             - Specifies a set of one or more input/output (I/O)
               groups from which the host can access the volumes.
         default: '0:1:2:3'
-        required: false
         type: str
     protocol:
         description:
@@ -80,13 +79,15 @@ options:
               communicate with the storage system.
         default: 'scsi'
         type: str
-        required: false
         choices: [ "scsi", "nvme" ]
     type:
         description:
             - Specifies the type of host.
         default:
-        required: false
+        type: str
+    site:
+        description:
+            - Specifies the site name of the host.
         type: str
     log_path:
         description:
@@ -99,6 +100,7 @@ options:
         type: bool
 author:
     - Sreshtant Bohidar (@Sreshtant-Bohidar)
+    - Rohit Kumar (@rohitk-github)
 '''
 
 EXAMPLES = '''
@@ -122,6 +124,7 @@ EXAMPLES = '''
         iogrp: 0:1:2:3
         protocol: scsi
         type: generic
+        site: site-name
 
 - name: Using Spectrum Virtualize collection to create FC host
   hosts: localhost
@@ -143,6 +146,7 @@ EXAMPLES = '''
         iogrp: 0:1:2:3
         protocol: scsi
         type: generic
+        site: site-name
 
 - name: Using Spectrum Virtualize collection to delete a host
   hosts: localhost
@@ -186,7 +190,8 @@ class IBMSVChost(object):
                 protocol=dict(type='str', required=False,
                               default='scsi',
                               choices=['scsi', 'nvme']),
-                type=dict(type='str')
+                type=dict(type='str'),
+                site=dict(type='str')
             )
         )
 
@@ -208,6 +213,7 @@ class IBMSVChost(object):
         self.iogrp = self.module.params.get('iogrp', '')
         self.protocol = self.module.params.get('protocol', '')
         self.type = self.module.params.get('type', '')
+        self.site = self.module.params.get('site', '')
 
         self.restapi = IBMSVCRestApi(
             module=self.module,
@@ -247,6 +253,10 @@ class IBMSVChost(object):
             if set(self.existing_fcwwpn).symmetric_difference(set(self.input_fcwwpn)):
                 props += ['fcwwpn']
 
+        if self.site:
+            if self.site != data['site_name']:
+                props += ['site']
+
         if props is []:
             props = None
 
@@ -285,6 +295,8 @@ class IBMSVChost(object):
             cmdopts['iogrp'] = self.iogrp
         if self.type:
             cmdopts['type'] = self.type
+        if self.site:
+            cmdopts['site'] = self.site
 
         self.log("creating host command '%s' opts '%s'",
                  self.fcwwpn, self.type)
@@ -322,14 +334,17 @@ class IBMSVChost(object):
         # update the host
         self.log("updating host '%s'", self.name)
         # TBD: Be smarter handling many properties.
+        cmd = 'chhost'
+        cmdopts = {}
         if 'fcwwpn' in modify:
             self.host_fcwwpn_update()
             self.changed = True
             self.log("fcwwpn of %s updated", self.name)
         if 'type' in modify:
-            cmd = 'chhost'
-            cmdopts = {}
             cmdopts['type'] = self.type
+        if 'site' in modify:
+            cmdopts['site'] = self.site
+        if cmdopts:
             cmdargs = [self.name]
             self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
             # Any error will have been raised in svc_run_command

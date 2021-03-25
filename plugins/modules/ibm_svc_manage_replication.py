@@ -34,7 +34,7 @@ options:
     type: str
   state:
     description:
-      - Creates/updates (C(present)), removes (C(absent)) a
+      - Creates or updates (C(present)), removes (C(absent)) a
         remote copy relationship.
     choices: [absent, present]
     required: true
@@ -134,7 +134,7 @@ EXAMPLES = '''
     - ibm.spectrum_virtualize
   connection: local
   tasks:
-    - name: create remote copy
+    - name: Create remote copy
       ibm_svc_manage_replication:
         name: sample_rcopy
         clustername: "{{clustername}}"
@@ -475,22 +475,13 @@ class IBMSVCManageReplication(object):
             self.module.fail_json(
                 msg="Failed to delete the remote copy [%s]" % self.name)
 
-    def ishyperswap(self, data):
-        if data:
-            if data['copy_type'] == "activeactive":
-                return True
-
     def apply(self):
         changed = False
         msg = None
-        ishyperswap = False
         modify = {}
         modifycv = {}
         rcrelationship_data = self.existing_rc()
         if rcrelationship_data:
-            ishyperswap = self.ishyperswap(rcrelationship_data)
-            if (ishyperswap):
-                self.module.fail_json(msg="active-active relationships are not supported")
             if self.state == 'absent':
                 self.log(
                     "CHANGED: RemoteCopy relationship exists, requested state is 'absent'")

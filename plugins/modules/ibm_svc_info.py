@@ -395,7 +395,6 @@ class IBMSVCGatherInfo(object):
 
     def get_system_list(self):
         try:
-            cmdargs = [self.objectname] if self.objectname else None
             if self.objectname:
                 self.log.warn('The objectname %s is ignored when retrieving '
                               'the system information', self.objectname)

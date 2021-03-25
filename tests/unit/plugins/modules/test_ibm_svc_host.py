@@ -118,7 +118,7 @@ class TestIBMSVChost(unittest.TestCase):
             'state': 'present',
             'username': 'username',
             'password': 'password',
-            'name': 'test_host_create_get_existing_host_called',
+            'name': 'test_host',
         })
         host_created = IBMSVChost()
         with pytest.raises(AnsibleExitJson) as exc:
@@ -370,6 +370,40 @@ class TestIBMSVChost(unittest.TestCase):
         obj.existing_fcwwpn = ['1000001AA0570262', '1000001AA0570263', '1000001AA0570264']
         obj.input_fcwwpn = ['1000001AA0570264', '1000001AA0570265', '1000001AA0570266']
         self.assertEqual(obj.host_fcwwpn_update(), None)
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_host_site_update(self, svc_authorize_mock, svc_obj_info_mock, src):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test',
+            'state': 'present',
+            'fcwwpn': '1000001AA0570260:1000001AA0570261:1000001AA0570262',
+            'protocol': 'scsi',
+            'type': 'generic',
+            'site': 'site1'
+        })
+        svc_obj_info_mock.return_value = {
+            'id': '24', 'name': 'test', 'port_count': '5', 'type': 'generic',
+            'mask': '1111111', 'iogrp_count': '4', 'status': 'offline',
+            'site_id': '', 'site_name': 'site2', 'host_cluster_id': '', 'host_cluster_name': '',
+            'protocol': 'scsi', 'nodes': [
+                {'WWPN': '1000001AA0570260', 'node_logged_in_count': '0', 'state': 'online'},
+                {'WWPN': '1000001AA0570261', 'node_logged_in_count': '0', 'state': 'online'},
+                {'WWPN': '1000001AA0570262', 'node_logged_in_count': '0', 'state': 'online'}
+            ]
+        }
+        with pytest.raises(AnsibleExitJson) as exc:
+            obj = IBMSVChost()
+            obj.apply()
+        self.assertEqual(True, exc.value.args[0]['changed'])
 
 
 if __name__ == '__main__':

@@ -17,7 +17,7 @@ ANSIBLE_METADATA = {'status': ['preview'],
 DOCUMENTATION = '''
 ---
 module: ibm_svc_start_stop_replication
-short_description: This module starts/stops remote copies on
+short_description: This module starts or stops remote copies on
                    IBM Spectrum Virtualize Family storage systems.
 version_added: "2.10.0"
 
@@ -27,13 +27,13 @@ description:
 options:
   name:
     description:
-      - Specifies a name to assign to the new remote copy relationship/group
+      - Specifies a name to assign to the new remote copy relationship or group,
         or to operate on the existing remote copy.
     required: false
     type: str
   state:
     description:
-      - starts (C(started)), stops (C(stopped)) a
+      - Starts (C(started)), stops (C(stopped)) a
         remote copy relationship.
     choices: [started, stopped]
     required: true
@@ -112,7 +112,7 @@ EXAMPLES = '''
     - ibm.spectrum_virtualize
   connection: local
   tasks:
-    - name: Start remote copy with name sample_rcopy
+    - name: Start remote copy
       ibm_svc_start_stop_replication:
         name: sample_rcopy
         clustername: "{{clustername}}"
@@ -300,24 +300,14 @@ class IBMSVCStartStopReplication(object):
                 msg = "Failed to stop the rcrelationship [%s]" % self.name
                 self.module.fail_json(msg=msg)
 
-    def ishyperswap(self, data):
-        if data:
-            if data['copy_type'] == "activeactive":
-                return True
-
     def apply(self):
         changed = False
         msg = None
-        ishyperswap = False
         self.log("self state is %s", self.state)
         if not self.isgroup:
             rcrelationship_data = self.existing_rc()
         else:
             rcrelationship_data = self.existing_rccg()
-        if rcrelationship_data:
-            ishyperswap = self.ishyperswap(rcrelationship_data)
-            if (ishyperswap):
-                self.module.fail_json(msg="active-active relationships are not supported")
         if self.module.check_mode:
             self.log('skipping changes due to check mode.')
             msg = 'skipping changes due to check mode.'
