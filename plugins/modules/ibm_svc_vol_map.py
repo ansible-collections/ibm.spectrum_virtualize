@@ -254,7 +254,6 @@ class IBMSVCvdiskhostmap(object):
     def apply(self):
         changed = False
         msg = None
-        modify = []
 
         vdiskhostmap_data = self.get_existing_vdiskhostmap()
         self.log("volume mapping data is : '%s'", vdiskhostmap_data)
