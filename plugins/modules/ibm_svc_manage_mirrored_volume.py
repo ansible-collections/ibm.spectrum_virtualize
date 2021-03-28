@@ -236,6 +236,7 @@ class IBMSVCvolume(object):
         self.changed = ""
         self.poolA_data = ""
         self.poolB_data = ""
+        self.isdrp = False
 
         # logging setup
         log_path = self.module.params.get('log_path')
@@ -487,9 +488,15 @@ are configured on this volume")
         if self.grainsize:
             cmdopts['grainsize'] = self.grainsize
         if self.deduplicated:
-            cmdopts['deduplicated'] = self.deduplicated
+            if self.thin:
+                cmdopts['deduplicated'] = self.deduplicated
+                cmdopts['autoexpand'] = True
+            else:
+                self.module.fail_json(msg="To configure 'deduplicated', parameter 'thin' should be passed and the value should be 'true.'")
         cmdopts['name'] = self.name
         cmdopts['copies'] = 2
+        if self.isdrp and self.thin:
+            cmdopts['autoexpand'] = True
         self.log("creating volume command %s opts %s", cmd, cmdopts)
 
         # Run command
@@ -556,9 +563,14 @@ are configured on this volume")
             cmdopts['rsize'] = "2%"
         elif self.rsize and not self.thin:
             self.module.fail_json(msg="To configure 'rsize', parameter 'thin' should be passed and the value should be 'true'.")
-
+        if self.isdrp and self.thin:
+            cmdopts['autoexpand'] = True
         if self.deduplicated:
-            cmdopts['deduplicated'] = self.deduplicated
+            if self.thin:
+                cmdopts['deduplicated'] = self.deduplicated
+                cmdopts['autoexpand'] = True
+            else:
+                self.module.fail_json(msg="To configure 'deduplicated', parameter 'thin' should be passed and the value should be 'true.'")
 
         cmdargs = [self.name]
         self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
@@ -597,6 +609,7 @@ are configured on this volume")
         if self.addvolumecopy_flag:
             self.addvolumecopy()
         elif self.addvdiskcopy_flag:
+            self.isdrpool()
             self.addvdiskcopy()
         elif self.rmvolumecopy_flag:
             self.rmvolumecopy()
@@ -614,6 +627,13 @@ are configured on this volume")
         # Any error will have been raised in svc_run_command
         # chmvdisk does not output anything when successful.
         self.changed = True
+
+    def isdrpool(self):
+        poolA_drp = self.poolA_data['data_reduction']
+        poolB_drp = self.poolB_data['data_reduction']
+        isdrpool_list = [poolA_drp, poolB_drp]
+        if "yes" in isdrpool_list:
+            self.isdrp = True
 
     def discover_system_topology(self):
         self.log("Entering function discover_system_topology")
@@ -658,6 +678,7 @@ You must pass in poolA and poolB to the module.")
                     if not vdisk_data:
                         # create_vdisk_flag = self.discover_site_from_pools()
                         if self.type == "standard":
+                            self.isdrpool()
                             self.vdisk_create()
                             msg = "Standard Mirrored Volume %s has been created." % self.name
                         elif self.type == "local hyperswap":
