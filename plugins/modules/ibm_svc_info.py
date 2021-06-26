@@ -41,12 +41,17 @@ options:
   username:
     description:
     - REST API username for the Spectrum Virtualize storage system.
-    required: true
+      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
     type: str
   password:
     description:
     - REST API password for the Spectrum Virtualize storage system.
-    required: true
+      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    type: str
+  token:
+    description:
+    - The authentication token to verify a user on the Spectrum Virtualize storage system.
+      To generate a token, use ibm_svc_auth module.
     type: str
   log_path:
     description:
@@ -205,7 +210,8 @@ class IBMSVCGatherInfo(object):
             username=self.module.params['username'],
             password=self.module.params['password'],
             validate_certs=self.module.params['validate_certs'],
-            log_path=log_path
+            log_path=log_path,
+            token=self.module.params['token']
         )
 
     def get_volumes_list(self):

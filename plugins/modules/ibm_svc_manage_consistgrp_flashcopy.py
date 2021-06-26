@@ -49,12 +49,17 @@ options:
     username:
         description:
             - REST API username for the Spectrum Virtualize storage system.
-        required: true
+              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
         type: str
     password:
         description:
             - REST API password for the Spectrum Virtualize storage system.
-        required: true
+              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+        type: str
+    token:
+        description:
+            - The authentication token to verify a user on the Spectrum Virtualize storage system.
+              To generate a token, use ibm_svc_auth module.
         type: str
     ownershipgroup:
         description:
@@ -160,6 +165,10 @@ class IBMSVCFlashcopyConsistgrp(object):
         self.noownershipgroup = self.module.params.get('noownershipgroup', False)
         self.force = self.module.params.get('force', False)
 
+        # Handling missing mandatory parameters name
+        if not self.name:
+            self.module.fail_json(msg='Missing mandatory parameter: name')
+
         self.restapi = IBMSVCRestApi(
             module=self.module,
             clustername=self.module.params['clustername'],
@@ -167,7 +176,8 @@ class IBMSVCFlashcopyConsistgrp(object):
             username=self.module.params['username'],
             password=self.module.params['password'],
             validate_certs=self.module.params['validate_certs'],
-            log_path=log_path
+            log_path=log_path,
+            token=self.module.params['token']
         )
 
     def get_existing_fcconsistgrp(self):
@@ -177,6 +187,10 @@ class IBMSVCFlashcopyConsistgrp(object):
         return data
 
     def fcconsistgrp_create(self):
+        if self.module.check_mode:
+            self.changed = True
+            return
+
         cmd = 'mkfcconsistgrp'
         cmdopts = {}
         cmdopts['name'] = self.name
@@ -192,6 +206,10 @@ class IBMSVCFlashcopyConsistgrp(object):
             self.module.fail_json(msg="Failed to create fc consistgrp [%s]" % self.name)
 
     def fcconsistgrp_delete(self):
+        if self.module.check_mode:
+            self.changed = True
+            return
+
         cmd = 'rmfcconsistgrp'
         cmdopts = {}
         if self.force:
@@ -211,6 +229,10 @@ class IBMSVCFlashcopyConsistgrp(object):
         return props
 
     def fcconsistgrp_update(self, modify):
+        if self.module.check_mode:
+            self.changed = True
+            return
+
         if modify:
             self.log("updating fcmap with properties %s", modify)
             cmd = 'chfcconsistgrp'
@@ -239,18 +261,18 @@ class IBMSVCFlashcopyConsistgrp(object):
                 self.log("fc consistgrp [%s] doesn't exist, but requested state is 'present'", self.name)
                 changed = True
         if changed:
+            if self.state == "absent":
+                self.fcconsistgrp_delete()
+                msg = "fc consistgrp [%s] has been deleted" % self.name
+            elif self.state == "present" and modify:
+                self.fcconsistgrp_update(modify)
+                msg = "fc consistgrp [%s] has been modified" % self.name
+            elif self.state == "present" and not modify:
+                self.fcconsistgrp_create()
+                msg = "fc consistgrp [%s] has been created" % self.name
+
             if self.module.check_mode:
-                self.log('skipping changes due to check mode.')
-            else:
-                if self.state == "absent":
-                    self.fcconsistgrp_delete()
-                    msg = "fc consistgrp [%s] has been deleted" % self.name
-                elif self.state == "present" and modify:
-                    self.fcconsistgrp_update(modify)
-                    msg = "fc consistgrp [%s] has been modified" % self.name
-                elif self.state == "present" and not modify:
-                    self.fcconsistgrp_create()
-                    msg = "fc consistgrp [%s] has been created" % self.name
+                msg = 'skipping changes due to check mode.'
         else:
             if self.state == "absent":
                 msg = "fc consistgrp [%s] does not exist" % self.name

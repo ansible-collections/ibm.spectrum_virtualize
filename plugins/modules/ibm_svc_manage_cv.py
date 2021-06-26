@@ -61,12 +61,17 @@ options:
   username:
     description:
     - REST API username for the Spectrum Virtualize storage system.
-    required: true
+      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
     type: str
   password:
     description:
     - REST API password for the Spectrum Virtualize storage system.
-    required: true
+      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    type: str
+  token:
+    description:
+    - The authentication token to verify a user on the Spectrum Virtualize storage system.
+      To generate a token, use ibm_svc_auth module.
     type: str
   validate_certs:
     description:
@@ -184,6 +189,13 @@ class IBMSVCchangevolume(object):
         self.basevolume = self.module.params['basevolume']
         self.ismaster = self.module.params['ismaster']
 
+        # Handling missing mandatory parameter rname
+        if not self.rname:
+            self.module.fail_json(msg='Missing mandatory parameter: rname')
+        # Handling missing mandatory parameter cvname
+        if not self.cvname:
+            self.module.fail_json(msg='Missing mandatory parameter: cvname')
+
         self.restapi = IBMSVCRestApi(
             module=self.module,
             clustername=self.module.params['clustername'],
@@ -191,7 +203,8 @@ class IBMSVCchangevolume(object):
             username=self.module.params['username'],
             password=self.module.params['password'],
             validate_certs=self.module.params['validate_certs'],
-            log_path=log_path
+            log_path=log_path,
+            token=self.module.params['token']
         )
 
     def get_existing_rc(self):
@@ -364,7 +377,7 @@ class IBMSVCchangevolume(object):
 
         if changed:
             if self.module.check_mode:
-                self.log('skipping changes due to check mode.')
+                msg = 'skipping changes due to check mode.'
             else:
                 rcrelationship_data = self.get_existing_rc()
                 if not rcrelationship_data:

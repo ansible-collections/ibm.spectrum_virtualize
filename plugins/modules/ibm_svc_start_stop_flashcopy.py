@@ -46,12 +46,17 @@ options:
     username:
         description:
             - REST API username for the Spectrum Virtualize storage system.
-        required: true
+              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
         type: str
     password:
         description:
             - REST API password for the Spectrum Virtualize storage system.
-        required: true
+              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+        type: str
+    token:
+        description:
+        - The authentication token to verify a user on the Spectrum Virtualize storage system.
+          To generate a token, use ibm_svc_auth module.
         type: str
     isgroup:
         description:
@@ -185,6 +190,10 @@ class IBMSVCFlashcopyStartStop(object):
         self.isgroup = self.module.params.get('isgroup', False)
         self.force = self.module.params.get('force', False)
 
+        # Handling missing mandatory parameters
+        if not self.name:
+            self.module.fail_json(msg='Missing mandatory parameter: name')
+
         self.restapi = IBMSVCRestApi(
             module=self.module,
             clustername=self.module.params['clustername'],
@@ -192,7 +201,8 @@ class IBMSVCFlashcopyStartStop(object):
             username=self.module.params['username'],
             password=self.module.params['password'],
             validate_certs=self.module.params['validate_certs'],
-            log_path=log_path
+            log_path=log_path,
+            token=self.module.params['token']
         )
 
     def get_existing_fcmapping(self):
@@ -248,7 +258,7 @@ class IBMSVCFlashcopyStartStop(object):
                 changed = True
         if changed:
             if self.module.check_mode:
-                self.log('skipping changes due to check mode.')
+                msg = 'skipping changes due to check mode.'
             else:
                 if self.state == "started":
                     self.start_fc()

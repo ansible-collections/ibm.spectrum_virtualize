@@ -51,12 +51,17 @@ options:
     username:
         description:
             - REST API username for the Spectrum Virtualize storage system.
-        required: true
+              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
         type: str
     password:
         description:
             - REST API password for the Spectrum Virtualize storage system.
-        required: true
+              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+        type: str
+    token:
+        description:
+            - The authentication token to verify a user on the Spectrum Virtualize storage system.
+              To generate a token, use ibm_svc_auth module.
         type: str
     fcwwpn:
         description:
@@ -71,24 +76,29 @@ options:
         description:
             - Specifies a set of one or more input/output (I/O)
               groups from which the host can access the volumes.
-        default: '0:1:2:3'
         type: str
     protocol:
         description:
             - Specifies the protocol used by the host to
-              communicate with the storage system.
-        default: 'scsi'
+              communicate with the storage system. Only 'scsi' protocol is supported.
         type: str
-        choices: [ "scsi", "nvme" ]
     type:
         description:
             - Specifies the type of host.
-        default:
         type: str
     site:
         description:
             - Specifies the site name of the host.
         type: str
+    hostcluster:
+        description:
+            - Specifies the name of the host cluster to which the host object is to be added.
+              A host cluster must exist before a host object can be added to it.
+        type: str
+    nohostcluster:
+        description:
+            - If specified True, host object is removed from the host cluster.
+        type: bool
     log_path:
         description:
             - Path of debug log file.
@@ -125,6 +135,24 @@ EXAMPLES = '''
         protocol: scsi
         type: generic
         site: site-name
+
+- name: Using Spectrum Virtualize collection to add a host to a host cluster
+  hosts: localhost
+  collections:
+    - ibm.spectrum_virtualize
+  gather_facts: no
+  connection: local
+  tasks:
+    - name: Add a host to an existing host cluster
+      ibm_svc_host:
+        clustername: "{{clustername}}"
+        domain: "{{domain}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        log_path: /tmp/playbook.debug
+        name: host4test
+        state: present
+        hostcluster: hostcluster0
 
 - name: Using Spectrum Virtualize collection to create FC host
   hosts: localhost
@@ -186,12 +214,12 @@ class IBMSVChost(object):
                                                                'present']),
                 fcwwpn=dict(type='str', required=False),
                 iscsiname=dict(type='str', required=False),
-                iogrp=dict(type='str', required=False, default='0:1:2:3'),
-                protocol=dict(type='str', required=False,
-                              default='scsi',
-                              choices=['scsi', 'nvme']),
+                iogrp=dict(type='str', required=False),
+                protocol=dict(type='str', required=False),
                 type=dict(type='str'),
-                site=dict(type='str')
+                site=dict(type='str'),
+                hostcluster=dict(type='str'),
+                nohostcluster=dict(type='bool')
             )
         )
 
@@ -214,6 +242,21 @@ class IBMSVChost(object):
         self.protocol = self.module.params.get('protocol', '')
         self.type = self.module.params.get('type', '')
         self.site = self.module.params.get('site', '')
+        self.hostcluster = self.module.params.get('hostcluster', '')
+        self.nohostcluster = self.module.params.get('nohostcluster', '')
+
+        # Handling duplicate fcwwpn
+        if self.fcwwpn:
+            dup_fcwwpn = self.duplicate_checker(self.fcwwpn.split(':'))
+            if dup_fcwwpn:
+                self.module.fail_json(msg='The parameter {0} has been entered multiple times. Enter the parameter only one time.'.format(dup_fcwwpn))
+        # Handling for missing mandatory parameter name
+        if not self.name:
+            self.module.fail_json(msg='Missing mandatory parameter: name')
+        # Handling for parameter protocol
+        if self.protocol:
+            if self.protocol != 'scsi':
+                self.module.fail_json(msg="[{0}] is not supported. Only 'scsi' protocol is supported.".format(self.protocol))
 
         self.restapi = IBMSVCRestApi(
             module=self.module,
@@ -222,8 +265,16 @@ class IBMSVChost(object):
             username=self.module.params['username'],
             password=self.module.params['password'],
             validate_certs=self.module.params['validate_certs'],
-            log_path=log_path
+            log_path=log_path,
+            token=self.module.params['token']
         )
+
+    def duplicate_checker(self, items):
+        unique_items = set(items)
+        if len(items) != len(unique_items):
+            return [element for element in unique_items if items.count(element) > 1]
+        else:
+            return []
 
     def get_existing_host(self):
         merged_result = {}
@@ -242,6 +293,16 @@ class IBMSVChost(object):
     # TBD: Implement a more generic way to check for properties to modify.
     def host_probe(self, data):
         props = []
+        if self.hostcluster and self.nohostcluster:
+            self.module.fail_json(msg="You must not pass in both hostcluster and "
+                                      "nohostcluster to the module.")
+
+        if self.hostcluster and (self.hostcluster != data['host_cluster_name']):
+            if data['host_cluster_name'] != '':
+                self.module.fail_json(msg="Host already belongs to hostcluster [%s]" % data['host_cluster_name'])
+            else:
+                props += ['hostcluster']
+
         # TBD: The parameter is fcwwpn but the view has fcwwpn label.
         if self.type:
             if self.type != data['type']:
@@ -257,17 +318,14 @@ class IBMSVChost(object):
             if self.site != data['site_name']:
                 props += ['site']
 
-        if props is []:
-            props = None
+        if self.nohostcluster:
+            if data['host_cluster_name'] != '':
+                props += ['nohostcluster']
 
-        self.log("host_probe props='%s'", data)
+        self.log("host_probe props='%s'", props)
         return props
 
     def host_create(self):
-        if self.module.check_mode:
-            self.changed = True
-            return
-
         if (not self.fcwwpn) and (not self.iscsiname):
             self.module.fail_json(msg="You must pass in fcwwpn or iscsiname "
                                       "to the module.")
@@ -275,9 +333,13 @@ class IBMSVChost(object):
             self.module.fail_json(msg="You must not pass in both fcwwpn and "
                                       "iscsiname to the module.")
 
-        if not self.protocol:
-            self.module.fail_json(msg="You must pass in protocol "
-                                      "to the module.")
+        if self.hostcluster and self.nohostcluster:
+            self.module.fail_json(msg="You must not pass in both hostcluster and "
+                                      "nohostcluster to the module.")
+
+        if self.module.check_mode:
+            self.changed = True
+            return
 
         self.log("creating host '%s'", self.name)
 
@@ -330,10 +392,14 @@ class IBMSVChost(object):
             )
             self.log('%s added to %s', to_be_added, self.name)
 
-    def host_update(self, modify):
+    def host_update(self, modify, host_data):
         # update the host
         self.log("updating host '%s'", self.name)
-        # TBD: Be smarter handling many properties.
+        if 'hostcluster' in modify:
+            self.addhostcluster()
+        elif 'nohostcluster' in modify:
+            self.removehostcluster(host_data)
+
         cmd = 'chhost'
         cmdopts = {}
         if 'fcwwpn' in modify:
@@ -353,11 +419,64 @@ class IBMSVChost(object):
             self.log("type of %s updated", self.name)
 
     def host_delete(self):
+        if self.module.check_mode:
+            self.changed = True
+            return
+
         self.log("deleting host '%s'", self.name)
 
         cmd = 'rmhost'
-        cmdopts = None
+        cmdopts = {}
         cmdargs = [self.name]
+
+        self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
+
+        # Any error will have been raised in svc_run_command
+        # chhost does not output anything when successful.
+        self.changed = True
+
+    def get_existing_hostcluster(self):
+        self.log("get_existing_hostcluster %s", self.hostcluster)
+
+        data = self.restapi.svc_obj_info(cmd='lshostcluster', cmdopts=None,
+                                         cmdargs=[self.hostcluster])
+
+        return data
+
+    def addhostcluster(self):
+        if self.module.check_mode:
+            self.changed = True
+            return
+
+        self.log("Adding host '%s' in hostcluster %s", self.name, self.hostcluster)
+
+        cmd = 'addhostclustermember'
+        cmdopts = {}
+        cmdargs = [self.hostcluster]
+
+        cmdopts['host'] = self.name
+
+        self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
+
+        # Any error will have been raised in svc_run_command
+        # chhost does not output anything when successful.
+        self.changed = True
+
+    def removehostcluster(self, data):
+        if self.module.check_mode:
+            self.changed = True
+            return
+
+        self.log("removing host '%s' from hostcluster %s", self.name, data['host_cluster_name'])
+
+        hostcluster_name = data['host_cluster_name']
+
+        cmd = 'rmhostclustermember'
+        cmdopts = {}
+        cmdargs = [hostcluster_name]
+
+        cmdopts['host'] = self.name
+        cmdopts['keepmappings'] = True
 
         self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
 
@@ -389,20 +508,29 @@ class IBMSVChost(object):
                 changed = True
 
         if changed:
-            if self.module.check_mode:
-                self.log('skipping changes due to check mode')
-            else:
-                if self.state == 'present':
-                    if not host_data:
+            if self.state == 'present':
+                if self.hostcluster:
+                    hc_data = self.get_existing_hostcluster()
+                    if hc_data is None:
+                        self.module.fail_json(msg="Host cluster must already exist before its usage in this module")
+                    elif not host_data and hc_data:
                         self.host_create()
-                        msg = "host %s has been created." % self.name
-                    else:
-                        # This is where we would modify
-                        self.host_update(modify)
-                        msg = "host [%s] has been modified." % self.name
-                elif self.state == 'absent':
-                    self.host_delete()
-                    msg = "host [%s] has been deleted." % self.name
+                        self.addhostcluster()
+                        msg = "host %s has been created and added to hostcluster." % self.name
+                elif not host_data:
+                    self.host_create()
+                    msg = "host %s has been created." % self.name
+
+                if host_data and modify:
+                    # This is where we would modify
+                    self.host_update(modify, host_data)
+                    msg = "host [%s] has been modified." % self.name
+            elif self.state == 'absent':
+                self.host_delete()
+                msg = "host [%s] has been deleted." % self.name
+
+            if self.module.check_mode:
+                msg = 'skipping changes due to check mode'
         else:
             self.log("exiting with no changes")
             if self.state == 'absent':
