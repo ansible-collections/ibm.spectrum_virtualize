@@ -2,7 +2,7 @@
 
 [![Code of conduct](https://img.shields.io/badge/code%20of%20conduct-Ansible-silver.svg)](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html )
 
-This collection provides a series of Ansible modules and plugins for interacting with the IBM Spectrum Virtualize Family storage products. These products include the IBM SAN Volume Controller, IBM FlashSystem Family members built with IBM Spectrum Virtualize (FlashSystem 5000, 5100, 5200, 7200, 9100, 9200, 9200R, and V9000), IBM Storwize Family, and IBM Spectrum Virtualize for Public Cloud. For more information regarding these products, see the [IBM Knowledge Center](https://www.ibm.com/support/knowledgecenter ).
+This collection provides a series of Ansible modules and plugins for interacting with the IBM Spectrum Virtualize Family storage products. These products include the IBM SAN Volume Controller, IBM FlashSystem Family members built with IBM Spectrum Virtualize (FlashSystem 5000, 5100, 5200, 7200, 9100, 9200, 9200R, and V9000), IBM Storwize Family, and IBM Spectrum Virtualize for Public Cloud. For more information regarding these products, see the [IBM Documentation](https://www.ibm.com/docs/en ).
 
 ## Requirements
 
@@ -68,7 +68,9 @@ Alternatively, you can add a full namepsace and collection name in the `collecti
 
 ### Modules
 
-- ibm_svc_host - Manages hosts for IBM Spectrum Virtualize system
+- ibm_svc_auth - Generates an authentication token for a user on IBM Spectrum Virtualize Family storage system
+- ibm_svc_host - Manages hosts on IBM Spectrum Virtualize system
+- ibm_svc_hostcluster - Manages host cluster on IBM Spectrum Virtualize system
 - ibm_svc_info - Collects information on IBM Spectrum Virtualize system
 - ibm_svc_manage_consistgrp_flashcopy - Manages FlashCopy consistency groups on IBM Spectrum Virtualize system
 - ibm_svc_manage_cv - Manages the change volume in remote copy replication on IBM Spectrum Virtualize system
