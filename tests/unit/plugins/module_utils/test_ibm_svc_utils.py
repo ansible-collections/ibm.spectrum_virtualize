@@ -63,7 +63,7 @@ class TestIBMSVModuleUtils(unittest.TestCase):
         self.addCleanup(self.mock_module_helper.stop)
         self.restapi = IBMSVCRestApi(self.mock_module_helper, '1.2.3.4',
                                      'domain.ibm.com', 'username', 'password',
-                                     False, 'test.log')
+                                     False, 'test.log', '')
 
     def set_default_args(self):
         return dict({
@@ -101,7 +101,7 @@ class TestIBMSVModuleUtils(unittest.TestCase):
         mock_svc_token_wrap.return_value = {'err': 'err', 'out': []}
         self.restapi = IBMSVCRestApi(mock_module, '1.2.3.4',
                                      'domain.ibm.com', 'username', 'password',
-                                     False, 'test.log')
+                                     False, 'test.log', '')
 
         self.restapi.svc_run_command('lshost', {}, [])
 
@@ -138,6 +138,16 @@ class TestIBMSVModuleUtils(unittest.TestCase):
                                             'err': ''}
         ret = self.restapi.svc_obj_info('lshost', {}, [])
         self.assertDictEqual(ret[0], host_ret[0])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_token_wrap')
+    def test_get_auth_token(self, mock_svc_token_wrap, mock_svc_authorize):
+        test_var = 'a2ca1d31d663ce181b955c07f51a000c2f75835b3d87735d1f334cf4b913880c'
+        mock_svc_authorize.return_value = test_var
+        ret = self.restapi.get_auth_token()
+        self.assertEqual(test_var, ret)
 
 
 if __name__ == '__main__':
