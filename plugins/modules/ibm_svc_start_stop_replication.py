@@ -50,12 +50,17 @@ options:
   username:
     description:
     - REST API username for the Spectrum Virtualize storage system.
-    required: true
+      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
     type: str
   password:
     description:
     - REST API password for the Spectrum Virtualize storage system.
-    required: true
+      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    type: str
+  token:
+    description:
+    - The authentication token to verify a user on the Spectrum Virtualize storage system.
+      To generate a token, use ibm_svc_auth module.
     type: str
   primary:
     description:
@@ -179,6 +184,10 @@ class IBMSVCStartStopReplication(object):
         self.force = self.module.params.get('force', False)
         self.isgroup = self.module.params.get('isgroup', False)
 
+        # Handling missing mandatory parameter name
+        if not self.name:
+            self.module.fail_json(msg='Missing mandatory parameter: name')
+
         self.restapi = IBMSVCRestApi(
             module=self.module,
             clustername=self.module.params['clustername'],
@@ -186,41 +195,9 @@ class IBMSVCStartStopReplication(object):
             username=self.module.params['username'],
             password=self.module.params['password'],
             validate_certs=self.module.params['validate_certs'],
-            log_path=log_path
+            log_path=log_path,
+            token=self.module.params['token']
         )
-
-    def existing_rc(self):
-        """
-        find the remote copy relationships such as Metro Mirror, Global Mirror
-        relationships visible to the system.
-
-        Returns:
-            None if no matching instances or a list including all the matching
-            instances
-        """
-        self.log('Trying to get the remote copy relationship %s', self.name)
-        data = self.restapi.svc_obj_info(cmd='lsrcrelationship',
-                                             cmdopts=None, cmdargs=[self.name])
-
-        return data
-
-    def existing_rccg(self):
-        """
-        find the remote copy consistency group visible to the system.
-
-        Returns:
-            None if no matching instances or a list including all the matching
-            instances
-        """
-        data_cg = {}
-        self.log('Trying to get the remote copy cg %s', self.name)
-        data = self.restapi.svc_obj_info(cmd='lsrcconsistgrp',
-                                             cmdopts=None, cmdargs=[self.name])
-        if isinstance(data, list):
-            data_cg = data[0]
-        elif isinstance(data, dict):
-            data_cg = data
-        return data_cg
 
     def start(self):
         """
@@ -304,24 +281,17 @@ class IBMSVCStartStopReplication(object):
         changed = False
         msg = None
         self.log("self state is %s", self.state)
-        if not self.isgroup:
-            rcrelationship_data = self.existing_rc()
-        else:
-            rcrelationship_data = self.existing_rccg()
         if self.module.check_mode:
-            self.log('skipping changes due to check mode.')
             msg = 'skipping changes due to check mode.'
         else:
             if self.state == 'started':
                 self.start()
-                changed = True
                 if not self.isgroup:
                     msg = "remote copy [%s] has been started." % self.name
                 else:
                     msg = "remote copy group [%s] has been started." % self.name
             elif self.state == 'stopped':
                 self.stop()
-                changed = True
                 if not self.isgroup:
                     msg = "remote copy [%s] has been stopped." % self.name
                 else:
@@ -329,7 +299,7 @@ class IBMSVCStartStopReplication(object):
             else:
                 msg = "Invalid %s state. Supported states are 'started' and 'stopped'" % self.state
 
-        self.module.exit_json(msg=msg, changed=changed)
+        self.module.exit_json(msg=msg, changed=True)
 
 
 def main():

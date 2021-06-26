@@ -162,6 +162,10 @@ class IBMSVCsshClient(object):
         self.password = self.module.params['password']
         self.log_path = log_path
 
+        # Handling missing mandatory parameter
+        if not self.command:
+            self.module.fail_json(msg='Missing mandatory parameter: command')
+
         if self.password is None:
             if self.usesshkey == 'yes':
                 self.log("password is none and use ssh private key. Check for its path")
@@ -215,7 +219,7 @@ class IBMSVCsshClient(object):
         else:
             message = "SSH client is not connected"
         self.ssh_client._svc_disconnect()
-        self.module.exit_json(msg=message, rc=rc)
+        self.module.exit_json(msg=message, rc=rc, changed=True)
 
 
 def main():

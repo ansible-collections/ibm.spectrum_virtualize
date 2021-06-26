@@ -44,12 +44,17 @@ options:
   username:
     description:
     - REST API username for the Spectrum Virtualize storage system.
-    required: true
+      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
     type: str
   password:
     description:
     - REST API password for the Spectrum Virtualize storage system.
-    required: true
+      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    type: str
+  token:
+    description:
+    - The authentication token to verify a user on the Spectrum Virtualize storage system.
+      To generate a token, use ibm_svc_auth module.
     type: str
   datareduction:
     description:
@@ -190,6 +195,10 @@ class IBMSVCmdiskgrp(object):
         self.size = self.module.params.get('size', None)
         self.unit = self.module.params.get('unit', None)
 
+        # Handling missing mandatory parameters name
+        if not self.name:
+            self.module.fail_json(msg='Missing mandatory parameter: name')
+
         self.restapi = IBMSVCRestApi(
             module=self.module,
             clustername=self.module.params['clustername'],
@@ -197,7 +206,8 @@ class IBMSVCmdiskgrp(object):
             username=self.module.params['username'],
             password=self.module.params['password'],
             validate_certs=self.module.params['validate_certs'],
-            log_path=log_path
+            log_path=log_path,
+            token=self.module.params['token']
         )
 
     def mdiskgrp_exists(self):
@@ -205,10 +215,6 @@ class IBMSVCmdiskgrp(object):
                                          cmdargs=[self.name])
 
     def mdiskgrp_create(self):
-        if self.module.check_mode:
-            self.changed = True
-            return
-
         # So ext is optional to mkmdiskgrp but make required in ansible
         # until all options for create are implemented.
         # if not self.ext:
@@ -222,6 +228,11 @@ class IBMSVCmdiskgrp(object):
 
         if not self.ext:
             self.module.fail_json(msg="You must pass the ext to the module.")
+
+        if self.module.check_mode:
+            self.changed = True
+            return
+
         if self.parentmdiskgrp:
             cmdopts['parentmdiskgrp'] = self.parentmdiskgrp
             if self.size:
@@ -253,6 +264,10 @@ class IBMSVCmdiskgrp(object):
                 msg="Failed to create mdisk group [%s]" % (self.name))
 
     def mdiskgrp_delete(self):
+        if self.module.check_mode:
+            self.changed = True
+            return
+
         self.log("deleting mdiskgrp '%s'", self.name)
 
         cmd = 'rmmdiskgrp'
@@ -321,21 +336,21 @@ class IBMSVCmdiskgrp(object):
                 changed = True
 
         if changed:
-            if self.module.check_mode:
-                self.log('skipping changes due to check mode')
-            else:
-                if self.state == 'present':
-                    if not mdiskgrp_data:
-                        self.mdiskgrp_create()
-                        msg = "Mdisk group [%s] has been created." % self.name
-                    else:
-                        # This is where we would modify
-                        self.mdiskgrp_update(modify)
-                        msg = "Mdisk group [%s] has been modified." % self.name
+            if self.state == 'present':
+                if not mdiskgrp_data:
+                    self.mdiskgrp_create()
+                    msg = "Mdisk group [%s] has been created." % self.name
+                else:
+                    # This is where we would modify
+                    self.mdiskgrp_update(modify)
+                    msg = "Mdisk group [%s] has been modified." % self.name
 
-                elif self.state == 'absent':
-                    self.mdiskgrp_delete()
-                    msg = "Volume [%s] has been deleted." % self.name
+            elif self.state == 'absent':
+                self.mdiskgrp_delete()
+                msg = "Volume [%s] has been deleted." % self.name
+
+            if self.module.check_mode:
+                msg = 'skipping changes due to check mode'
         else:
             self.log("exiting with no changes")
             if self.state == 'absent':

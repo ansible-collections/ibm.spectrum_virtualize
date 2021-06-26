@@ -50,12 +50,17 @@ options:
     username:
         description:
             - REST API username for the Spectrum Virtualize storage system.
-        required: true
+              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
         type: str
     password:
         description:
             - REST API password for the Spectrum Virtualize storage system.
-        required: true
+              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+        type: str
+    token:
+        description:
+        - The authentication token to verify a user on the Spectrum Virtualize storage system.
+          To generate a token, use ibm_svc_auth module.
         type: str
     log_path:
         description:
@@ -212,6 +217,10 @@ class IBMSVCRCCG(object):
         self.cyclingmode = self.module.params.get('cyclingmode', None)
         self.cyclingperiod = self.module.params.get('cyclingperiod', None)
 
+        # Handling missing mandatory paratmeter name
+        if not self.name:
+            self.module.fail_json(msg='Missing mandatory parameter: name')
+
         self.restapi = IBMSVCRestApi(
             module=self.module,
             clustername=self.module.params['clustername'],
@@ -219,7 +228,8 @@ class IBMSVCRCCG(object):
             username=self.module.params['username'],
             password=self.module.params['password'],
             validate_certs=self.module.params['validate_certs'],
-            log_path=log_path
+            log_path=log_path,
+            token=self.module.params['token']
         )
 
     def get_existing_rccg(self):
@@ -255,6 +265,10 @@ class IBMSVCRCCG(object):
         return props, propscv
 
     def rccg_create(self):
+        if self.module.check_mode:
+            self.changed = True
+            return
+
         rccg_data = self.get_existing_rccg()
         if rccg_data:
             self.rccg_update(rccg_data)
@@ -319,6 +333,9 @@ class IBMSVCRCCG(object):
         if not rccg_data:
             self.module.exit_json(msg="rc consistgrp '%s' did not exist" %
                                       self.name, changed=False)
+        if self.module.check_mode:
+            self.changed = True
+            return
 
         self.log("deleting rc consistgrp '%s'", self.name)
 
@@ -350,23 +367,25 @@ class IBMSVCRCCG(object):
                     changed = True
         else:
             if self.state == 'present':
+                if self.copytype:
+                    self.module.fail_json(msg="copytype cannot be passed while creating a consistency group")
                 changed = True
                 self.log(
                     "CHANGED: Remotecopy group does not exist, but requested state is '%s'", self.state)
         if changed:
+            if self.state == 'present':
+                if not rccg_data:
+                    self.rccg_create()
+                    msg = "remote copy group %s has been created." % self.name
+                else:
+                    self.rccg_update(modify, modifycv)
+                    msg = "remote copy group [%s] has been modified." % self.name
+            elif self.state == 'absent':
+                self.rccg_delete()
+                msg = "remote copy group [%s] has been deleted." % self.name
+
             if self.module.check_mode:
-                self.log('skipping changes due to check mode.')
-            else:
-                if self.state == 'present':
-                    if not rccg_data:
-                        self.rccg_create()
-                        msg = "remote copy group %s has been created." % self.name
-                    else:
-                        self.rccg_update(modify, modifycv)
-                        msg = "remote copy group [%s] has been modified." % self.name
-                elif self.state == 'absent':
-                    self.rccg_delete()
-                    msg = "remote copy group [%s] has been deleted." % self.name
+                msg = 'skipping changes due to check mode.'
         else:
             self.log("exiting with no changes")
             if self.state in ['absent']:

@@ -4,6 +4,7 @@
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
 #            Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
+#            Rohit kumar <rohit.kumar6@ibm.com>
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
@@ -46,17 +47,22 @@ options:
   username:
     description:
     - REST API username for the Spectrum Virtualize storage system.
-    required: true
+      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
     type: str
   password:
     description:
     - REST API password for the Spectrum Virtualize storage system.
-    required: true
+      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    type: str
+  token:
+    description:
+    - The authentication token to verify a user on the Spectrum Virtualize storage system.
+      To generate a token, use ibm_svc_auth module.
     type: str
   mdiskgrp:
     description:
     - Specifies the name of the storage pool to use when
-      creating this volume.
+      creating this volume. This parameter is required when 'state' is 'present'.
     type: str
   easytier:
     description:
@@ -65,11 +71,12 @@ options:
     choices: [ 'on', 'off' ]
   size:
     description:
-    - Defines size of VDisk.
+    - Defines the size of VDisk. This parameter is required when 'state' is 'present'.
+      This parameter can also be used to resize an existing VDisk.
     type: str
   unit:
     description:
-    - Defines the size option for the storage unit.
+    - Defines the size option for the storage unit. This parameter is required when 'state' is 'present'.
     type: str
     choices: [ b, kb, mb, gb, tb, pb ]
     default: mb
@@ -93,6 +100,7 @@ options:
     type: bool
 author:
     - Sreshtant Bohidar(@Sreshtant-Bohidar)
+    - Rohit Kumar(@rohitk-github)
 '''
 
 EXAMPLES = '''
@@ -189,6 +197,10 @@ class IBMSVCvdisk(object):
         self.module = AnsibleModule(argument_spec=argument_spec,
                                     supports_check_mode=True)
 
+        self.resizevdisk_flag = False
+        self.expand_flag = False
+        self.shrink_flag = False
+
         # logging setup
         log_path = self.module.params['log_path']
         log = get_logger(self.__class__.__name__, log_path)
@@ -206,6 +218,10 @@ class IBMSVCvdisk(object):
         self.rsize = self.module.params['rsize']
         self.autoexpand = self.module.params['autoexpand']
 
+        # Handling missing mandatory parameter name
+        if not self.name:
+            self.module.fail_json('Missing mandatory parameter: name')
+
         self.restapi = IBMSVCRestApi(
             module=self.module,
             clustername=self.module.params['clustername'],
@@ -213,43 +229,72 @@ class IBMSVCvdisk(object):
             username=self.module.params['username'],
             password=self.module.params['password'],
             validate_certs=self.module.params['validate_certs'],
-            log_path=log_path
+            log_path=log_path,
+            token=self.module.params['token']
         )
 
+    def convert_to_bytes(self):
+        return int(self.size) * (1024 ** (['b', 'kb', 'mb', 'gb', 'tb', 'pb'].index((self.unit).lower())))
+
     def get_existing_vdisk(self):
-        merged_result = {}
-
-        data = self.restapi.svc_obj_info(cmd='lsvdisk', cmdopts=None,
-                                         cmdargs=[self.name])
-
-        if isinstance(data, list):
-            for d in data:
-                merged_result.update(d)
-        else:
-            merged_result = data
-
-        return merged_result
+        self.log("Entering function get_existing_vdisk")
+        cmd = 'lsvdisk'
+        cmdargs = {}
+        cmdopts = {'bytes': True}
+        cmdargs = [self.name]
+        existing_vdisk_data = self.restapi.svc_obj_info(cmd, cmdopts, cmdargs)
+        return existing_vdisk_data
 
     # TBD: Implement a more generic way to check for properties to modify.
     def vdisk_probe(self, data):
         props = []
-
+        # Check if change in vdisk size is required
+        input_size = int(self.convert_to_bytes())
+        actual_size = int(data[0]['capacity'])
+        if self.size:
+            if input_size != actual_size:
+                props += ['resize']
+                if input_size > actual_size:
+                    self.expand_flag = True
+                    self.change_in_size = input_size - actual_size
+                else:
+                    self.shrink_flag = True
+                    self.change_in_size = actual_size - input_size
         # TBD: The parameter is easytier but the view has easy_tier label.
         if self.easytier:
-            if self.easytier != data['easy_tier']:
+            if self.easytier != data[1]['easy_tier']:
                 props += ['easytier']
-
-        if props is []:
-            props = None
-
-        self.log("vdisk_probe props='%s'", data)
+        self.log("vdisk_probe props='%s'", props)
         return props
 
-    def vdisk_create(self):
-        if self.module.check_mode:
-            self.changed = True
-            return
+    def detect_vdisk_type(self, data):
+        isMirrored = False
+        if data[0]['type'] == "many":
+            isMirrored = True
+        if not isMirrored:
+            relationship_name = data[0]['RC_name']
+            if relationship_name:
+                rel_data = self.restapi.svc_obj_info(cmd='lsrcrelationship', cmdopts=None, cmdargs=[relationship_name])
+                if rel_data['copy_type'] == "activeactive":
+                    isMirrored = True
+        if isMirrored:
+            self.module.fail_json(msg="Mirror volumes cannot be managed using this module.\
+ To manage mirror volumes, module 'ibm_svc_manange_mirrored_volume' can be used")
 
+    def resizevdisk(self):
+        cmdopts = {}
+        if self.expand_flag:
+            cmd = "expandvdisksize"
+        elif self.shrink_flag:
+            cmd = "shrinkvdisksize"
+        cmdopts["size"] = str(self.change_in_size)
+        cmdopts["unit"] = "b"
+        cmdargs = [self.name]
+
+        self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
+        self.changed = True
+
+    def vdisk_create(self):
         if not self.mdiskgrp:
             self.module.fail_json(msg="You must pass in "
                                       "mdiskgrp to the module.")
@@ -257,6 +302,11 @@ class IBMSVCvdisk(object):
             self.module.fail_json(msg="You must pass in size to the module.")
         if not self.unit:
             self.module.fail_json(msg="You must pass in unit to the module.")
+
+        if self.module.check_mode:
+            self.changed = True
+            return
+
         self.log("creating vdisk '%s'", self.name)
 
         # Make command
@@ -289,24 +339,31 @@ class IBMSVCvdisk(object):
                 msg="Failed to create vdisk [%s]" % self.name)
 
     def vdisk_update(self, modify):
-        # update the vdisk
         self.log("updating vdisk '%s'", self.name)
-
-        cmd = 'chvdisk'
-        cmdopts = {}
-
-        # TBD: Be smarter handling many properties.
-        if 'easytier' in modify:
+        if 'resize' in modify and 'easytier' in modify:
+            self.module.fail_json(msg="You cannot resize a volume while modifying other attributes")
+        if self.module.check_mode:
+            self.changed = True
+            return
+        if 'resize' in modify:
+            self.resizevdisk()
+            self.changed = True
+        elif 'easytier' in modify:
+            cmd = 'chvdisk'
+            cmdopts = {}
             cmdopts['easytier'] = self.easytier
-        cmdargs = [self.name]
+            cmdargs = [self.name]
 
-        self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-
-        # Any error will have been raised in svc_run_command
-        # chvdisk does not output anything when successful.
-        self.changed = True
+            self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
+            # Any error will have been raised in svc_run_command
+            # chvdisk does not output anything when successful.
+            self.changed = True
 
     def vdisk_delete(self):
+        if self.module.check_mode:
+            self.changed = True
+            return
+
         self.log("deleting vdisk '%s'", self.name)
 
         cmd = 'rmvdisk'
@@ -325,14 +382,14 @@ class IBMSVCvdisk(object):
         modify = []
 
         vdisk_data = self.get_existing_vdisk()
-
         if vdisk_data:
+            self.detect_vdisk_type(vdisk_data)
             if self.state == 'absent':
                 self.log("CHANGED: vdisk exists, but requested "
                          "state is 'absent'")
                 changed = True
             elif self.state == 'present':
-                # This is where we detect if chvdisk should be called
+                # This is where we detect if chvdisk or resize should be called
                 modify = self.vdisk_probe(vdisk_data)
                 if modify:
                     changed = True
@@ -343,20 +400,20 @@ class IBMSVCvdisk(object):
                 changed = True
 
         if changed:
+            if self.state == 'present':
+                if not vdisk_data:
+                    self.vdisk_create()
+                    msg = "vdisk [%s] has been created." % self.name
+                else:
+                    # This is where we would modify
+                    self.vdisk_update(modify)
+                    msg = "vdisk [%s] has been modified." % self.name
+            elif self.state == 'absent':
+                self.vdisk_delete()
+                msg = "vdisk [%s] has been deleted." % self.name
+
             if self.module.check_mode:
-                self.log('skipping changes due to check mode')
-            else:
-                if self.state == 'present':
-                    if not vdisk_data:
-                        self.vdisk_create()
-                        msg = "vdisk %s has been created." % self.name
-                    else:
-                        # This is where we would modify
-                        self.vdisk_update(modify)
-                        msg = "vdisk [%s] has been modified." % self.name
-                elif self.state == 'absent':
-                    self.vdisk_delete()
-                    msg = "vdisk [%s] has been deleted." % self.name
+                msg = 'skipping changes due to check mode'
         else:
             self.log("exiting with no changes")
             if self.state == 'absent':

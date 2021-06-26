@@ -45,12 +45,17 @@ options:
   username:
     description:
     - REST API username for the Spectrum Virtualize storage system.
-    required: true
+      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
     type: str
   password:
     description:
     - REST API password for the Spectrum Virtualize storage system.
-    required: true
+      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    type: str
+  token:
+    description:
+    - The authentication token to verify a user on the Spectrum Virtualize storage system.
+      To generate a token, use ibm_svc_auth module.
     type: str
   poolA:
     description:
@@ -92,12 +97,14 @@ options:
     type: str
   rsize:
     description:
-    - Specifies the rsize in %. Defines how much physical space
+    - Specifies the rsize (buffersize) in %. Defines how much physical space
       is initially allocated to the thin-provisioned or compressed volume.
     type: str
   size:
     description:
-    - Specifies the size of mirrored volume in MB.
+    - Specifies the size of mirrored volume in MB. This can also be used
+      to resize a mirrored volume. When resizing, only mandatory parameters can
+      be passed.
     type: str
   validate_certs:
     description:
@@ -127,10 +134,10 @@ EXAMPLES = '''
         password: "{{password}}"
         log_path: /tmp/playbook.debug
         type: "local hyperswap"
-        name: "{{vol_name}}"
+        name: "vol1"
         state: present
-        poolA: "{{pool_name1}}"
-        poolB: "{{pool_name2}}"
+        poolA: "pool1"
+        poolB: "pool2"
         size: "1024"
 
 - name: Using the IBM Spectrum Virtualize collection to create a thin-provisioned HyperSwap volume
@@ -147,10 +154,10 @@ EXAMPLES = '''
         password: "{{password}}"
         log_path: /tmp/playbook.debug
         type: "local hyperswap"
-        name: "{{vol_name}}"
+        name: "vol2"
         state: present
-        poolA: "{{pool_name1}}"
-        poolB: "{{pool_name2}}"
+        poolA: "pool1"
+        poolB: "pool2"
         size: "1024"
         thin: true
 
@@ -167,7 +174,7 @@ EXAMPLES = '''
         username: "{{username}}"
         password: "{{password}}"
         log_path: /tmp/playbook.debug
-        name: "{{vol_name}}"
+        name: "vol2"
         state: absent
 
 - name: Using the IBM Spectrum Virtualize collection to create standard mirror volume
@@ -182,14 +189,33 @@ EXAMPLES = '''
         - name: Create Volume
           ibm_svc_manage_mirrored_vol:
             clustername: "{{clustername}}"
-            username: "superuser"
-            password: "passw0rd"
+            username: "{{superuser}}"
+            password: "{{password}}"
             log_path: /tmp/playbook.debug
-            name: "{{vol_name}}"
+            name: "vol4"
             state: present
             type: "standard"
-            poolA: "{{pool_name1}}"
-            poolB: "{{pool_name2}}"
+            poolA: "pool1"
+            poolB: "pool3"
+
+- name: Using the IBM Spectrum Virtualize collection to resize a mirrored volume
+  hosts: localhost
+  collections:
+    - ibm.spectrum_virtualize
+  gather_facts: no
+  connection: local
+  tasks:
+    - name: Resize an existing mirrored volume
+      block:
+        - name: Resize an existing mirrored volume
+          ibm_svc_manage_mirrored_vol:
+            clustername: "{{clustername}}"
+            username: "{{superuser}}"
+            password: "{{password}}"
+            log_path: /tmp/playbook.debug
+            name: "vol1"
+            state: present
+            size: "{{new_size}}"
 '''
 RETURN = '''
 '''
@@ -227,16 +253,11 @@ class IBMSVCvolume(object):
         self.discovered_poolA = ""
         self.discovered_poolB = ""
         self.discovered_standard_vol_pool = ""
-        self.rmvolumecopy_flag = ""
-        self.addvolumecopy_flag = ""
-        self.addvdiskcopy_flag = ""
-        self.discovered_poolA_site = ""
-        self.discovered_poolB_site = ""
-        self.removefrompool_site = ""
-        self.changed = ""
         self.poolA_data = ""
         self.poolB_data = ""
         self.isdrp = False
+        self.expand_flag = False
+        self.shrink_flag = False
 
         # logging setup
         log_path = self.module.params.get('log_path')
@@ -270,7 +291,8 @@ class IBMSVCvolume(object):
             username=self.module.params.get('username'),
             password=self.module.params.get('password'),
             validate_certs=self.module.params.get('validate_certs'),
-            log_path=log_path
+            log_path=log_path,
+            token=self.module.params['token']
         )
 
     def get_existing_vdisk(self):
@@ -282,7 +304,7 @@ class IBMSVCvolume(object):
         existing_vdisk_data = self.restapi.svc_obj_info(cmd, cmdopts, cmdargs)
         return existing_vdisk_data
 
-    def basic_checks(self):
+    def basic_checks(self, data):
         self.log("Entering function basic_checks")
         if self.poolA:
             self.poolA_data = self.restapi.svc_obj_info(cmd='lsmdiskgrp', cmdopts=None, cmdargs=[self.poolA])
@@ -292,7 +314,7 @@ class IBMSVCvolume(object):
             self.poolB_data = self.restapi.svc_obj_info(cmd='lsmdiskgrp', cmdopts=None, cmdargs=[self.poolB])
             if not self.poolB_data:
                 self.module.fail_json(msg="PoolB does not exist")
-        if self.state == "present" and not self.type:
+        if self.state == "present" and not self.type and not self.size:
             self.module.fail_json(msg="missing required argument: type")
         if self.poolA and self.poolB:
             if self.poolA == self.poolB:
@@ -300,12 +322,15 @@ class IBMSVCvolume(object):
             siteA, siteB = self.discover_site_from_pools()
             if siteA != siteB and self.type == "standard":
                 self.module.fail_json(msg="To create Standard Mirrored volume, provide pools belonging to same site.")
-        if not self.poolA and not self.poolB and self.state == "present":
+        if not self.poolA and not self.poolB and self.state == "present" and not self.size:
             self.module.fail_json(msg="Both poolA and poolB cannot be empty")
+        if self.type == "local hyperswap" and self.state != 'absent':
+            if not self.poolA or not self.poolB:
+                self.module.fail_json(msg="Both poolA and poolB need to be passed when type is 'local hyperswap'")
 
-    def discover_pools(self, data):
-        # Discover pool(s) where the volume resides, this function is called if the volume already exists
-        self.log("Entering function discover_pools")
+    def discover_vdisk_type(self, data):
+        # Discover the vdisk type. this function is called if the volume already exists.
+        self.log("Entering function discover_vdisk_type")
         is_std_mirrored_vol = False
         is_hs_vol = False
         if data[0]['type'] == "many":
@@ -313,7 +338,7 @@ class IBMSVCvolume(object):
             self.discovered_poolA = data[1]['mdisk_grp_name']
             self.discovered_poolB = data[2]['mdisk_grp_name']
             self.log("The discovered standard mirrored volume \"%s\" belongs to \
-                pools \"%s\" and \"%s\"", self.name, self.discovered_poolA, self.discovered_poolB)
+pools \"%s\" and \"%s\"", self.name, self.discovered_poolA, self.discovered_poolB)
 
         relationship_name = data[0]['RC_name']
         if relationship_name:
@@ -339,14 +364,15 @@ class IBMSVCvolume(object):
             self.module.fail_json(msg="Unsupported Configuration: Both HyperSwap and Standard Mirror \
 are configured on this volume")
         elif is_hs_vol:
-            self.vdisk_type = "local hyperswap"
+            vdisk_type = "local hyperswap"
         elif is_std_mirrored_vol:
-            self.vdisk_type = "standard mirror"
+            vdisk_type = "standard mirror"
         if not is_std_mirrored_vol and not is_hs_vol:
             mdisk_grp_name = data[0]['mdisk_grp_name']
             self.discovered_standard_vol_pool = mdisk_grp_name
-            self.vdisk_type = "standard"
+            vdisk_type = "standard"
             self.log("The standard volume %s belongs to pool \"%s\"", self.name, self.discovered_standard_vol_pool)
+        return vdisk_type
 
     def discover_site_from_pools(self):
         self.log("Entering function discover_site_from_pools")
@@ -354,74 +380,106 @@ are configured on this volume")
         poolB_site = self.poolB_data['site_name']
         return poolA_site, poolB_site
 
-    def verify_mirror_vol_pool(self):
-        self.log("Entering function verify_mirror_vol_pool")
+    def vdisk_probe(self, data):
+        self.log("Entering function vdisk_probe")
+        props = []
+        resizevolume_flag = False
         if self.type == "local hyperswap" and self.vdisk_type == "standard mirror":
-            self.module.fail_json(msg="You cannot "
-                                      "update the topolgy from standard mirror to HyperSwap")
-
+            self.module.fail_json(msg="You cannot \
+update the topolgy from standard mirror to HyperSwap")
+        if (self.vdisk_type == "local hyperswap" or self.vdisk_type == "standard mirror") and self.size:
+            size_in_bytes = int(self.size) * 1024 * 1024
+            existing_size = int(data[0]['capacity'])
+            if size_in_bytes != existing_size:
+                resizevolume_flag = True
+                props += ['resizevolume']
+            if size_in_bytes > existing_size:
+                self.changebysize = size_in_bytes - existing_size
+                self.expand_flag = True
+            elif size_in_bytes < existing_size:
+                self.changebysize = existing_size - size_in_bytes
+                self.shrink_flag = True
         if self.poolA and self.poolB:
             if self.vdisk_type == "local hyperswap" and self.type == "standard":
                 self.module.fail_json(msg="HyperSwap Volume cannot be converted to standard mirror")
             if self.vdisk_type == "standard mirror" or self.vdisk_type == "local hyperswap":
                 if (self.poolA == self.discovered_poolA or self.poolA == self.discovered_poolB)\
-                   and (self.poolB == self.discovered_poolA or self.poolB == self.discovered_poolB):
-                    self.changed = False
-                    return
-                else:
+                   and (self.poolB == self.discovered_poolA or self.poolB == self.discovered_poolB) and not resizevolume_flag:
+                    return props
+                elif not resizevolume_flag:
                     self.module.fail_json(msg="Pools for Standard Mirror or HyperSwap volume cannot be updated")
             elif self.vdisk_type == "standard" and self.type == "local hyperswap":
                 # input poolA or poolB must belong to given Volume
                 if self.poolA == self.discovered_standard_vol_pool or self.poolB == self.discovered_standard_vol_pool:
-                    self.addvolumecopy_flag = True
-                    self.changed = True
+                    props += ['addvolumecopy']
                 else:
                     self.module.fail_json(msg="One of the input pools must belong to the Volume")
             elif self.vdisk_type == "standard" and self.type == "standard":
                 if self.poolA == self.discovered_standard_vol_pool or self.poolB == self.discovered_standard_vol_pool:
-                    self.addvdiskcopy_flag = True
-                    self.changed = True
+                    props += ['addvdiskcopy']
                 else:
                     self.module.fail_json(msg="One of the input pools must belong to the Volume")
-
+            elif self.vdisk_type and not self.type:
+                self.module.fail_json(msg="missing required argument: type")
         elif not self.poolA or not self.poolB:
             if self.vdisk_type == "standard":
                 if self.poolA == self.discovered_standard_vol_pool or self.poolB == self.discovered_standard_vol_pool:
                     self.log("Standard Volume already exists, no modifications done")
-                    return
+                    return props
             if self.poolA:
                 if self.poolA == self.discovered_poolA or self.poolA == self.discovered_poolB:
-                    self.rmvolumecopy_flag = True
-                    self.changed = True
+                    props += ['rmvolumecopy']
                 else:
                     self.module.fail_json(msg="One of the input pools must belong to the Volume")
             elif self.poolB:
                 if self.poolB == self.discovered_poolA or self.poolB == self.discovered_poolB:
-                    self.rmvolumecopy_flag = True
-                    self.changed = True
+                    props += ['rmvolumecopy']
                 else:
                     self.module.fail_json(msg="One of the input pools must belong to the Volume")
-        if not self.poolA or not self.poolB:
+        if not (self.poolA or not self.poolB) and not self.size:
             if (self.system_topology == "hyperswap" and self.type == "local hyperswap"):
                 self.module.fail_json(msg="Type must be standard if either PoolA or PoolB is not specified.")
+        return props
 
-    def vdisk_probe(self, data):
-        self.log("Entering function vdisk_probe")
-        if self.size:
-            size_in_bytes = int(self.size) * 1024 * 1024
-            if str(size_in_bytes) != data[0]['capacity']:
-                self.module.fail_json(msg="You cannot update the parameter: size")
+    def resizevolume(self):
+        if self.thin is not None or self.deduplicated is not None or self.rsize is not None or self.grainsize is not None \
+           or self.compressed is not None or self.poolA is not None or self.poolB is not None or self.type is not None:
+            self.module.fail_json(msg="Volume already exists, Parameter 'thin', 'deduplicated', 'rsize', 'grainsize', 'compressed' \
+'PoolA', 'PoolB' or 'type' cannot be passed while resizing the volume.")
 
-    def volume_create(self):
-        self.log("Entering function volume_create")
         if self.module.check_mode:
             self.changed = True
             return
+
+        cmd = ""
+        cmdopts = {}
+        if self.vdisk_type == "local hyperswap" and self.expand_flag:
+            cmd = "expandvolume"
+        elif self.vdisk_type == "local hyperswap" and self.shrink_flag:
+            self.module.fail_json(msg="Size of a HyperSwap Volume cannot be shrinked")
+        elif self.vdisk_type == "standard mirror" and self.expand_flag:
+            cmd = "expandvdisksize"
+        elif self.vdisk_type == "standard mirror" and self.shrink_flag:
+            cmd = "shrinkvdisksize"
+        elif self.vdisk_type != "standard mirror" or self.vdisk_type != "local hyperswap":
+            self.module.fail_json(msg="The volume is not a mirror volume, Please use ibm_svc_vdisk module for resizing standard volumes")
+        cmdopts["size"] = str(self.changebysize)
+        cmdopts["unit"] = "b"
+        self.restapi.svc_run_command(cmd, cmdopts, cmdargs=[self.name])
+        self.changed = True
+
+    def volume_create(self):
+        self.log("Entering function volume_create")
         if not self.size:
             self.module.fail_json(msg="You must pass in size to the module.")
         if not self.type:
             self.module.fail_json(msg="You must pass type to the module.")
+
         self.log("creating Volume '%s'", self.name)
+        if self.module.check_mode:
+            self.changed = True
+            return
+
         # Make command
         cmd = 'mkvolume'
         cmdopts = {}
@@ -461,13 +519,11 @@ are configured on this volume")
 
     def vdisk_create(self):
         self.log("Entering function vdisk_create")
-        if self.module.check_mode:
-            self.changed = True
-            return
         if not self.size:
             self.module.fail_json(msg="You must pass in size to the module.")
         if not self.type:
             self.module.fail_json(msg="You must pass type to the module.")
+
         self.log("creating Volume '%s'", self.name)
         # Make command
         cmd = 'mkvdisk'
@@ -489,8 +545,8 @@ are configured on this volume")
             cmdopts['grainsize'] = self.grainsize
         if self.deduplicated:
             if self.thin:
-                cmdopts['deduplicated'] = self.deduplicated
                 cmdopts['autoexpand'] = True
+                cmdopts['deduplicated'] = self.deduplicated
             else:
                 self.module.fail_json(msg="To configure 'deduplicated', parameter 'thin' should be passed and the value should be 'true.'")
         cmdopts['name'] = self.name
@@ -498,6 +554,10 @@ are configured on this volume")
         if self.isdrp and self.thin:
             cmdopts['autoexpand'] = True
         self.log("creating volume command %s opts %s", cmd, cmdopts)
+
+        if self.module.check_mode:
+            self.changed = True
+            return
 
         # Run command
         result = self.restapi.svc_run_command(cmd, cmdopts, cmdargs=None)
@@ -528,22 +588,25 @@ are configured on this volume")
         if self.deduplicated:
             cmdopts['deduplicated'] = self.deduplicated
         if self.size:
-            self.module.fail_json(msg="Invalid Parameter: size")
+            self.module.fail_json(msg="Parameter 'size' cannot be passed while converting a standard volume to Mirror Volume")
         if self.poolA and (self.poolB == self.discovered_standard_vol_pool and self.poolA != self.discovered_standard_vol_pool):
             cmdopts['pool'] = self.poolA
         elif self.poolB and (self.poolA == self.discovered_standard_vol_pool and self.poolB != self.discovered_standard_vol_pool):
             cmdopts['pool'] = self.poolB
 
+        if self.module.check_mode:
+            self.changed = True
+            return
+
         cmdargs = [self.name]
         self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-        self.changed = True
 
     def addvdiskcopy(self):
         self.log("Entering function addvdiskcopy")
         cmd = 'addvdiskcopy'
         cmdopts = {}
         if self.size:
-            self.module.fail_json(msg="Invalid Parameter: size")
+            self.module.fail_json(msg="Parameter 'size' cannot be passed while converting a standard volume to Mirror Volume")
         siteA, siteB = self.discover_site_from_pools()
         if siteA != siteB:
             self.module.fail_json(msg="To create Standard Mirrored volume, provide pools belonging to same site.")
@@ -563,32 +626,32 @@ are configured on this volume")
             cmdopts['rsize'] = "2%"
         elif self.rsize and not self.thin:
             self.module.fail_json(msg="To configure 'rsize', parameter 'thin' should be passed and the value should be 'true'.")
-        if self.isdrp and self.thin:
-            cmdopts['autoexpand'] = True
         if self.deduplicated:
             if self.thin:
                 cmdopts['deduplicated'] = self.deduplicated
                 cmdopts['autoexpand'] = True
             else:
                 self.module.fail_json(msg="To configure 'deduplicated', parameter 'thin' should be passed and the value should be 'true.'")
+        if self.isdrp and self.thin:
+            cmdopts['autoexpand'] = True
+        if self.module.check_mode:
+            self.changed = True
+            return
 
         cmdargs = [self.name]
         self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-        self.changed = True
 
     def rmvolumecopy(self):
         self.log("Entering function rmvolumecopy")
         cmd = 'rmvolumecopy'
-        if self.size:
-            self.module.fail_json(msg="Invalid Parameter: size")
-        if self.rsize:
-            self.module.fail_json(msg="Invalid Parameter: rsize")
-        if self.thin:
-            self.module.fail_json(msg="Invalid Parameter: thin")
-        if self.deduplicated:
-            self.module.fail_json(msg="Invalid Parameter: deduplicated")
-        if self.compressed:
-            self.module.fail_json(msg="Invalid Parameter: compressed")
+
+        if self.size or self.thin or self.deduplicated or self.rsize or self.grainsize or self.compressed:
+            self.module.fail_json(msg="Parameter 'size', 'thin', 'deduplicated', 'rsize', 'grainsize' or 'compressed' \
+cannot be passed while converting a Mirror Volume to Standard.")
+
+        if self.module.check_mode:
+            self.changed = True
+            return
         cmdopts = {}
         if not self.poolA:
             if (self.poolB != self.discovered_poolA):
@@ -602,21 +665,39 @@ are configured on this volume")
                 cmdopts['pool'] = self.discovered_poolA
         cmdargs = [self.name]
         self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-        self.changed = True
 
-    def vdisk_update(self):
+    def vdisk_update(self, modify):
         self.log("Entering function vdisk_update")
-        if self.addvolumecopy_flag:
+        if 'addvdiskcopy' in modify and 'resizevolume' in modify:
+            self.module.fail_json(msg="You cannot resize the volume alongwith converting the volume to Standard Mirror")
+        if 'addvolumecopy' in modify and 'resizevolume' in modify:
+            self.module.fail_json(msg="You cannot resize the volume alongwith converting the volume to Local HyperSwap")
+        if 'rmvolumecopy' in modify and 'resizevolume' in modify:
+            self.module.fail_json(msg="You cannot resize the volume alongwith converting the Mirror volume to Standard")
+        if 'addvolumecopy' in modify:
             self.addvolumecopy()
-        elif self.addvdiskcopy_flag:
+        elif 'addvdiskcopy' in modify:
             self.isdrpool()
             self.addvdiskcopy()
-        elif self.rmvolumecopy_flag:
+        elif 'rmvolumecopy' in modify:
             self.rmvolumecopy()
+        elif 'resizevolume' in modify:
+            self.resizevolume()
+
+    def isdrpool(self):
+        poolA_drp = self.poolA_data['data_reduction']
+        poolB_drp = self.poolB_data['data_reduction']
+        isdrpool_list = [poolA_drp, poolB_drp]
+        if "yes" in isdrpool_list:
+            self.isdrp = True
 
     def volume_delete(self):
         self.log("Entering function volume_delete")
         self.log("deleting volume '%s'", self.name)
+
+        if self.module.check_mode:
+            self.changed = True
+            return
 
         cmd = 'rmvolume'
         cmdopts = None
@@ -625,7 +706,7 @@ are configured on this volume")
         self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
 
         # Any error will have been raised in svc_run_command
-        # chmvdisk does not output anything when successful.
+        # rmvolume does not output anything when successful.
         self.changed = True
 
     def isdrpool(self):
@@ -645,22 +726,27 @@ are configured on this volume")
         self.log("Entering function apply")
         changed = False
         msg = None
-        self.basic_checks()
+        modify = []
+        vdisk_data = self.get_existing_vdisk()
+        # Perform basic checks and fail the module with appropriate error msg if requirements are not satisfied
+        self.basic_checks(vdisk_data)
+
+        # Discover System Topology
         self.system_topology = self.discover_system_topology()
         if self.system_topology == "standard" and self.type == "local hyperswap":
             self.module.fail_json(msg="The system topology is Standard, HyperSwap actions are not supported.")
-        vdisk_data = self.get_existing_vdisk()
+
         if vdisk_data:
-            # Discover the pool(s) belonging to the Volume
-            self.discover_pools(vdisk_data)
             if self.state == 'absent':
-                self.log("CHANGED: volume exists, but requested "
-                         "state is 'absent'")
+                self.log("CHANGED: volume exists, but requested state is 'absent'")
                 changed = True
             elif self.state == 'present':
-                self.verify_mirror_vol_pool()
-            if not self.changed or not changed:
-                self.vdisk_probe(vdisk_data)
+                # Discover the existing vdisk type.
+                self.vdisk_type = self.discover_vdisk_type(vdisk_data)
+                # Check if there is change in configuration
+                modify = self.vdisk_probe(vdisk_data)
+                if modify:
+                    changed = True
         else:
             if self.state == 'present':
                 if self.poolA and self.poolB:
@@ -670,28 +756,34 @@ are configured on this volume")
                     self.module.fail_json(msg="Volume does not exist, To create a Mirrored volume (standard mirror or HyperSwap), \
 You must pass in poolA and poolB to the module.")
 
-        if changed or self.changed:
+        if changed:
+            if self.state == 'present':
+                if not vdisk_data:
+                    if not self.type:
+                        self.module.fail_json(msg="missing required argument: type")
+                    # create_vdisk_flag = self.discover_site_from_pools()
+                    if self.type == "standard":
+                        self.isdrpool()
+                        self.vdisk_create()
+                        msg = "Standard Mirrored Volume %s has been created." % self.name
+                        changed = True
+                    elif self.type == "local hyperswap":
+                        # if not create_vdisk_flag:
+                        self.volume_create()
+                        msg = "HyperSwap Volume %s has been created." % self.name
+                        changed = True
+                else:
+                    # This is where we would modify if required
+                    self.vdisk_update(modify)
+                    msg = "Volume [%s] has been modified." % self.name
+                    changed = True
+            elif self.state == 'absent':
+                self.volume_delete()
+                msg = "Volume [%s] has been deleted." % self.name
+                changed = True
+
             if self.module.check_mode:
-                self.log('skipping changes due to check mode')
-            else:
-                if self.state == 'present':
-                    if not vdisk_data:
-                        # create_vdisk_flag = self.discover_site_from_pools()
-                        if self.type == "standard":
-                            self.isdrpool()
-                            self.vdisk_create()
-                            msg = "Standard Mirrored Volume %s has been created." % self.name
-                        elif self.type == "local hyperswap":
-                            # if not create_vdisk_flag:
-                            self.volume_create()
-                            msg = "HyperSwap Volume %s has been created." % self.name
-                    else:
-                        # This is where we would modify if required
-                        self.vdisk_update()
-                        msg = "Volume [%s] has been modified." % self.name
-                elif self.state == 'absent':
-                    self.volume_delete()
-                    msg = "Volume [%s] has been deleted." % self.name
+                msg = 'skipping changes due to check mode'
         else:
             self.log("exiting with no changes")
             if self.state == 'absent':

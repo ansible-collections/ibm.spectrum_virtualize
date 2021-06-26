@@ -51,12 +51,17 @@ options:
   username:
     description:
     - REST API username for the Spectrum Virtualize storage system.
-    required: true
+      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
     type: str
   password:
     description:
     - REST API password for the Spectrum Virtualize storage system.
-    required: true
+      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    type: str
+  token:
+    description:
+    - The authentication token to verify a user on the Spectrum Virtualize storage system.
+      To generate a token, use ibm_svc_auth module.
     type: str
   copytype:
     description:
@@ -240,6 +245,10 @@ class IBMSVCManageReplication(object):
         self.force = self.module.params.get('force', False)
         self.cyclingperiod = self.module.params.get('cyclingperiod')
 
+        # Handling missing mandatory parameter name
+        if not self.name:
+            self.module.fail_json(msg='Missing mandatory parameter: name')
+
         self.restapi = IBMSVCRestApi(
             module=self.module,
             clustername=self.module.params['clustername'],
@@ -247,7 +256,8 @@ class IBMSVCManageReplication(object):
             username=self.module.params['username'],
             password=self.module.params['password'],
             validate_certs=self.module.params['validate_certs'],
-            log_path=log_path
+            log_path=log_path,
+            token=self.module.params['token']
         )
 
     def existing_vdisk(self, volname):
@@ -272,6 +282,10 @@ class IBMSVCManageReplication(object):
         Use the chrcrelationship command to update cycling period in remote copy
         relationship.
         """
+        if self.module.check_mode:
+            self.changed = True
+            return
+
         if (self.copytype == 'GMCV') and (self.cyclingperiod):
             cmd = 'chrcrelationship'
             cmdopts = {}
@@ -287,6 +301,10 @@ class IBMSVCManageReplication(object):
         Use the chrcrelationship command to update cycling mode in remote copy
         relationship.
         """
+        if self.module.check_mode:
+            self.changed = True
+            return
+
         cmd = 'chrcrelationship'
         cmdopts = {}
         cmdargs = [self.name]
@@ -355,6 +373,10 @@ class IBMSVCManageReplication(object):
         group to remove a relationship from a consistency group.
         You can change one attribute at a time.
         """
+        if self.module.check_mode:
+            self.changed = True
+            return
+
         if modify:
             self.log("updating chrcrelationship with properties %s", modify)
             cmd = 'chrcrelationship'
@@ -390,9 +412,6 @@ class IBMSVCManageReplication(object):
         Returns:
             a remote copy instance
         """
-        if self.module.check_mode:
-            self.changed = True
-            return
         if not self.name:
             self.module.fail_json(msg="You must pass in name to the module.")
         if not self.master:
@@ -401,6 +420,11 @@ class IBMSVCManageReplication(object):
             self.module.fail_json(msg="You must pass in aux to the module.")
         if not self.remotecluster:
             self.module.fail_json(msg="You must pass in remotecluster to the module.")
+
+        if self.module.check_mode:
+            self.changed = True
+            return
+
         self.log("Creating remote copy '%s'", self.name)
 
         # Make command
@@ -453,6 +477,9 @@ class IBMSVCManageReplication(object):
         Use the rmrcrelationship command to delete an existing remote copy
         relationship.
         """
+        if self.module.check_mode:
+            self.changed = True
+            return
 
         cmd = 'rmrcrelationship'
         cmdopts = {}
@@ -497,24 +524,24 @@ class IBMSVCManageReplication(object):
                     "CHANGED: Remotecopy relationship does not exist, but requested state is '%s'", self.state)
 
         if changed:
-            if self.module.check_mode:
-                self.log('skipping changes due to check mode.')
-            else:
-                if self.state == 'present':
-                    if not rcrelationship_data:
-                        self.create()
-                        if self.copytype == 'GMCV' and self.consistgrp is None:
-                            self.cycleperiod_update()
-                            self.cyclemode_update()
-                            msg = "remote copy relationship with change volume %s has been created." % self.name
-                        else:
-                            msg = "remote copy relationship %s has been created." % self.name
+            if self.state == 'present':
+                if not rcrelationship_data:
+                    self.create()
+                    if self.copytype == 'GMCV' and self.consistgrp is None:
+                        self.cycleperiod_update()
+                        self.cyclemode_update()
+                        msg = "remote copy relationship with change volume %s has been created." % self.name
                     else:
-                        self.rcrelationship_update(modify, modifycv)
-                        msg = "remote copy relationship [%s] has been modified." % self.name
-                elif self.state == 'absent':
-                    self.delete()
-                    msg = "remote copy relationship [%s] has been deleted." % self.name
+                        msg = "remote copy relationship %s has been created." % self.name
+                else:
+                    self.rcrelationship_update(modify, modifycv)
+                    msg = "remote copy relationship [%s] has been modified." % self.name
+            elif self.state == 'absent':
+                self.delete()
+                msg = "remote copy relationship [%s] has been deleted." % self.name
+
+            if self.module.check_mode:
+                msg = 'skipping changes due to check mode.'
         else:
             self.log("exiting with no changes")
             if self.state in ['absent']:

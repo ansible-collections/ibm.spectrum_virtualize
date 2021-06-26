@@ -29,9 +29,10 @@ def svc_argument_spec():
         clustername=dict(type='str', required=True),
         domain=dict(type='str', default=None),
         validate_certs=dict(type='bool', default=False),
-        username=dict(type='str', required=True),
-        password=dict(type='str', required=True, no_log=True),
-        log_path=dict(type='str')
+        username=dict(type='str'),
+        password=dict(type='str', no_log=True),
+        log_path=dict(type='str'),
+        token=dict(type='str', no_log=True)
     )
 
 
@@ -73,7 +74,7 @@ class IBMSVCRestApi(object):
     """
 
     def __init__(self, module, clustername, domain, username, password,
-                 validate_certs, log_path):
+                 validate_certs, log_path, token):
         """ Initialize module with what we need for initial connection
         :param clustername: name of the SVC cluster
         :type clustername: string
@@ -92,16 +93,23 @@ class IBMSVCRestApi(object):
         self.username = username
         self.password = password
         self.validate_certs = validate_certs
+        self.token = token
 
         # logging setup
         log = get_logger(self.__class__.__name__, log_path)
         self.log = log.info
 
         # Make sure we can connect via the RestApi
-        self.token = self._svc_authorize()
-        self.log("_connect by using token")
+        if self.token is None:
+            if not self.username or not self.password:
+                self.module.fail_json(msg="You must pass in either pre-acquired token"
+                                          " or username/password to generate new token")
+            self.token = self._svc_authorize()
+        else:
+            self.log("Token already passed: %s", self.token)
+
         if not self.token:
-            self.module.fail_json(msg='Failed to obtain access token')
+            self.module.exit_json(msg='Failed to obtain access token', unreachable=True)
 
     @property
     def port(self):
@@ -285,3 +293,15 @@ class IBMSVCRestApi(object):
 
         # Might be None
         return rest['out']
+
+    def get_auth_token(self):
+        """ Obtain information about an SVC object via the ls command
+        :returns: authentication token
+        """
+        # Make sure we can connect via the RestApi
+        self.token = self._svc_authorize()
+        self.log("_connect by using token")
+        if not self.token:
+            self.module.exit_json(msg='Failed to obtain access token', unreachable=True)
+
+        return self.token
