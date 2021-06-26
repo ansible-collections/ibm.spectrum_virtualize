@@ -66,7 +66,7 @@ class TestIBMSVChost(unittest.TestCase):
         self.addCleanup(self.mock_module_helper.stop)
         self.restapi = IBMSVCRestApi(self.mock_module_helper, '1.2.3.4',
                                      'domain.ibm.com', 'username', 'password',
-                                     False, 'test.log')
+                                     False, 'test.log', '')
         self.existing_fcwwpn = []
 
     def set_default_args(self):
@@ -99,7 +99,7 @@ class TestIBMSVChost(unittest.TestCase):
                      "iogrp_count": "4", "status": "offline",
                      "site_id": "", "site_name": "",
                      "host_cluster_id": "", "host_cluster_name": "",
-                     "protocol": "nvme", "owner_id": "",
+                     "protocol": "scsi", "owner_id": "",
                      "owner_name": ""}]
         svc_obj_info_mock.return_value = host_ret
         host = IBMSVChost().get_existing_host()
@@ -147,7 +147,7 @@ class TestIBMSVChost(unittest.TestCase):
                      "iogrp_count": "4", "status": "offline",
                      "site_id": "", "site_name": "",
                      "host_cluster_id": "", "host_cluster_name": "",
-                     "protocol": "nvme", "owner_id": "",
+                     "protocol": "scsi", "owner_id": "",
                      "owner_name": ""}]
         get_existing_host_mock.return_value = host_ret
         host_probe_mock.return_value = []
@@ -248,7 +248,7 @@ class TestIBMSVChost(unittest.TestCase):
                      "iogrp_count": "4", "status": "offline",
                      "site_id": "", "site_name": "",
                      "host_cluster_id": "", "host_cluster_name": "",
-                     "protocol": "nvme", "owner_id": "",
+                     "protocol": "scsi", "owner_id": "",
                      "owner_name": ""}]
         get_existing_host_mock.return_value = host_ret
         host_deleted = IBMSVChost()
@@ -404,6 +404,55 @@ class TestIBMSVChost(unittest.TestCase):
             obj = IBMSVChost()
             obj.apply()
         self.assertEqual(True, exc.value.args[0]['changed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_host_hostcluster_update(self, svc_authorize_mock, svc_obj_info_mock, src):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test',
+            'state': 'present',
+            'protocol': 'scsi',
+            'type': 'generic',
+            'site': 'site1',
+            'hostcluster': 'hostcluster0'
+        })
+        svc_obj_info_mock.return_value = {
+            'id': '24', 'name': 'test', 'port_count': '5', 'type': 'generic',
+            'mask': '1111111', 'iogrp_count': '4', 'status': 'offline',
+            'site_id': '', 'site_name': 'site2', 'host_cluster_id': '1', 'host_cluster_name': 'hostcluster0'
+        }
+        with pytest.raises(AnsibleExitJson) as exc:
+            obj = IBMSVChost()
+            obj.apply()
+        self.assertEqual(True, exc.value.args[0]['changed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_duplicate_checker(self, svc_authorize_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test',
+            'state': 'present',
+            'fcwwpn': '1000001AA0570260:1000001AA0570260:1000001AA0570260',
+            'protocol': 'scsi',
+            'type': 'generic',
+            'site': 'site1'
+        })
+        with pytest.raises(AnsibleFailJson) as exc:
+            obj = IBMSVChost()
+            obj.apply()
+        self.assertEqual(True, exc.value.args[0]['failed'])
 
 
 if __name__ == '__main__':

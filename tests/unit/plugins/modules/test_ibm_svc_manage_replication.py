@@ -64,7 +64,7 @@ class TestIBMSVCManageReplication(unittest.TestCase):
         self.addCleanup(self.mock_module_helper.stop)
         self.restapi = IBMSVCRestApi(self.mock_module_helper, '1.2.3.4',
                                      'domain.ibm.com', 'username', 'password',
-                                     False, 'test.log')
+                                     False, 'test.log', '')
 
     def set_default_args(self):
         return dict({

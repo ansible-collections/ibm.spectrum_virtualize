@@ -64,7 +64,7 @@ class TestIBMSVCvolume(unittest.TestCase):
         self.addCleanup(self.mock_module_helper.stop)
         self.restapi = IBMSVCRestApi(self.mock_module_helper, '1.2.3.4',
                                      'domain.ibm.com', 'username', 'password',
-                                     False, 'test.log')
+                                     False, 'test.log', '')
 
     def set_default_args(self):
         return dict({
@@ -154,6 +154,41 @@ class TestIBMSVCvolume(unittest.TestCase):
             'poolB': 'Pool2',
             'size': '1024'
         })
+        vdisk_data = [
+            {
+                'id': '86', 'name': 'test_vol', 'IO_group_id': '0', 'IO_group_name': 'io_grp0',
+                'status': 'online', 'mdisk_grp_id': '2', 'mdisk_grp_name': 'Pool1', 'capacity': '1.00GB',
+                'type': 'striped', 'formatted': 'no', 'formatting': 'yes', 'mdisk_id': '', 'mdisk_name': '',
+                'FC_id': 'many', 'FC_name': 'many', 'RC_id': '86', 'RC_name': 'rcrel14',
+                'vdisk_UID': '60050764008581864800000000000675', 'preferred_node_id': '1',
+                'fast_write_state': 'not_empty', 'cache': 'readwrite', 'udid': '', 'fc_map_count': '2',
+                'sync_rate': '50', 'copy_count': '1', 'se_copy_count': '0', 'filesystem': '',
+                'mirror_write_priority': 'latency', 'RC_change': 'no', 'compressed_copy_count': '0',
+                'access_IO_group_count': '2', 'last_access_time': '', 'parent_mdisk_grp_id': '2',
+                'parent_mdisk_grp_name': 'Pool1', 'owner_type': 'none', 'owner_id': '', 'owner_name': '',
+                'encrypt': 'no', 'volume_id': '86', 'volume_name': 'test_vol', 'function': 'master',
+                'throttle_id': '', 'throttle_name': '', 'IOPs_limit': '', 'bandwidth_limit_MB': '',
+                'volume_group_id': '', 'volume_group_name': '', 'cloud_backup_enabled': 'no', 'cloud_account_id': '',
+                'cloud_account_name': '', 'backup_status': 'off', 'last_backup_time': '', 'restore_status': 'none',
+                'backup_grain_size': '', 'deduplicated_copy_count': '0', 'protocol': ''
+            },
+            {
+                'copy_id': '0', 'status': 'online', 'sync': 'yes', 'auto_delete': 'no', 'primary': 'yes',
+                'mdisk_grp_id': '2', 'mdisk_grp_name': 'Pool1', 'type': 'striped', 'mdisk_id': '', 'mdisk_name': '',
+                'fast_write_state': 'not_empty', 'used_capacity': '1.00GB', 'real_capacity': '1.00GB',
+                'free_capacity': '0.00MB', 'overallocation': '100', 'autoexpand': '', 'warning': '', 'grainsize': '',
+                'se_copy': 'no', 'easy_tier': 'on', 'easy_tier_status': 'balanced',
+                'tiers': [
+                    {'tier': 'tier_scm', 'tier_capacity': '0.00MB'},
+                    {'tier': 'tier0_flash', 'tier_capacity': '0.00MB'},
+                    {'tier': 'tier1_flash', 'tier_capacity': '0.00MB'},
+                    {'tier': 'tier_enterprise', 'tier_capacity': '1.00GB'},
+                    {'tier': 'tier_nearline', 'tier_capacity': '0.00MB'}
+                ],
+                'compressed_copy': 'no', 'uncompressed_used_capacity': '1.00GB', 'parent_mdisk_grp_id': '2',
+                'parent_mdisk_grp_name': 'Pool1', 'encrypt': 'no', 'deduplicated_copy': 'no', 'used_capacity_before_reduction': ''
+            }
+        ]
         svc_obj_info_mock1.return_value = {
             'id': '2', 'name': 'Pool1', 'status': 'online', 'mdisk_count': '1', 'vdisk_count': '30',
             'capacity': '553.00GB', 'extent_size': '1024', 'free_capacity': '474.00GB', 'virtual_capacity': '6.73GB',
@@ -217,113 +252,8 @@ class TestIBMSVCvolume(unittest.TestCase):
             'easy_tier_fcm_over_allocation_max': '', 'auto_expand': 'no', 'auto_expand_max_capacity': '0.00MB'
         }
         obj = IBMSVCvolume()
-        data = obj.basic_checks()
+        data = obj.basic_checks(vdisk_data)
         self.assertEqual(None, data)
-
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
-           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
-           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
-           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
-           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_discover_pools(self, svc_authorize_mock, soim1, soim2, soim3):
-        set_module_args({
-            'clustername': 'clustername',
-            'domain': 'domain',
-            'username': 'username',
-            'password': 'password',
-            'type': 'local hyperswap',
-            'name': 'test_vol',
-            'state': 'present',
-            'poolA': 'Pool1',
-            'poolB': 'Pool2',
-            'size': '1024'
-        })
-        arg_data = [
-            {
-                'id': '86', 'name': 'test_vol', 'IO_group_id': '0', 'IO_group_name': 'io_grp0',
-                'status': 'online', 'mdisk_grp_id': '2', 'mdisk_grp_name': 'Pool1', 'capacity': '1.00GB',
-                'type': 'striped', 'formatted': 'no', 'formatting': 'yes', 'mdisk_id': '', 'mdisk_name': '',
-                'FC_id': 'many', 'FC_name': 'many', 'RC_id': '86', 'RC_name': 'rcrel14',
-                'vdisk_UID': '60050764008581864800000000000675', 'preferred_node_id': '1',
-                'fast_write_state': 'not_empty', 'cache': 'readwrite', 'udid': '', 'fc_map_count': '2',
-                'sync_rate': '50', 'copy_count': '1', 'se_copy_count': '0', 'filesystem': '',
-                'mirror_write_priority': 'latency', 'RC_change': 'no', 'compressed_copy_count': '0',
-                'access_IO_group_count': '2', 'last_access_time': '', 'parent_mdisk_grp_id': '2',
-                'parent_mdisk_grp_name': 'Pool1', 'owner_type': 'none', 'owner_id': '', 'owner_name': '',
-                'encrypt': 'no', 'volume_id': '86', 'volume_name': 'test_vol', 'function': 'master',
-                'throttle_id': '', 'throttle_name': '', 'IOPs_limit': '', 'bandwidth_limit_MB': '',
-                'volume_group_id': '', 'volume_group_name': '', 'cloud_backup_enabled': 'no', 'cloud_account_id': '',
-                'cloud_account_name': '', 'backup_status': 'off', 'last_backup_time': '', 'restore_status': 'none',
-                'backup_grain_size': '', 'deduplicated_copy_count': '0', 'protocol': ''
-            },
-            {
-                'copy_id': '0', 'status': 'online', 'sync': 'yes', 'auto_delete': 'no', 'primary': 'yes',
-                'mdisk_grp_id': '2', 'mdisk_grp_name': 'Pool1', 'type': 'striped', 'mdisk_id': '', 'mdisk_name': '',
-                'fast_write_state': 'not_empty', 'used_capacity': '1.00GB', 'real_capacity': '1.00GB',
-                'free_capacity': '0.00MB', 'overallocation': '100', 'autoexpand': '', 'warning': '', 'grainsize': '',
-                'se_copy': 'no', 'easy_tier': 'on', 'easy_tier_status': 'balanced',
-                'tiers': [
-                    {'tier': 'tier_scm', 'tier_capacity': '0.00MB'},
-                    {'tier': 'tier0_flash', 'tier_capacity': '0.00MB'},
-                    {'tier': 'tier1_flash', 'tier_capacity': '0.00MB'},
-                    {'tier': 'tier_enterprise', 'tier_capacity': '1.00GB'},
-                    {'tier': 'tier_nearline', 'tier_capacity': '0.00MB'}
-                ],
-                'compressed_copy': 'no', 'uncompressed_used_capacity': '1.00GB', 'parent_mdisk_grp_id': '2',
-                'parent_mdisk_grp_name': 'Pool1', 'encrypt': 'no', 'deduplicated_copy': 'no', 'used_capacity_before_reduction': ''
-            }
-        ]
-        soim1.return_value = {
-            "id": "86", "name": "rcrel14", "master_cluster_id": "0000010021606192", "master_cluster_name": "altran-v7khs",
-            "master_vdisk_id": "86", "master_vdisk_name": "test_vol", "aux_cluster_id": "0000010021606192",
-            "aux_cluster_name": "altran-v7khs", "aux_vdisk_id": "87", "aux_vdisk_name": "vdisk43",
-            "primary": "aux", "consistency_group_id": "", "consistency_group_name": "", "state": "consistent_synchronized",
-            "bg_copy_priority": "50", "progress": "", "freeze_time": "", "status": "online", "sync": "",
-            "copy_type": "activeactive", "cycling_mode": "", "cycle_period_seconds": "300", "master_change_vdisk_id": "88",
-            "master_change_vdisk_name": "vdisk44", "aux_change_vdisk_id": "89", "aux_change_vdisk_name": "vdisk45",
-            "previous_primary": "", "channel": "none"
-        }
-
-        soim2.return_value = [
-            {
-                'id': '86', 'name': 'test_vol', 'IO_group_id': '0', 'IO_group_name': 'io_grp0',
-                'status': 'online', 'mdisk_grp_id': '2', 'mdisk_grp_name': 'Pool1', 'capacity': '1.00GB',
-                'type': 'striped', 'formatted': 'no', 'formatting': 'yes', 'mdisk_id': '', 'mdisk_name': '',
-                'FC_id': 'many', 'FC_name': 'many', 'RC_id': '86', 'RC_name': 'rcrel14',
-                'vdisk_UID': '60050764008581864800000000000675', 'preferred_node_id': '1',
-                'fast_write_state': 'not_empty', 'cache': 'readwrite', 'udid': '', 'fc_map_count': '2',
-                'sync_rate': '50', 'copy_count': '1', 'se_copy_count': '0', 'filesystem': '',
-                'mirror_write_priority': 'latency', 'RC_change': 'no', 'compressed_copy_count': '0',
-                'access_IO_group_count': '2', 'last_access_time': '', 'parent_mdisk_grp_id': '2',
-                'parent_mdisk_grp_name': 'Pool1', 'owner_type': 'none', 'owner_id': '', 'owner_name': '',
-                'encrypt': 'no', 'volume_id': '86', 'volume_name': 'test_vol', 'function': 'master',
-                'throttle_id': '', 'throttle_name': '', 'IOPs_limit': '', 'bandwidth_limit_MB': '',
-                'volume_group_id': '', 'volume_group_name': '', 'cloud_backup_enabled': 'no', 'cloud_account_id': '',
-                'cloud_account_name': '', 'backup_status': 'off', 'last_backup_time': '', 'restore_status': 'none',
-                'backup_grain_size': '', 'deduplicated_copy_count': '0', 'protocol': ''
-            },
-            {
-                'copy_id': '0', 'status': 'online', 'sync': 'yes', 'auto_delete': 'no', 'primary': 'yes',
-                'mdisk_grp_id': '2', 'mdisk_grp_name': 'Pool1', 'type': 'striped', 'mdisk_id': '', 'mdisk_name': '',
-                'fast_write_state': 'not_empty', 'used_capacity': '1.00GB', 'real_capacity': '1.00GB',
-                'free_capacity': '0.00MB', 'overallocation': '100', 'autoexpand': '', 'warning': '', 'grainsize': '',
-                'se_copy': 'no', 'easy_tier': 'on', 'easy_tier_status': 'balanced',
-                'tiers': [
-                    {'tier': 'tier_scm', 'tier_capacity': '0.00MB'},
-                    {'tier': 'tier0_flash', 'tier_capacity': '0.00MB'},
-                    {'tier': 'tier1_flash', 'tier_capacity': '0.00MB'},
-                    {'tier': 'tier_enterprise', 'tier_capacity': '1.00GB'},
-                    {'tier': 'tier_nearline', 'tier_capacity': '0.00MB'}
-                ],
-                'compressed_copy': 'no', 'uncompressed_used_capacity': '1.00GB', 'parent_mdisk_grp_id': '2',
-                'parent_mdisk_grp_name': 'Pool1', 'encrypt': 'no', 'deduplicated_copy': 'no', 'used_capacity_before_reduction': ''
-            }
-        ]
-        obj = IBMSVCvolume()
-        data = obj.discover_pools(arg_data)
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
@@ -398,60 +328,6 @@ class TestIBMSVCvolume(unittest.TestCase):
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_verify_mirror_vol_pool(self, svc_authorize_mock):
-        set_module_args({
-            'clustername': 'clustername',
-            'domain': 'domain',
-            'username': 'username',
-            'password': 'password',
-            'type': 'local hyperswap',
-            'name': 'test_vol',
-            'state': 'present',
-            'poolA': 'Pool1',
-            'poolB': 'Pool2',
-            'size': '1024'
-        })
-        arg_data = [
-            {
-                'id': '86', 'name': 'test_vol', 'IO_group_id': '0', 'IO_group_name': 'io_grp0',
-                'status': 'online', 'mdisk_grp_id': '2', 'mdisk_grp_name': 'Pool1', 'capacity': '1.00GB',
-                'type': 'striped', 'formatted': 'no', 'formatting': 'yes', 'mdisk_id': '', 'mdisk_name': '',
-                'FC_id': 'many', 'FC_name': 'many', 'RC_id': '86', 'RC_name': 'rcrel14',
-                'vdisk_UID': '60050764008581864800000000000675', 'preferred_node_id': '1',
-                'fast_write_state': 'not_empty', 'cache': 'readwrite', 'udid': '', 'fc_map_count': '2',
-                'sync_rate': '50', 'copy_count': '1', 'se_copy_count': '0', 'filesystem': '',
-                'mirror_write_priority': 'latency', 'RC_change': 'no', 'compressed_copy_count': '0',
-                'access_IO_group_count': '2', 'last_access_time': '', 'parent_mdisk_grp_id': '2',
-                'parent_mdisk_grp_name': 'Pool1', 'owner_type': 'none', 'owner_id': '', 'owner_name': '',
-                'encrypt': 'no', 'volume_id': '86', 'volume_name': 'test_vol', 'function': 'master',
-                'throttle_id': '', 'throttle_name': '', 'IOPs_limit': '', 'bandwidth_limit_MB': '',
-                'volume_group_id': '', 'volume_group_name': '', 'cloud_backup_enabled': 'no', 'cloud_account_id': '',
-                'cloud_account_name': '', 'backup_status': 'off', 'last_backup_time': '', 'restore_status': 'none',
-                'backup_grain_size': '', 'deduplicated_copy_count': '0', 'protocol': ''
-            },
-            {
-                'copy_id': '0', 'status': 'online', 'sync': 'yes', 'auto_delete': 'no', 'primary': 'yes',
-                'mdisk_grp_id': '2', 'mdisk_grp_name': 'Pool1', 'type': 'striped', 'mdisk_id': '', 'mdisk_name': '',
-                'fast_write_state': 'not_empty', 'used_capacity': '1.00GB', 'real_capacity': '1.00GB',
-                'free_capacity': '0.00MB', 'overallocation': '100', 'autoexpand': '', 'warning': '', 'grainsize': '',
-                'se_copy': 'no', 'easy_tier': 'on', 'easy_tier_status': 'balanced',
-                'tiers': [
-                    {'tier': 'tier_scm', 'tier_capacity': '0.00MB'},
-                    {'tier': 'tier0_flash', 'tier_capacity': '0.00MB'},
-                    {'tier': 'tier1_flash', 'tier_capacity': '0.00MB'},
-                    {'tier': 'tier_enterprise', 'tier_capacity': '1.00GB'},
-                    {'tier': 'tier_nearline', 'tier_capacity': '0.00MB'}
-                ],
-                'compressed_copy': 'no', 'uncompressed_used_capacity': '1.00GB', 'parent_mdisk_grp_id': '2',
-                'parent_mdisk_grp_name': 'Pool1', 'encrypt': 'no', 'deduplicated_copy': 'no', 'used_capacity_before_reduction': ''
-            }
-        ]
-        obj = IBMSVCvolume()
-        data = obj.verify_mirror_vol_pool()
-        self.assertEqual(None, data)
-
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
-           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
     def test_vdisk_probe(self, svc_authorize_mock):
         set_module_args({
             'clustername': 'clustername',
@@ -500,11 +376,9 @@ class TestIBMSVCvolume(unittest.TestCase):
                 'parent_mdisk_grp_name': 'Pool1', 'encrypt': 'no', 'deduplicated_copy': 'no', 'used_capacity_before_reduction': ''
             }
         ]
-        with pytest.raises(AnsibleFailJson) as exc:
-            obj = IBMSVCvolume()
-            data = obj.vdisk_probe(arg_data)
-            self.assertEqual(None, data)
-        self.assertEqual(True, exc.value.args[0]['failed'])
+        obj = IBMSVCvolume()
+        data = obj.vdisk_probe(arg_data)
+        self.assertEqual([], data)
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
@@ -639,7 +513,7 @@ class TestIBMSVCvolume(unittest.TestCase):
             'poolB': 'Pool2'
         })
         obj = IBMSVCvolume()
-        data = obj.vdisk_update()
+        data = obj.vdisk_update([])
         self.assertEqual(None, data)
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
@@ -792,8 +666,6 @@ class TestIBMSVCvolume(unittest.TestCase):
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
-           'ibm_svc_manage_mirrored_volume.IBMSVCvolume.discover_pools')
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_manage_mirrored_volume.IBMSVCvolume.get_existing_vdisk')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_manage_mirrored_volume.IBMSVCvolume.discover_system_topology')
@@ -801,7 +673,7 @@ class TestIBMSVCvolume(unittest.TestCase):
            'ibm_svc_manage_mirrored_volume.IBMSVCvolume.basic_checks')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_delete_hs_volume(self, svc_authorize_mock, bc, dst, gev, dp, src):
+    def test_delete_hs_volume(self, svc_authorize_mock, bc, dst, gev, src):
         set_module_args({
             'clustername': 'clustername',
             'domain': 'domain',

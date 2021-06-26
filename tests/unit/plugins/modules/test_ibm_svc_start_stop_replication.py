@@ -64,7 +64,7 @@ class TestIBMSVCStartStopReplication(unittest.TestCase):
         self.addCleanup(self.mock_module_helper.stop)
         self.restapi = IBMSVCRestApi(self.mock_module_helper, '1.2.3.4',
                                      'domain.ibm.com', 'username', 'password',
-                                     False, 'test.log')
+                                     False, 'test.log', '')
 
     def set_default_args(self):
         return dict({
@@ -78,87 +78,6 @@ class TestIBMSVCStartStopReplication(unittest.TestCase):
             set_module_args({})
             IBMSVCStartStopReplication()
         print('Info: %s' % exc.value.args[0]['msg'])
-
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
-           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
-           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_existing_rc(self, svc_authorize_mock, svc_obj_info_mock):
-        set_module_args({
-            'clustername': 'clustername',
-            'domain': 'domain',
-            'username': 'username',
-            'password': 'password',
-            'name': 'test_name',
-            'state': 'started',
-            'clean': 'true'
-        })
-        svc_obj_info_mock.return_value = {
-            "id": "226",
-            "name": "test_name",
-            "master_cluster_id": "0000020321E04566",
-            "master_cluster_name": "FlashSystem V9000",
-            "master_vdisk_id": "226",
-            "master_vdisk_name": "vol9",
-            "aux_cluster_id": "0000020321E04566",
-            "aux_cluster_name": "FlashSystem V9000",
-            "aux_vdisk_id": "227",
-            "aux_vdisk_name": "vol10",
-            "primary": "master",
-            "consistency_group_id": "",
-            "consistency_group_name": "",
-            "state": "consistent_synchronized",
-            "bg_copy_priority": "50",
-            "progress": "",
-            "freeze_time": "",
-            "status": "online",
-            "sync": "",
-            "copy_type": "metro",
-            "cycling_mode": "",
-            "cycle_period_seconds": "300",
-            "master_change_vdisk_id": "",
-            "master_change_vdisk_name": "",
-            "aux_change_vdisk_id": "",
-            "aux_change_vdisk_name": ""
-        }
-        obj = IBMSVCStartStopReplication()
-        return_data = obj.existing_rc()
-        self.assertEqual("test_name", return_data["name"])
-
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
-           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
-           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_existing_rccg(self, svc_authorize_mock, svc_obj_info_mock):
-        set_module_args({
-            'clustername': 'clustername',
-            'domain': 'domain',
-            'username': 'username',
-            'password': 'password',
-            'name': 'test_name',
-            'state': 'started',
-            'clean': 'true'
-        })
-        svc_obj_info_mock.return_value = {
-            "id": "11",
-            "name": "test_name",
-            "master_cluster_id": "0000020321E04566",
-            "master_cluster_name": "FlashSystem V9000",
-            "aux_cluster_id": "0000020321E04566",
-            "aux_cluster_name": "FlashSystem V9000",
-            "primary": "",
-            "state": "empty",
-            "relationship_count": "0",
-            "freeze_time": "",
-            "status": "",
-            "sync": "",
-            "copy_type": "empty_group",
-            "cycling_mode": "",
-            "cycle_period_seconds": "0"
-        }
-        obj = IBMSVCStartStopReplication()
-        return_data = obj.existing_rccg()
-        self.assertEqual("test_name", return_data["name"])
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
@@ -339,13 +258,11 @@ class TestIBMSVCStartStopReplication(unittest.TestCase):
             obj.stop()
         self.assertEqual(True, exc.value.args[0]['failed'])
 
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
-           'ibm_svc_start_stop_replication.IBMSVCStartStopReplication.existing_rc')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_for_failure_with_activeactive(self, svc_authorize_mock, svc_run_command_mock, existing_rc_mock):
+    def test_for_failure_with_activeactive(self, svc_authorize_mock, svc_run_command_mock):
         set_module_args({
             'clustername': 'clustername',
             'domain': 'domain',
@@ -355,34 +272,6 @@ class TestIBMSVCStartStopReplication(unittest.TestCase):
             'state': 'started',
             'clean': 'true'
         })
-        existing_rc_mock.return_value = {
-            "id": "226",
-            "name": "test_name",
-            "master_cluster_id": "0000020321E04566",
-            "master_cluster_name": "FlashSystem V9000",
-            "master_vdisk_id": "226",
-            "master_vdisk_name": "vol9",
-            "aux_cluster_id": "0000020321E04566",
-            "aux_cluster_name": "FlashSystem V9000",
-            "aux_vdisk_id": "227",
-            "aux_vdisk_name": "vol10",
-            "primary": "master",
-            "consistency_group_id": "",
-            "consistency_group_name": "",
-            "state": "consistent_synchronized",
-            "bg_copy_priority": "50",
-            "progress": "",
-            "freeze_time": "",
-            "status": "online",
-            "sync": "",
-            "copy_type": "activeactive",
-            "cycling_mode": "",
-            "cycle_period_seconds": "300",
-            "master_change_vdisk_id": "",
-            "master_change_vdisk_name": "",
-            "aux_change_vdisk_id": "",
-            "aux_change_vdisk_name": ""
-        }
         with pytest.raises(AnsibleFailJson) as exc:
             obj = IBMSVCStartStopReplication()
             obj.apply()
@@ -390,13 +279,11 @@ class TestIBMSVCStartStopReplication(unittest.TestCase):
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_start_stop_replication.IBMSVCStartStopReplication.start')
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
-           'ibm_svc_start_stop_replication.IBMSVCStartStopReplication.existing_rc')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_start_remotecopy(self, svc_authorize_mock, svc_run_command_mock, existing_rc_mock, start_mock):
+    def test_start_remotecopy(self, svc_authorize_mock, svc_run_command_mock, start_mock):
         set_module_args({
             'clustername': 'clustername',
             'domain': 'domain',
@@ -406,34 +293,6 @@ class TestIBMSVCStartStopReplication(unittest.TestCase):
             'state': 'started',
             'clean': 'true'
         })
-        existing_rc_mock.return_value = {
-            "id": "226",
-            "name": "test_name",
-            "master_cluster_id": "0000020321E04566",
-            "master_cluster_name": "FlashSystem V9000",
-            "master_vdisk_id": "226",
-            "master_vdisk_name": "vol9",
-            "aux_cluster_id": "0000020321E04566",
-            "aux_cluster_name": "FlashSystem V9000",
-            "aux_vdisk_id": "227",
-            "aux_vdisk_name": "vol10",
-            "primary": "master",
-            "consistency_group_id": "",
-            "consistency_group_name": "",
-            "state": "consistent_synchronized",
-            "bg_copy_priority": "50",
-            "progress": "",
-            "freeze_time": "",
-            "status": "online",
-            "sync": "",
-            "copy_type": "metro",
-            "cycling_mode": "",
-            "cycle_period_seconds": "300",
-            "master_change_vdisk_id": "",
-            "master_change_vdisk_name": "",
-            "aux_change_vdisk_id": "",
-            "aux_change_vdisk_name": ""
-        }
         with pytest.raises(AnsibleExitJson) as exc:
             obj = IBMSVCStartStopReplication()
             obj.apply()
@@ -441,13 +300,11 @@ class TestIBMSVCStartStopReplication(unittest.TestCase):
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_start_stop_replication.IBMSVCStartStopReplication.start')
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
-           'ibm_svc_start_stop_replication.IBMSVCStartStopReplication.existing_rccg')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_start_remotecopy_when_isgroup(self, svc_authorize_mock, svc_run_command_mock, existing_rccg_mock, start_mock):
+    def test_start_remotecopy_when_isgroup(self, svc_authorize_mock, svc_run_command_mock, start_mock):
         set_module_args({
             'clustername': 'clustername',
             'domain': 'domain',
@@ -458,34 +315,6 @@ class TestIBMSVCStartStopReplication(unittest.TestCase):
             'clean': 'true',
             'isgroup': 'true'
         })
-        existing_rccg_mock.return_value = {
-            "id": "226",
-            "name": "test_name",
-            "master_cluster_id": "0000020321E04566",
-            "master_cluster_name": "FlashSystem V9000",
-            "master_vdisk_id": "226",
-            "master_vdisk_name": "vol9",
-            "aux_cluster_id": "0000020321E04566",
-            "aux_cluster_name": "FlashSystem V9000",
-            "aux_vdisk_id": "227",
-            "aux_vdisk_name": "vol10",
-            "primary": "master",
-            "consistency_group_id": "",
-            "consistency_group_name": "",
-            "state": "consistent_synchronized",
-            "bg_copy_priority": "50",
-            "progress": "",
-            "freeze_time": "",
-            "status": "online",
-            "sync": "",
-            "copy_type": "metro",
-            "cycling_mode": "",
-            "cycle_period_seconds": "300",
-            "master_change_vdisk_id": "",
-            "master_change_vdisk_name": "",
-            "aux_change_vdisk_id": "",
-            "aux_change_vdisk_name": ""
-        }
         with pytest.raises(AnsibleExitJson) as exc:
             obj = IBMSVCStartStopReplication()
             obj.apply()
@@ -493,13 +322,11 @@ class TestIBMSVCStartStopReplication(unittest.TestCase):
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_start_stop_replication.IBMSVCStartStopReplication.stop')
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
-           'ibm_svc_start_stop_replication.IBMSVCStartStopReplication.existing_rc')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_stop_remotecopy(self, svc_authorize_mock, svc_run_command_mock, existing_rc_mock, start_mock):
+    def test_stop_remotecopy(self, svc_authorize_mock, svc_run_command_mock, start_mock):
         set_module_args({
             'clustername': 'clustername',
             'domain': 'domain',
@@ -508,34 +335,6 @@ class TestIBMSVCStartStopReplication(unittest.TestCase):
             'name': 'test_name',
             'state': 'stopped',
         })
-        existing_rc_mock.return_value = {
-            "id": "226",
-            "name": "test_name",
-            "master_cluster_id": "0000020321E04566",
-            "master_cluster_name": "FlashSystem V9000",
-            "master_vdisk_id": "226",
-            "master_vdisk_name": "vol9",
-            "aux_cluster_id": "0000020321E04566",
-            "aux_cluster_name": "FlashSystem V9000",
-            "aux_vdisk_id": "227",
-            "aux_vdisk_name": "vol10",
-            "primary": "master",
-            "consistency_group_id": "",
-            "consistency_group_name": "",
-            "state": "consistent_synchronized",
-            "bg_copy_priority": "50",
-            "progress": "",
-            "freeze_time": "",
-            "status": "online",
-            "sync": "",
-            "copy_type": "metro",
-            "cycling_mode": "",
-            "cycle_period_seconds": "300",
-            "master_change_vdisk_id": "",
-            "master_change_vdisk_name": "",
-            "aux_change_vdisk_id": "",
-            "aux_change_vdisk_name": ""
-        }
         with pytest.raises(AnsibleExitJson) as exc:
             obj = IBMSVCStartStopReplication()
             obj.apply()
@@ -543,13 +342,11 @@ class TestIBMSVCStartStopReplication(unittest.TestCase):
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_start_stop_replication.IBMSVCStartStopReplication.stop')
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
-           'ibm_svc_start_stop_replication.IBMSVCStartStopReplication.existing_rccg')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_stop_remotecopy_when_isgroup(self, svc_authorize_mock, svc_run_command_mock, existing_rccg_mock, start_mock):
+    def test_stop_remotecopy_when_isgroup(self, svc_authorize_mock, svc_run_command_mock, start_mock):
         set_module_args({
             'clustername': 'clustername',
             'domain': 'domain',
@@ -560,34 +357,6 @@ class TestIBMSVCStartStopReplication(unittest.TestCase):
             'clean': 'true',
             'isgroup': 'true'
         })
-        existing_rccg_mock.return_value = {
-            "id": "226",
-            "name": "test_name",
-            "master_cluster_id": "0000020321E04566",
-            "master_cluster_name": "FlashSystem V9000",
-            "master_vdisk_id": "226",
-            "master_vdisk_name": "vol9",
-            "aux_cluster_id": "0000020321E04566",
-            "aux_cluster_name": "FlashSystem V9000",
-            "aux_vdisk_id": "227",
-            "aux_vdisk_name": "vol10",
-            "primary": "master",
-            "consistency_group_id": "",
-            "consistency_group_name": "",
-            "state": "consistent_synchronized",
-            "bg_copy_priority": "50",
-            "progress": "",
-            "freeze_time": "",
-            "status": "online",
-            "sync": "",
-            "copy_type": "metro",
-            "cycling_mode": "",
-            "cycle_period_seconds": "300",
-            "master_change_vdisk_id": "",
-            "master_change_vdisk_name": "",
-            "aux_change_vdisk_id": "",
-            "aux_change_vdisk_name": ""
-        }
         with pytest.raises(AnsibleExitJson) as exc:
             obj = IBMSVCStartStopReplication()
             obj.apply()
@@ -595,13 +364,11 @@ class TestIBMSVCStartStopReplication(unittest.TestCase):
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_start_stop_replication.IBMSVCStartStopReplication.stop')
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
-           'ibm_svc_start_stop_replication.IBMSVCStartStopReplication.existing_rc')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_for_failure_with_unsupported_state(self, svc_authorize_mock, svc_run_command_mock, existing_rc_mock, start_mock):
+    def test_for_failure_with_unsupported_state(self, svc_authorize_mock, svc_run_command_mock, start_mock):
         set_module_args({
             'clustername': 'clustername',
             'domain': 'domain',
@@ -611,34 +378,6 @@ class TestIBMSVCStartStopReplication(unittest.TestCase):
             'state': 'wrong_state',
             'clean': 'true',
         })
-        existing_rc_mock.return_value = {
-            "id": "226",
-            "name": "test_name",
-            "master_cluster_id": "0000020321E04566",
-            "master_cluster_name": "FlashSystem V9000",
-            "master_vdisk_id": "226",
-            "master_vdisk_name": "vol9",
-            "aux_cluster_id": "0000020321E04566",
-            "aux_cluster_name": "FlashSystem V9000",
-            "aux_vdisk_id": "227",
-            "aux_vdisk_name": "vol10",
-            "primary": "master",
-            "consistency_group_id": "",
-            "consistency_group_name": "",
-            "state": "consistent_synchronized",
-            "bg_copy_priority": "50",
-            "progress": "",
-            "freeze_time": "",
-            "status": "online",
-            "sync": "",
-            "copy_type": "metro",
-            "cycling_mode": "",
-            "cycle_period_seconds": "300",
-            "master_change_vdisk_id": "",
-            "master_change_vdisk_name": "",
-            "aux_change_vdisk_id": "",
-            "aux_change_vdisk_name": ""
-        }
         with pytest.raises(AnsibleFailJson) as exc:
             obj = IBMSVCStartStopReplication()
             obj.apply()

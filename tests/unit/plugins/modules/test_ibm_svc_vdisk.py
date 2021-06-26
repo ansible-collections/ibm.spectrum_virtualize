@@ -65,7 +65,7 @@ class TestIBMSVCvdisk(unittest.TestCase):
         self.addCleanup(self.mock_module_helper.stop)
         self.restapi = IBMSVCRestApi(self.mock_module_helper, '1.2.3.4',
                                      'domain.ibm.com', 'username', 'password',
-                                     False, 'test.log')
+                                     False, 'test.log', '')
 
     def set_default_args(self):
         return dict({
@@ -94,7 +94,7 @@ class TestIBMSVCvdisk(unittest.TestCase):
             'name': 'test_get_existing_volume',
             'mdiskgrp': 'Ansible-Pool'
         })
-        vol_ret = [{"id": "0", "name": "volume_Ansible_collections",
+        vol_ret = [{"id": "0", "name": "test_get_existing_volume",
                     "IO_group_id": "0", "IO_group_name": "io_grp0",
                     "status": "online", "mdisk_grp_id": "0",
                     "mdisk_grp_name": "Pool_Ansible_collections",
@@ -112,35 +112,40 @@ class TestIBMSVCvdisk(unittest.TestCase):
                     "function": "", "protocol": "scsi"}]
         svc_obj_info_mock.return_value = vol_ret
         vol = IBMSVCvdisk().get_existing_vdisk()
-        self.assertEqual('volume_Ansible_collections', vol['name'])
-        self.assertEqual('0', vol['id'])
+        self.assertEqual('test_get_existing_volume', vol[0]['name'])
+        self.assertEqual('0', vol[0]['id'])
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
-           'ibm_svc_vdisk.IBMSVCvdisk.get_existing_vdisk')
+           'ibm_svc_vdisk.IBMSVCvdisk.vdisk_create')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
-           'ibm_svc_vdisk.IBMSVCvdisk.vdisk_probe')
+           'ibm_svc_vdisk.IBMSVCvdisk.get_existing_vdisk')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
     def test_volume_create_get_existing_volume_called(
-            self, svc_authorize_mock, mock_vdisk_probe,
-            get_existing_volume_mock):
+            self, svc_authorize_mock,
+            get_existing_volume_mock,
+            vdisk_create_mock):
         set_module_args({
             'clustername': 'clustername',
             'domain': 'domain',
             'state': 'present',
             'username': 'username',
             'password': 'password',
-            'name': 'test_volume_create_get_existing_volume_called',
+            'name': 'test_volume',
             'mdiskgrp': 'Ansible-Pool',
             'easytier': 'off',
             'size': '4294967296',
             'unit': 'b',
         })
         vol_created = IBMSVCvdisk()
-        mock_vdisk_probe.return_value = []
+        get_existing_volume_mock.return_value = []
+        vdisk_create_mock.return_value = {
+            u'message': u'Storage volume, id [0] successfully created',
+            u'id': u'0'
+        }
         with pytest.raises(AnsibleExitJson) as exc:
             vol_created.apply()
-        self.assertFalse(exc.value.args[0]['changed'])
+        self.assertTrue(exc.value.args[0]['changed'])
         get_existing_volume_mock.assert_called_with()
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
@@ -441,6 +446,27 @@ class TestIBMSVCvdisk(unittest.TestCase):
             volume_created.apply()
         self.assertTrue(exc.value.args[0]['changed'])
         get_existing_volume_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_convert_to_bytes(self, svc_authorize_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test_create_volume_but_volume_existed',
+            'mdiskgrp': 'Ansible-Pool',
+            'easytier': 'off',
+            'size': '2',
+            'unit': 'gb',
+            'rsize': '20%',
+            'autoexpand': True
+        })
+        v = IBMSVCvdisk()
+        data = v.convert_to_bytes()
+        self.assertEqual(2147483648, data)
 
 
 if __name__ == '__main__':

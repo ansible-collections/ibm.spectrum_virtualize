@@ -64,7 +64,7 @@ class TestIBMSVCRCCG(unittest.TestCase):
         self.addCleanup(self.mock_module_helper.stop)
         self.restapi = IBMSVCRestApi(self.mock_module_helper, '1.2.3.4',
                                      'domain.ibm.com', 'username', 'password',
-                                     False, 'test.log')
+                                     False, 'test.log', '')
 
     def set_default_args(self):
         return dict({
@@ -326,8 +326,7 @@ class TestIBMSVCRCCG(unittest.TestCase):
             'username': 'username',
             'password': 'password',
             'name': 'test_name',
-            'state': 'present',
-            'copytype': 'metro'
+            'state': 'present'
         })
         get_existing_rccg_mock.return_value = {}
         svc_run_command_mock.return_value = {

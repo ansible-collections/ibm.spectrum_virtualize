@@ -65,7 +65,7 @@ class TestIBMSVCvdiskhostmap(unittest.TestCase):
         self.addCleanup(self.mock_module_helper.stop)
         self.restapi = IBMSVCRestApi(self.mock_module_helper, '1.2.3.4',
                                      'domain.ibm.com', 'username', 'password',
-                                     False, 'test.log')
+                                     False, 'test.log', '')
 
     def set_default_args(self):
         return dict({
@@ -237,6 +237,117 @@ class TestIBMSVCvdiskhostmap(unittest.TestCase):
                         "IO_group_id": "0", "IO_group_name": "io_grp0",
                         "mapping_type": "private", "host_cluster_id": "",
                         "host_cluster_name": "", "protocol": "scsi"}]
+        get_existing_vdiskhostmap_mock.return_value = mapping_ret
+        host_mapping_deleted = IBMSVCvdiskhostmap()
+        with pytest.raises(AnsibleExitJson) as exc:
+            host_mapping_deleted.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+        get_existing_vdiskhostmap_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_vol_map.IBMSVCvdiskhostmap.get_existing_vdiskhostmap')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_vol_map.IBMSVCvdiskhostmap.vdiskhostclustermap_create')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_create_hostcluster_mapping_successfully(self, svc_authorize_mock,
+                                                     vdiskhostclustermap_create_mock,
+                                                     get_existing_vdiskhostmap_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'volname': 'volume0',
+            'hostcluster': 'hostcluster4test',
+        })
+        host_mapping = {u'message': u'Volume to Host Cluster map, id [0], '
+                                    u'successfully created', u'id': u'0'}
+        vdiskhostclustermap_create_mock.return_value = host_mapping
+        get_existing_vdiskhostmap_mock.return_value = []
+        host_mapping_created = IBMSVCvdiskhostmap()
+        with pytest.raises(AnsibleExitJson) as exc:
+            host_mapping_created.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+        get_existing_vdiskhostmap_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_vol_map.IBMSVCvdiskhostmap.get_existing_vdiskhostmap')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_vol_map.IBMSVCvdiskhostmap.vdiskhostclustermap_create')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_create_hostcluster_mapping_but_mapping_exist(
+            self, svc_authorize_mock,
+            vdiskhostclustermap_create_mock,
+            get_existing_vdiskhostmap_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'volname': 'volume0',
+            'hostcluster': 'hostcluster4test',
+        })
+        host_mapping = {u'message': u'Volume to Host Cluster map, id [0], '
+                                    u'successfully created', u'id': u'0'}
+        vdiskhostclustermap_create_mock.return_value = host_mapping
+        get_existing_vdiskhostmap_mock.return_value = []
+        host_mapping_created = IBMSVCvdiskhostmap()
+        with pytest.raises(AnsibleExitJson) as exc:
+            host_mapping_created.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+        get_existing_vdiskhostmap_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_vol_map.IBMSVCvdiskhostmap.get_existing_vdiskhostmap')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_delete_hostcluster_mapping_not_exist(self, svc_authorize_mock,
+                                                  get_existing_vdiskhostmap_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'absent',
+            'username': 'username',
+            'password': 'password',
+            'volname': 'volume0',
+            'hostcluster': 'hostcluster4test',
+        })
+        get_existing_vdiskhostmap_mock.return_value = []
+        host_mapping_deleted = IBMSVCvdiskhostmap()
+        with pytest.raises(AnsibleExitJson) as exc:
+            host_mapping_deleted.apply()
+        self.assertFalse(exc.value.args[0]['changed'])
+        get_existing_vdiskhostmap_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_vol_map.IBMSVCvdiskhostmap.get_existing_vdiskhostmap')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_vol_map.IBMSVCvdiskhostmap.vdiskhostclustermap_delete')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_delete_hostcluster_mapping_successfully(self, svc_authorize_mock,
+                                                     host_delete_mock,
+                                                     get_existing_vdiskhostmap_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'absent',
+            'username': 'username',
+            'password': 'password',
+            'volname': 'volume0',
+            'hostcluster': 'hostcluster4test',
+        })
+        mapping_ret = [{"id": "0", "name": "volume_Ansible_collections",
+                        "SCSI_id": "0", "host_id": "",
+                        "host_name": "",
+                        "vdisk_UID": "6005076810CA0166C00000000000019F",
+                        "IO_group_id": "0", "IO_group_name": "io_grp0",
+                        "mapping_type": "private", "host_cluster_id": "1",
+                        "host_cluster_name": "hostcluster4test", "protocol": "scsi"}]
         get_existing_vdiskhostmap_mock.return_value = mapping_ret
         host_mapping_deleted = IBMSVCvdiskhostmap()
         with pytest.raises(AnsibleExitJson) as exc:
