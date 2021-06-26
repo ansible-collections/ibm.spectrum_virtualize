@@ -709,6 +709,13 @@ cannot be passed while converting a Mirror Volume to Standard.")
         # rmvolume does not output anything when successful.
         self.changed = True
 
+    def isdrpool(self):
+        poolA_drp = self.poolA_data['data_reduction']
+        poolB_drp = self.poolB_data['data_reduction']
+        isdrpool_list = [poolA_drp, poolB_drp]
+        if "yes" in isdrpool_list:
+            self.isdrp = True
+
     def discover_system_topology(self):
         self.log("Entering function discover_system_topology")
         system_data = self.restapi.svc_obj_info(cmd='lssystem', cmdopts=None, cmdargs=None)
