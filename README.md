@@ -96,7 +96,7 @@ Alternatively, you can add a full namepsace and collection name in the `collecti
 
 The modules in the IBM Spectrum Virtualize Ansible collection leverage REST APIs to connect to the IBM Spectrum Virtualize storage system. This has following limitations:
 1. Using the REST APIs to list more than 2000 objects may create a loss of service from the API side, as it automatically restarts due to memory constraints.
-2. It is not possible to access REST APIs using an IPv6 address on a cluster.
+2. It is not possible to access REST APIs using an IPv6 address on the cluster.
 3. The Ansible collection can run on all IBM Spectrum Virtualize storage versions above 8.1.3, except versions 8.3.1.3 and 8.3.1.4.
 
 ## Contributing
