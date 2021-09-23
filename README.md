@@ -76,13 +76,15 @@ Alternatively, you can add a full namepsace and collection name in the `collecti
 - ibm_svc_manage_cv - Manages the change volume in remote copy replication on IBM Spectrum Virtualize system
 - ibm_svc_manage_flashcopy - Manages FlashCopy mappings on IBM Spectrum Virtualize system
 - ibm_svc_manage_mirrored_volume - Manages mirrored volumes on IBM Spectrum Virtualize system
+- ibm_svc_manage_migration - Manages volume migration between clusters on IBM Spectrum Virtualize system
 - ibm_svc_manage_replication - Manages remote copy replication on IBM Spectrum Virtualize system
 - ibm_svc_manage_replicationgroup - Manages remote copy consistency group on IBM Spectrum Virtualize system
+- ibm_svc_manage_volume - Manages standard volumes on IBM Spectrum Virtualize system
+- ibm_svc_manage_volumegroup - Manages volume groups on IBM Spectrum Virtualize system
 - ibm_svc_mdisk - Manages MDisks for IBM Spectrum Virtualize system
 - ibm_svc_mdiskgrp - Manages pools for IBM Spectrum Virtualize system
 - ibm_svc_start_stop_flashcopy - Starts or stops FlashCopy mapping and consistency groups on IBM Spectrum Virtualize system
 - ibm_svc_start_stop_replication - Starts or stops remote copy relationship or group on IBM Spectrum Virtualize system
-- ibm_svc_vdisk - Manages volumes for IBM Spectrum Virtualize system
 - ibm_svc_vol_map - Manages volume mapping for IBM Spectrum Virtualize system
 - ibm_svcinfo_command - Runs svcinfo CLI command on IBM Spectrum Virtualize system over SSH session
 - ibm_svctask_command - Runs svctask CLI command(s) on IBM Spectrum Virtualize system over SSH session
