@@ -2,8 +2,7 @@
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
 #
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -16,10 +15,10 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_mdiskgrp
 short_description: This module manages pools on IBM Spectrum Virtualize
-                   Family storage systems.
+                   Family storage systems
 description:
   - Ansible interface to manage 'mkmdiskgrp' and 'rmmdiskgrp' pool commands.
-version_added: "2.10.0"
+version_added: "1.0.0"
 options:
   name:
     description:
@@ -40,43 +39,49 @@ options:
   domain:
     description:
     - Domain for the Spectrum Virtualize storage system.
+    - Valid when hostname is used for the parameter I(clustername).
     type: str
   username:
     description:
     - REST API username for the Spectrum Virtualize storage system.
-      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
     type: str
   password:
     description:
     - REST API password for the Spectrum Virtualize storage system.
-      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
     type: str
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-      To generate a token, use ibm_svc_auth module.
+    - To generate a token, use ibm_svc_auth module.
     type: str
+    version_added: '1.5.0'
   datareduction:
     description:
     - Defines use of data reduction pools (DRPs) on the MDisk group.
+    - Applies when C(state=present), to create a pool.
     type: str
     default: 'no'
     choices: ['yes', 'no']
   easytier:
     description:
     - Defines use of easytier with the MDisk group.
+    - Applies when C(state=present), to create a pool.
     type: str
     default: 'off'
     choices: ['on', 'off', 'auto']
   encrypt:
     description:
     - Defines use of encryption with the MDisk group.
+    - Applies when C(state=present), to create a pool.
     type: str
     default: 'no'
     choices: ['yes', 'no']
   ext:
     description:
     - Specifies the size of the extents for this group in MB.
+    - Applies when C(state=present), to create a pool.
     type: int
   log_path:
     description:
@@ -90,18 +95,23 @@ options:
   parentmdiskgrp:
     description:
       - Parentmdiskgrp for subpool.
+      - Applies when C(state=present), to create a pool.
     type: str
   unit:
     description:
       - Unit for subpool.
+      - Applies when C(state=present), to create a pool.
     type: str
   size:
     description:
       - Specifies the child pool capacity. The value must be
         a numeric value (and an integer multiple of the extent size).
+      - Applies when C(state=present), to create a pool.
     type: int
 author:
     - Peng Wang(@wangpww)
+notes:
+    - This module supports C(check_mode).
 '''
 EXAMPLES = '''
 - name: Using Spectrum Virtualize collection to create a pool

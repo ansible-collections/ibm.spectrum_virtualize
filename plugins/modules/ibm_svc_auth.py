@@ -3,8 +3,7 @@
 
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Shilpi Jain <shilpi.jain1@ibm.com>
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -16,11 +15,11 @@ ANSIBLE_METADATA = {'status': ['preview'],
 DOCUMENTATION = '''
 ---
 module: ibm_svc_auth
-short_description: This module generates an authentication token for a user on IBM Spectrum Virtualize Family storage system.
-                   The token is used to make REST API calls to the storage system.
+short_description: This module generates an authentication token for a user on IBM Spectrum Virtualize Family storage system
 description:
   - Ansible interface to generate the authentication token.
-version_added: "2.11.0"
+    The token is used to make REST API calls to the storage system.
+version_added: "1.5.0"
 options:
   clustername:
     description:
@@ -30,19 +29,22 @@ options:
   domain:
     description:
     - Domain for the Spectrum Virtualize storage system.
+    - Valid when hostname is used for the parameter I(clustername).
     type: str
   username:
     description:
-    - REST API username for the Spectrum Virtualize storage system. This parameter is required in this module to generate the token.
+    - REST API username for the Spectrum Virtualize storage system.
+    - This parameter is required in this module to generate the token.
     type: str
   password:
     description:
-    - REST API password for the Spectrum Virtualize storage system. This parameter is required in this module to generate the token.
+    - REST API password for the Spectrum Virtualize storage system.
+    - This parameter is required in this module to generate the token.
     type: str
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-      This field is not required for ibm_svc_auth module.
+    - This field is not required for ibm_svc_auth module.
     type: str
   validate_certs:
     description:
@@ -105,7 +107,8 @@ class IBMSVCauth(object):
     def __init__(self):
         argument_spec = svc_argument_spec()
 
-        self.module = AnsibleModule(argument_spec=argument_spec)
+        self.module = AnsibleModule(argument_spec=argument_spec,
+                                    supports_check_mode=True)
 
         # logging setup
         log_path = self.module.params['log_path']

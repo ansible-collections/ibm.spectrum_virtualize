@@ -4,8 +4,7 @@
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Rohit Kumar <rohit.kumar6@ibm.com>
 #
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -18,8 +17,8 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_start_stop_replication
 short_description: This module starts or stops remote copies on
-                   IBM Spectrum Virtualize Family storage systems.
-version_added: "2.10.0"
+                   IBM Spectrum Virtualize Family storage systems
+version_added: "1.3.0"
 
 description:
   - Ansible interface to manage remote copy related commands.
@@ -29,7 +28,6 @@ options:
     description:
       - Specifies a name to assign to the new remote copy relationship or group,
         or to operate on the existing remote copy.
-    required: false
     type: str
   state:
     description:
@@ -46,27 +44,29 @@ options:
   domain:
     description:
     - Domain for the Spectrum Virtualize storage system.
+    - Valid when hostname is used for the parameter I(clustername).
     type: str
   username:
     description:
     - REST API username for the Spectrum Virtualize storage system.
-      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
     type: str
   password:
     description:
     - REST API password for the Spectrum Virtualize storage system.
-      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
     type: str
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-      To generate a token, use ibm_svc_auth module.
+    - To generate a token, use ibm_svc_auth module.
     type: str
+    version_added: '1.5.0'
   primary:
     description:
     - Specifies the copy direction by defining which disk
       becomes the primary (source).
-      Applies when state is 'started'.
+    - Applies when C(state=started).
     type: str
     choices: [ 'master', 'aux' ]
   isgroup:
@@ -77,20 +77,20 @@ options:
   clean:
     description:
     - Specifies that the volume that is to become a secondary is clean.
-      Applies when state is 'started'.
+    - Applies when C(state=started).
     default: false
     type: bool
   access:
     description:
     - Instructs the system to allow write access to a consistent secondary volume.
-      Applies when state is 'stopped'.
+    - Applies when C(state=stopped).
     default: false
     type: bool
   force:
     description:
     - Specifies that the system must process the copy operation even if it
       causes a temporary loss of consistency during synchronization.
-      Applies when state is 'started'.
+    - Applies when C(state=started).
     type: bool
   validate_certs:
     description:
@@ -103,6 +103,8 @@ options:
     type: str
 author:
     - rohit(@rohitk-github)
+notes:
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = '''

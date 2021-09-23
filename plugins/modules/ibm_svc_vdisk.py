@@ -5,13 +5,12 @@
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
 #            Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
 #            Rohit kumar <rohit.kumar6@ibm.com>
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
+ANSIBLE_METADATA = {'status': ['deprecated'],
                     'supported_by': 'community',
                     'metadata_version': '1.1'}
 
@@ -19,10 +18,10 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_vdisk
 short_description: This module manages volumes on IBM Spectrum Virtualize
-                   Family storage systems.
+                   Family storage systems
 description:
   - Ansible interface to manage 'mkvdisk' and 'rmvdisk' volume commands.
-version_added: "2.10.0"
+version_added: "1.0.0"
 options:
   name:
     description:
@@ -43,40 +42,43 @@ options:
   domain:
     description:
     - Domain for the Spectrum Virtualize storage system.
+    - Valid when hostname is used for the parameter I(clustername).
     type: str
   username:
     description:
     - REST API username for the Spectrum Virtualize storage system.
-      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
     type: str
   password:
     description:
     - REST API password for the Spectrum Virtualize storage system.
-      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
     type: str
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-      To generate a token, use ibm_svc_auth module.
+    - To generate a token, use ibm_svc_auth module.
     type: str
+    version_added: '1.5.0'
   mdiskgrp:
     description:
     - Specifies the name of the storage pool to use when
-      creating this volume. This parameter is required when 'state' is 'present'.
+      creating this volume. This parameter is required when C(state=present).
     type: str
   easytier:
     description:
     - Defines use of easytier with VDisk.
+    - Applies when C(state=present).
     type: str
     choices: [ 'on', 'off' ]
   size:
     description:
-    - Defines the size of VDisk. This parameter is required when 'state' is 'present'.
-      This parameter can also be used to resize an existing VDisk.
+    - Defines the size of VDisk. This parameter is required when C(state=present).
+    - This parameter can also be used to resize an existing VDisk.
     type: str
   unit:
     description:
-    - Defines the size option for the storage unit. This parameter is required when 'state' is 'present'.
+    - Defines the size option for the storage unit. This parameter is required when C(state=present).
     type: str
     choices: [ b, kb, mb, gb, tb, pb ]
     default: mb
@@ -93,14 +95,23 @@ options:
     description:
     - Defines how much physical space is initially allocated to the thin-provisioned volume in %.
       If rsize is not passed, the volume created is a standard volume.
+    - Applies when C(state=present).
     type: str
+    version_added: '1.2.0'
   autoexpand:
     description:
     - Specifies that thin-provisioned volume copies can automatically expand their real capacities.
     type: bool
+    version_added: '1.2.0'
 author:
     - Sreshtant Bohidar(@Sreshtant-Bohidar)
     - Rohit Kumar(@rohitk-github)
+notes:
+    - This module supports C(check_mode).
+deprecated:
+  removed_in: 2.0.0
+  why: New module released
+  alternative: Use M(ibm_svc_manage_volume) instead.
 '''
 
 EXAMPLES = '''

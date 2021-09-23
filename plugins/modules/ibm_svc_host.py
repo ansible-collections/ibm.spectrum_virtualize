@@ -19,13 +19,10 @@ ANSIBLE_METADATA = {'status': ['preview'],
 DOCUMENTATION = '''
 ---
 module: ibm_svc_host
-short_description: This module manages hosts on IBM Spectrum Virtualize
-                   Family storage systems.
-version_added: "2.10.0"
-
+short_description: This module manages hosts on IBM Spectrum Virtualize Family storage systems
+version_added: "1.0.0"
 description:
-  - Ansible interface to manage 'mkhost' and 'rmhost' host commands.
-
+  - Ansible interface to manage 'mkhost', 'chhost', and 'rmhost' host commands.
 options:
     name:
         description:
@@ -34,7 +31,7 @@ options:
         type: str
     state:
         description:
-            - Creates (C(present)) or removes (C(absent)) a host.
+            - Creates or updates (C(present)), or removes (C(absent)) a host.
         choices: [ absent, present ]
         required: true
         type: str
@@ -47,58 +44,74 @@ options:
     domain:
         description:
             - Domain for the Spectrum Virtualize storage system.
+            - Valid when hostname is used for the parameter I(clustername).
         type: str
     username:
         description:
             - REST API username for the Spectrum Virtualize storage system.
-              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+            - The parameters I(username) and I(password) are required if not using 'token' to authenticate a user.
         type: str
     password:
         description:
             - REST API password for the Spectrum Virtualize storage system.
-              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+            - The parameters I(username) and I(password) are required if not using 'token' to authenticate a user.
         type: str
     token:
         description:
             - The authentication token to verify a user on the Spectrum Virtualize storage system.
-              To generate a token, use ibm_svc_auth module.
+            - To generate a token, use ibm_svc_auth module.
         type: str
+        version_added: '1.5.0'
     fcwwpn:
         description:
-            - List of Initiator WWPNs to be added to the host.
-              The complete list of WWPNs must be provided.
+            - List of Initiator WWPNs to be added to the host. The complete list of WWPNs must be provided.
+            - The parameters I(fcwwpn) and I(iscsiname) are mutually exclusive.
+            - Required when C(state=present), to create or modify a Fibre Channel (FC) host.
         type: str
     iscsiname:
         description:
             - Initiator IQN to be added to the host.
+            - The parameters I(fcwwpn) and I(iscsiname) are mutually exclusive.
+            - Valid when C(state=present), to create host.
         type: str
     iogrp:
         description:
             - Specifies a set of one or more input/output (I/O)
               groups from which the host can access the volumes.
+              Once specified, this parameter cannot be modified.
+            - Valid when C(state=present), to create a host.
         type: str
     protocol:
         description:
             - Specifies the protocol used by the host to
               communicate with the storage system. Only 'scsi' protocol is supported.
+            - Valid when C(state=present), to create a host.
         type: str
     type:
         description:
             - Specifies the type of host.
+              Valid when C(state=present), to create or modify a host.
         type: str
     site:
         description:
             - Specifies the site name of the host.
+              Valid when C(state=present), to create or modify a host.
         type: str
     hostcluster:
         description:
             - Specifies the name of the host cluster to which the host object is to be added.
               A host cluster must exist before a host object can be added to it.
+            - Parameters I(hostcluster) and I(nohostcluster) are mutually exclusive.
+            - Valid when C(state=present), to create or modify a host.
         type: str
+        version_added: '1.5.0'
     nohostcluster:
         description:
             - If specified True, host object is removed from the host cluster.
+            - Parameters I(hostcluster) and I(nohostcluster) are mutually exclusive.
+            - Valid when C(state=present), to modify an existing host.
         type: bool
+        version_added: '1.5.0'
     log_path:
         description:
             - Path of debug log file.
@@ -111,6 +124,8 @@ options:
 author:
     - Sreshtant Bohidar (@Sreshtant-Bohidar)
     - Rohit Kumar (@rohitk-github)
+notes:
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = '''

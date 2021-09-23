@@ -18,10 +18,10 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_consistgrp_flashcopy
 short_description: This module manages FlashCopy consistency groups on IBM Spectrum Virtualize
-                   Family storage systems.
+                   Family storage systems
 description:
   - Ansible interface to manage 'mkfcconsistgrp' and 'rmfcconsistgrp' volume commands.
-version_added: "2.10.0"
+version_added: "1.4.0"
 options:
     name:
         description:
@@ -30,9 +30,7 @@ options:
         type: str
     state:
         description:
-            - Creates (C(present)) or removes (C(absent)) a FlashCopy
-              consistency group. Used to prestart, start or stop a FlashCopy
-              consistency group.
+            - Creates (C(present)) or removes (C(absent)) a FlashCopy consistency group.
         choices: [ present, absent ]
         required: true
         type: str
@@ -45,35 +43,42 @@ options:
     domain:
         description:
             - Domain for the Spectrum Virtualize storage system.
+            - Valid when hostname is used for the parameter I(clustername).
         type: str
     username:
         description:
             - REST API username for the Spectrum Virtualize storage system.
-              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+            - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
         type: str
     password:
         description:
             - REST API password for the Spectrum Virtualize storage system.
-              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+            - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
         type: str
     token:
         description:
             - The authentication token to verify a user on the Spectrum Virtualize storage system.
-              To generate a token, use ibm_svc_auth module.
+            - To generate a token, use ibm_svc_auth module.
         type: str
+        version_added: '1.5.0'
     ownershipgroup:
         description:
             - Specifies the name of the ownership group.
+            - Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
+            - Valid when C(state=present), to create or modify a FlashCopy consistency group.
         required: false
         type: str
     noownershipgroup:
         description:
-            - Removes the consistency group from all associated ownership groups.
+            - If specified True, the consistency group is removed from all associated ownership groups.
+            - Parameters I(noownershipgroup) and I(ownershipgroup) are mutually exclusive.
+            - Valid when C(state=present), to modify a FlashCopy consistency group.
         required: false
         type: bool
     force:
         description:
-        - Specifies that all associated mappings be changed to stand-alone mappings.
+            - If specified True, removes all the associated FlashCopy mappings while deleting the FlashCopy consistency group.
+            - Valid when C(state=absent), to delete a FlashCopy consistency group.
         required: false
         type: bool
     log_path:
@@ -87,6 +92,8 @@ options:
         type: bool
 author:
     - Sreshtant Bohidar(@Sreshtant-Bohidar)
+notes:
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = '''

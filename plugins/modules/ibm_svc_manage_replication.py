@@ -5,8 +5,7 @@
 # Author(s): Rohit Kumar <rohit.kumar6@ibm.com>
 #            Shilpi Jain <shilpi.jain1@ibm.com>
 #
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -19,8 +18,8 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_replication
 short_description: This module manages remote copies (or rcrelationship) on
-                   IBM Spectrum Virtualize Family storage systems.
-version_added: "2.10.0"
+                   IBM Spectrum Virtualize Family storage systems
+version_added: "1.3.0"
 
 description:
   - Ansible interface to manage remote copy replication.
@@ -30,7 +29,6 @@ options:
     description:
       - Specifies the name to assign to the new remote copy relationship
         or to operate on the existing remote copy.
-    required: false
     type: str
   state:
     description:
@@ -47,28 +45,30 @@ options:
   domain:
     description:
     - Domain for the Spectrum Virtualize storage system.
+    - Valid when hostname is used for the parameter I(clustername).
     type: str
   username:
     description:
     - REST API username for the Spectrum Virtualize storage system.
-      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
     type: str
   password:
     description:
     - REST API password for the Spectrum Virtualize storage system.
-      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
     type: str
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-      To generate a token, use ibm_svc_auth module.
+    - To generate a token, use ibm_svc_auth module.
     type: str
+    version_added: '1.5.0'
   copytype:
     description:
     - Specifies the mirror type of the remote copy. 'metro' means MetroMirror,
-      'global' means GlobalMirror and 'GMCV' means GlobalMirror with change volume.
-      If not specified, a MetroMirror remote copy will be created
-      when creating a remote copy (state='present').
+      'global' means GlobalMirror, and 'GMCV' means GlobalMirror with change volume.
+    - If not specified, a MetroMirror remote copy will be created
+      when creating a remote copy C(state=present).
     type: str
     choices: [ 'metro', 'global' , 'GMCV']
   master:
@@ -101,13 +101,14 @@ options:
     description:
     - Specifies a consistency group that this relationship will join. If not
       specified by user, the relationship is created as a stand-alone
-      relationship. Applies when state is 'present'.
+      relationship.
+    - Applies when C(state=present).
     type: str
   noconsistgrp:
     description:
     - Specifies whether to remove the specified relationship from a consistency
       group, making the relationship a stand-alone relationship.
-      Applies when state is 'present'.
+    - Applies when C(state=present).
     default: false
     type: bool
   validate_certs:
@@ -120,7 +121,8 @@ options:
     - Path of debug log file.
     type: str
 notes:
-  - The parameters 'primary' and 'aux' are mandatory only when a remote copy relationship does not exist.
+  - The parameters I(primary) and I(aux) are mandatory only when a remote copy relationship does not exist.
+  - This module supports C(check_mode).
 author:
     - rohit(@rohitk-github)
     - Shilpi Jain (@Shilpi-Jain1)

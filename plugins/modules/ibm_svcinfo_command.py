@@ -16,8 +16,8 @@ DOCUMENTATION = '''
 ---
 module: ibm_svcinfo_command
 short_description: This module implements SSH Client which helps to run
-                   svcinfo CLI command on IBM Spectrum Virtualize Family storage systems.
-version_added: "2.10.0"
+                   svcinfo CLI command on IBM Spectrum Virtualize Family storage systems
+version_added: "1.2.0"
 description:
 - Runs single svcinfo CLI command on IBM Spectrum Virtualize Family storage systems.
   Filter options like filtervalue or pipe '|' with grep, awk, and others are
@@ -42,7 +42,6 @@ options:
   key_filename:
     description:
     - SSH client private key filename. By default, ~/.ssh/id_rsa is used.
-    required: false
     type: str
   clustername:
     description:
@@ -180,7 +179,16 @@ class IBMSVCsshClient(object):
         )
 
     def modify_command(self, argument):
-        return ' '.join([c.strip() if not c.startswith('ls') else c + " -json" for c in argument.strip().split()])
+        index = None
+        command = [item.strip() for item in argument.split()]
+        if command:
+            for n, word in enumerate(command):
+                if word.startswith('ls') and 'svcinfo' in command[n - 1]:
+                    index = n
+                    break
+        if index:
+            command.insert(index + 1, '-json')
+        return ' '.join(command)
 
     def send_svcinfo_command(self):
         info_output = ""

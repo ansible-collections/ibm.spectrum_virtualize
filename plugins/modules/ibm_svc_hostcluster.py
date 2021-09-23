@@ -17,13 +17,10 @@ ANSIBLE_METADATA = {'status': ['preview'],
 DOCUMENTATION = '''
 ---
 module: ibm_svc_hostcluster
-short_description: This module manages host cluster on IBM Spectrum Virtualize
-                   Family storage systems.
-version_added: "2.11.0"
-
+short_description: This module manages host cluster on IBM Spectrum Virtualize Family storage systems
+version_added: "1.5.0"
 description:
-  - Ansible interface to manage 'mkhostcluster' and 'rmhostcluster' host commands.
-
+  - Ansible interface to manage 'mkhostcluster', 'chhostcluster' and 'rmhostcluster' host commands.
 options:
     name:
         description:
@@ -38,36 +35,47 @@ options:
         type: str
     clustername:
         description:
-            - The hostname or management IP of the
-              Spectrum Virtualize storage system.
+            - The hostname or management IP of the Spectrum Virtualize storage system.
         required: true
         type: str
     domain:
         description:
             - Domain for the Spectrum Virtualize storage system.
+              Valid when hostname is used for the parameter I(clustername).
         type: str
     username:
         description:
             - REST API username for the Spectrum Virtualize storage system.
-              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+            - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
         type: str
     password:
         description:
             - REST API password for the Spectrum Virtualize storage system.
-              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+            - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
         type: str
     token:
         description:
             - The authentication token to verify a user on the Spectrum Virtualize storage system.
-              To generate a token, use ibm_svc_auth module.
+            - To generate a token, use ibm_svc_auth module.
         type: str
     ownershipgroup:
         description:
             - The name of the ownership group to which the host cluster object is being added.
+              Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
+            - Applies when C(state=present).
         type: str
+        version_added: '1.6.0'
+    noownershipgroup:
+        description:
+            - If specified True, the host cluster object is removed from the ownership group to which it belongs.
+              Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
+            - Applies when C(state=present) to modify an existing hostcluster.
+        type: bool
+        version_added: '1.6.0'
     removeallhosts:
         description:
             - Specifies that all hosts in the host cluster and the associated host cluster object be deleted.
+            - Applies when C(state=absent).
         type: bool
     log_path:
         description:
@@ -80,6 +88,8 @@ options:
         type: bool
 author:
     - Shilpi Jain (@Shilpi-J)
+notes:
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = '''
@@ -100,6 +110,24 @@ EXAMPLES = '''
         name: hostcluster0
         state: present
         ownershipgroup: group1
+
+- name: Using Spectrum Virtualize collection to update a host cluster
+  hosts: localhost
+  collections:
+    - ibm.spectrum_virtualize
+  gather_facts: no
+  connection: local
+  tasks:
+    - name: Update the ownershipgroup of a host cluster
+      ibm_svc_hostcluster:
+        clustername: "{{clustername}}"
+        domain: "{{domain}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        log_path: /tmp/playbook.debug
+        name: hostcluster0
+        state: present
+        noownershipgroup: True
 
 - name: Using Spectrum Virtualize collection to delete a host cluster
   hosts: localhost
@@ -139,6 +167,7 @@ class IBMSVChostcluster(object):
                 state=dict(type='str', required=True, choices=['absent',
                                                                'present']),
                 ownershipgroup=dict(type='str'),
+                noownershipgroup=dict(type='bool'),
                 removeallhosts=dict(type='bool')
             )
         )
@@ -159,6 +188,7 @@ class IBMSVChostcluster(object):
 
         # Optional
         self.ownershipgroup = self.module.params.get('ownershipgroup', '')
+        self.noownershipgroup = self.module.params.get('noownershipgroup', '')
         self.removeallhosts = self.module.params.get('removeallhosts', '')
 
         # Handling missing mandatory parameter name
@@ -190,6 +220,27 @@ class IBMSVChostcluster(object):
 
         return merged_result
 
+    def hostcluster_probe(self, data):
+        props = []
+        if self.removeallhosts:
+            self.module.fail_json(msg="Parameter 'removeallhosts' can be used only while deleting hostcluster")
+
+        if self.ownershipgroup and self.noownershipgroup:
+            self.module.fail_json(msg="You must not pass in both 'ownershipgroup' and "
+                                      "'noownershipgroup' to the module.")
+
+        if data['owner_name'] and self.noownershipgroup:
+            props += ['noownershipgroup']
+
+        if self.ownershipgroup and (not data['owner_name'] or self.ownershipgroup != data['owner_name']):
+            props += ['ownershipgroup']
+
+        if props is []:
+            props = None
+
+        self.log("hostcluster_probe props='%s'", data)
+        return props
+
     def hostcluster_create(self):
         if self.removeallhosts:
             self.module.fail_json(msg="Parameter 'removeallhosts' cannot be passed while creating hostcluster")
@@ -218,6 +269,27 @@ class IBMSVChostcluster(object):
         else:
             self.module.fail_json(
                 msg="Failed to create host cluster [%s]" % self.name)
+
+    def hostcluster_update(self, modify):
+        if self.module.check_mode:
+            self.changed = True
+            return
+
+        self.log("updating host cluster '%s'", self.name)
+        cmd = 'chhostcluster'
+        cmdopts = {}
+        if 'ownershipgroup' in modify:
+            cmdopts['ownershipgroup'] = self.ownershipgroup
+        elif 'noownershipgroup' in modify:
+            cmdopts['noownershipgroup'] = self.noownershipgroup
+
+        if cmdopts:
+            cmdargs = [self.name]
+            self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
+            # Any error will have been raised in svc_run_command
+            # chhost does not output anything when successful.
+            self.changed = True
+            self.log("Properties of %s updated", self.name)
 
     def hostcluster_delete(self):
         if self.module.check_mode:
@@ -252,6 +324,11 @@ class IBMSVChostcluster(object):
                 self.log("CHANGED: host cluster exists, but requested "
                          "state is 'absent'")
                 changed = True
+            elif self.state == 'present':
+                # This is where we detect if chhostcluster should be called
+                modify = self.hostcluster_probe(hc_data)
+                if modify:
+                    changed = True
         else:
             if self.state == 'present':
                 self.log("CHANGED: host cluster does not exist, "
@@ -263,6 +340,10 @@ class IBMSVChostcluster(object):
                 if not hc_data:
                     self.hostcluster_create()
                     msg = "host cluster %s has been created." % self.name
+                else:
+                    # This is where we would modify
+                    self.hostcluster_update(modify)
+                    msg = "host cluster [%s] has been modified." % self.name
             elif self.state == 'absent':
                 self.hostcluster_delete()
                 msg = "host cluster [%s] has been deleted." % self.name

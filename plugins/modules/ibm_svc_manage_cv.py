@@ -3,8 +3,7 @@
 
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Shilpi Jain <shilpi.jain1@ibm.com>
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -17,14 +16,14 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_cv
 short_description: This module manages the change volume for a given volume on IBM
-                   Spectrum Virtualize Family storage systems.
+                   Spectrum Virtualize Family storage systems
 description:
   - Ansible interface to manage the change volume in remote copy replication on IBM Spectrum Virtualize Family storage systems.
-version_added: "2.10.0"
+version_added: "1.3.0"
 options:
   state:
     description:
-      - Creates/updates (C(present)), removes (C(absent)) a
+      - Creates or updates (C(present)), or removes (C(absent)), a
         change volume.
     choices: [absent, present]
     required: true
@@ -42,11 +41,12 @@ options:
   basevolume:
     description:
     - Specifies the base volume name (master or auxiliary).
-      Mandatory for creating the change volume.
+      Required when C(state=present), to create the change volume.
     type: str
   ismaster:
     description:
       - Specifies whether the change volume is being (dis)associated with master cluster.
+        Required when the change volume is being associated or disassociated from the master cluster.
     type: bool
     default: true
   clustername:
@@ -57,22 +57,24 @@ options:
   domain:
     description:
     - Domain for the Spectrum Virtualize storage system.
+    - Valid when hostname is used for the parameter I(clustername).
     type: str
   username:
     description:
     - REST API username for the Spectrum Virtualize storage system.
-      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
     type: str
   password:
     description:
     - REST API password for the Spectrum Virtualize storage system.
-      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
     type: str
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-      To generate a token, use ibm_svc_auth module.
+    - To generate a token, use ibm_svc_auth module.
     type: str
+    version_added: '1.5.0'
   validate_certs:
     description:
     - Validates certification.
@@ -84,6 +86,8 @@ options:
     type: str
 author:
     - Shilpi Jain(@Shilpi-Jain1)
+notes:
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = '''
