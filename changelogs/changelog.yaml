@@ -1,0 +1,27 @@
+ancestor: null
+releases:
+  1.0.2:
+    release_date: '2020-04-14'
+    changes:
+      release_summary: The `IBM Spectrum Virtualize Ansible Modules <https://github.com/ansible-collections/ibm.spectrum_virtualize>`_
+        are available on Ansible Galaxy as a collection.
+  1.6.0:
+    release_date: '2021-09-29'
+    changes:
+      bugfixes:
+        - Fixed bug `#43 <https://github.com/ansible-collections/ibm.spectrum_virtualize/issues/43>`
+      deprecated_features:
+        - ibm_svc_vdisk - A new module ibm_svc_manage_volume has been introduced to manage standard volumes.
+      minor_changes:
+        - ibm_svc_hostcluster - Added support for 'chhostcluster' host command
+      release_summary: Introduced three new modules. Added support for volume groups, volume migration, along with bug fixes.
+    modules:
+    - description: Manages volume groups on Spectrum Virtualize system
+      name: ibm_svc_manage_volumegroup
+      namespace: ''
+    - description: Manages standard volumes on Spectrum Virtualize system using 'mkvolume'
+      name: ibm_svc_manage_volume
+      namespace: ''
+    - description: Manages volume migration between Spectrum Virtualize storage systems
+      name: ibm_svc_manage_migration
+      namespace: ''
