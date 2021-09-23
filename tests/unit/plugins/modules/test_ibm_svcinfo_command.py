@@ -173,6 +173,19 @@ class TestIBMSVCsshClient(unittest.TestCase):
         new_command = conn.modify_command("svcinfo lsuser user1")
         self.assertEqual(new_command, "svcinfo lsuser -json user1")
 
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_ssh.IBMSVCssh._svc_connect')
+    def test_ssh_modify_command_when_object_also_startswith_ls(self, connect_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'username': 'username',
+            'password': 'password',
+            'command': 'svcinfo lsuser lson',
+        })
+        conn = IBMSVCsshClient()
+        new_command = conn.modify_command("svcinfo lsuser lson")
+        self.assertEqual(new_command, "svcinfo lsuser -json lson")
+
 
 if __name__ == '__main__':
     unittest.main()
