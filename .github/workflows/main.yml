@@ -1,0 +1,39 @@
+name: ibm.spectrum_virtualize Ansible CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '25 10 * * *'
+
+jobs:
+  sanity:
+    name: Sanity (${{ matrix.ansible }} on spectrum_virtualize
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ansible:
+          - stable-2.9
+          - stable-2.10
+          - stable-2.11
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install ansible (${{ matrix.ansible }})
+        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible }}.tar.gz --disable-pip-version-check
+
+      - name: Make directory for ansible-test 
+        run: |
+          pwd
+          mkdir -p ansible_collections/ibm/spectrum_virtualize
+          rsync -av . ansible_collections/ibm/spectrum_virtualize --exclude ansible_collections/ibm/spectrum_virtualize
+      - name: Run sanity tests spectrum_virtualize
+        run: ansible-test sanity --docker -v --color
+        working-directory: ansible_collections/ibm/spectrum_virtualize
