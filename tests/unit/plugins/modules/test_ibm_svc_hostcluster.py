@@ -134,12 +134,19 @@ class TestIBMSVChostcluster(unittest.TestCase):
             'state': 'present',
             'username': 'username',
             'password': 'password',
-            'name': 'ansible_hostcluster',
+            'name': 'hostcluster0',
         })
-        hostcluster_ret = [{"id": "1", "name": "ansible_hostcluster", "port_count": "1",
-                            "mapping_count": "4", "status": "offline", "host_count": "1",
-                            "protocol": "nvme", "owner_id": "",
-                            "owner_name": ""}]
+        hostcluster_ret = {
+            "id": "0",
+            "name": "hostcluster0",
+            "status": "online",
+            "host_count": "1",
+            "mapping_count": "0",
+            "port_count": "1",
+            "protocol": "scsi",
+            "owner_id": "0",
+            "owner_name": "group5"
+        }
         get_existing_hostcluster_mock.return_value = hostcluster_ret
         hostcluster_created = IBMSVChostcluster()
         with pytest.raises(AnsibleExitJson) as exc:
@@ -243,6 +250,93 @@ class TestIBMSVChostcluster(unittest.TestCase):
             hostcluster_deleted.apply()
         self.assertTrue(exc.value.args[0]['changed'])
         get_existing_hostcluster_mock.assert_called_with()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_hostcluster_update(self, auth, cmd1):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'absent',
+            'username': 'username',
+            'password': 'password',
+            'name': 'ansible_hostcluster',
+            'ownershipgroup': 'new'
+        })
+        modify = [
+            'ownershipgroup'
+        ]
+        cmd1.return_value = None
+        h = IBMSVChostcluster()
+        h.hostcluster_update(modify)
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_module_to_validate_update(self, auth, cmd1, cmd2):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'absent',
+            'username': 'username',
+            'password': 'password',
+            'name': 'hostcluster0',
+            'ownershipgroup': 'group1'
+        })
+        cmd1.return_value = {
+            "id": "0",
+            "name": "hostcluster0",
+            "status": "online",
+            "host_count": "1",
+            "mapping_count": "0",
+            "port_count": "1",
+            "protocol": "scsi",
+            "owner_id": "0",
+            "owner_name": "group5"
+        }
+        cmd2.return_value = None
+        with pytest.raises(AnsibleExitJson) as exc:
+            h = IBMSVChostcluster()
+            h.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_module_to_validate_noownershipgroup(self, auth, cmd1, cmd2):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'absent',
+            'username': 'username',
+            'password': 'password',
+            'name': 'hostcluster0',
+            'noownershipgroup': True
+        })
+        cmd1.return_value = {
+            "id": "0",
+            "name": "hostcluster0",
+            "status": "online",
+            "host_count": "1",
+            "mapping_count": "0",
+            "port_count": "1",
+            "protocol": "scsi",
+            "owner_id": "0",
+            "owner_name": "group5"
+        }
+        cmd2.return_value = None
+        with pytest.raises(AnsibleExitJson) as exc:
+            h = IBMSVChostcluster()
+            h.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
 
 
 if __name__ == '__main__':

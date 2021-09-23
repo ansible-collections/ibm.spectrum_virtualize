@@ -3,8 +3,7 @@
 
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Rohit Kumar <rohit.kumar6@ibm.com>
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -17,10 +16,10 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_mirrored_volume
 short_description: This module manages mirrored volumes on IBM Spectrum Virtualize
-                   Family storage systems.
+                   Family storage systems
 description:
-  - Ansible interface to manage 'mkvolume', 'addvolumecopy', 'rmvolumecopy' and 'rmvolume' volume commands.
-version_added: "2.10.0"
+  - Ansible interface to manage 'mkvolume', 'addvolumecopy', 'rmvolumecopy', and 'rmvolume' volume commands.
+version_added: "1.4.0"
 options:
   name:
     description:
@@ -41,22 +40,24 @@ options:
   domain:
     description:
     - Domain for the Spectrum Virtualize storage system.
+    - Valid when hostname is used for the parameter I(clustername).
     type: str
   username:
     description:
     - REST API username for the Spectrum Virtualize storage system.
-      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
     type: str
   password:
     description:
     - REST API password for the Spectrum Virtualize storage system.
-      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
     type: str
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-      To generate a token, use ibm_svc_auth module.
+    - To generate a token, use ibm_svc_auth module.
     type: str
+    version_added: '1.5.0'
   poolA:
     description:
     - Specifies the name of first storage pool to be used when
@@ -69,14 +70,13 @@ options:
     type: str
   type:
     description:
-    - Specifies the desired volume type. When the type is "local hyperswap",
-      a HyperSwap volume gets created. When the type is "standard" and
-      values for "PoolA" and "PoolB" are also specified,
+    - Specifies the desired volume type.
+    - When the type is C(local hyperswap), a HyperSwap volume gets created.
+    - When the type is C(standard) and values for I(PoolA) and I(PoolB) arguments are also specified,
       a "standard mirror" volume gets created.
-      If a "standard" mirrored volume exists and either "PoolA" or "PoolB"
+    - If a "standard" mirrored volume exists and either I(PoolA) or I(PoolB)
       is specified, the mirrored volume gets converted to a standard volume.
     choices: [ local hyperswap, standard ]
-    required: false
     type: str
   thin:
     description:
@@ -117,6 +117,8 @@ options:
     type: str
 author:
     - Rohit Kumar(@rohitk-github)
+notes:
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = '''
@@ -708,13 +710,6 @@ cannot be passed while converting a Mirror Volume to Standard.")
         # Any error will have been raised in svc_run_command
         # rmvolume does not output anything when successful.
         self.changed = True
-
-    def isdrpool(self):
-        poolA_drp = self.poolA_data['data_reduction']
-        poolB_drp = self.poolB_data['data_reduction']
-        isdrpool_list = [poolA_drp, poolB_drp]
-        if "yes" in isdrpool_list:
-            self.isdrp = True
 
     def discover_system_topology(self):
         self.log("Entering function discover_system_topology")

@@ -3,8 +3,7 @@
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
 #            Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
 #
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -17,8 +16,8 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_info
 short_description: This module gathers various information from the
-                   IBM Spectrum Virtualize Family storage systems.
-version_added: "2.10.0"
+                   IBM Spectrum Virtualize Family storage systems
+version_added: "1.0.0"
 description:
 - Gathers the list of specified IBM Spectrum Virtualize Family storage system
   entities. These include the list of nodes, pools, volumes, hosts,
@@ -37,22 +36,24 @@ options:
   domain:
     description:
     - Domain for the Spectrum Virtualize storage system.
+    - Valid when hostname is used for the parameter I(clustername).
     type: str
   username:
     description:
     - REST API username for the Spectrum Virtualize storage system.
-      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
     type: str
   password:
     description:
     - REST API password for the Spectrum Virtualize storage system.
-      The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+    - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
     type: str
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-      To generate a token, use ibm_svc_auth module.
+    - To generate a token, use ibm_svc_auth module.
     type: str
+    version_added: '1.5.0'
   log_path:
     description:
     - Path of debug log file.
@@ -64,13 +65,12 @@ options:
     type: bool
   objectname:
     description:
-    - If specified, only the instance with the 'objectname' will be returned. If
-      not specified, all the instances will be returned.
+    - If specified, only the instance with the 'objectname' are returned. If
+      not specified, all the instances are returned.
     type: str
   gather_subset:
     type: list
     elements: str
-    required: False
     description:
     - List of string variables to specify the Spectrum Virtualize entities
       for which information is required.

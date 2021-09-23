@@ -4,8 +4,7 @@
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
 #
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -18,10 +17,10 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_start_stop_flashcopy
 short_description: This module starts or stops FlashCopy mapping and consistency groups
-                   on IBM Spectrum Virtualize Family storage systems.
+                   on IBM Spectrum Virtualize Family storage systems
 description:
-  - Ansible interface to manage 'startfcmap', 'stopfcmap', 'startfcconsistgrp' and 'stopfcconsistgrp' commands.
-version_added: "2.10.0"
+  - Ansible interface to manage 'startfcmap', 'stopfcmap', 'startfcconsistgrp', and 'stopfcconsistgrp' commands.
+version_added: "1.4.0"
 options:
     name:
         description:
@@ -30,7 +29,7 @@ options:
         type: str
     state:
         description:
-            - Specifies the state of the FlashCopy mapping or FlashCopy consistency group.
+            - Starts (C(started)), stops (C(stopped)) a FlashCopy mapping or FlashCopy consistency group.
         choices: [ started, stopped ]
         required: true
         type: str
@@ -42,31 +41,35 @@ options:
     domain:
         description:
             - Domain for the Spectrum Virtualize storage system.
+            - Valid when hostname is used for the parameter I(clustername).
         type: str
     username:
         description:
             - REST API username for the Spectrum Virtualize storage system.
-              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+            - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
         type: str
     password:
         description:
             - REST API password for the Spectrum Virtualize storage system.
-              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+            - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
         type: str
     token:
         description:
-        - The authentication token to verify a user on the Spectrum Virtualize storage system.
-          To generate a token, use ibm_svc_auth module.
+            - The authentication token to verify a user on the Spectrum Virtualize storage system.
+            - To generate a token, use ibm_svc_auth module.
         type: str
+        version_added: '1.5.0'
     isgroup:
         description:
-            - Specifies that a consistency group has to be started or stopped.
+            - If specified True, the associated I(name) parameter is set as name of the FlashCopy consistency group.
+            - If specified False, or unspecified, the associated I(name) parameter is set as name of the FlashCopy mapping.
         required: false
         type: bool
     force:
         description:
             - Specifies that all processing associated with the FlashCopy mapping
-              of a consistency group be immediately stopped.
+              or FlashCopy consistency group be immediately stopped.
+            - Valid when C(state=stopped), to stop a FlashCopy mapping or FlashCopy consistency group.
         required: false
         type: bool
     log_path:
@@ -80,6 +83,8 @@ options:
         type: bool
 author:
     - Sreshtant Bohidar(@Sreshtant-Bohidar)
+notes:
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = '''

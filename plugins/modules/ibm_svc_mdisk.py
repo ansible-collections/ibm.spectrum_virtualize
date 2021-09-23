@@ -2,8 +2,7 @@
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
 #
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -16,10 +15,10 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_mdisk
 short_description: This module manages MDisks on IBM Spectrum Virtualize
-                   Family storage systems.
+                   Family storage systems
 description:
   - Ansible interface to manage 'mkarray' and 'rmmdisk' MDisk commands.
-version_added: "2.10.0"
+version_added: "1.0.0"
 options:
   name:
     description:
@@ -40,25 +39,28 @@ options:
   domain:
     description:
       - Domain for the Spectrum Virtualize storage system.
+      - Valid when hostname is used for the parameter I(clustername).
     type: str
   username:
     description:
       - REST API username for the Spectrum Virtualize storage system.
-        The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+      - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
     type: str
   password:
     description:
       - REST API password for the Spectrum Virtualize storage system.
-        The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+      - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
     type: str
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-      To generate a token, use ibm_svc_auth module.
+    - To generate a token, use ibm_svc_auth module.
     type: str
+    version_added: '1.5.0'
   drive:
     description:
       - Drive(s) to use as members of the RAID array.
+      - Required when C(state=present), to create an MDisk array.
     type: str
   mdiskgrp:
     description:
@@ -77,16 +79,20 @@ options:
   level:
     description:
       - Specifies the RAID level.
+      - Required when C(state=present), to create an MDisk array.
     type: str
     choices: ['raid0', 'raid1', 'raid5', 'raid6', 'raid10']
   encrypt:
     description:
       - Defines use of encryption with the MDisk group.
+      - Applies when C(state=present).
     type: str
     default: 'no'
     choices: ['yes', 'no']
 author:
     - Peng Wang(@wangpww)
+notes:
+    - This module supports C(check_mode).
 '''
 EXAMPLES = '''
 - name: Using Spectrum Virtualize collection to create a new MDisk array
@@ -192,7 +198,7 @@ class IBMSVCmdisk(object):
                                          cmdargs=[self.name])
 
     def mdisk_create(self):
-        # For now we create mdisk via mkarray which needs these options
+        # For now we create mdisk through mkarray which needs these options
         # level, drive, mdiskgrp
         if not self.level:
             self.module.fail_json(msg="You must pass in level to the module.")

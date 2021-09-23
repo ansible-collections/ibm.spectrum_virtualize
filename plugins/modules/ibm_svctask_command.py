@@ -2,8 +2,7 @@
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Shilpi Jain <shilpi.jain1@ibm.com>
 #
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -16,8 +15,8 @@ DOCUMENTATION = '''
 ---
 module: ibm_svctask_command
 short_description: This module implements SSH Client which helps to run
-                   svctask CLI command(s) on IBM Spectrum Virtualize Family storage systems.
-version_added: "2.10.0"
+                   svctask CLI command(s) on IBM Spectrum Virtualize Family storage systems
+version_added: "1.2.0"
 description:
 - Runs svctask CLI command(s) on IBM Spectrum Virtualize Family storage systems.
   In case any svctask command fails while running this module, then the
@@ -43,7 +42,6 @@ options:
   key_filename:
     description:
     - SSH client private key filename. By default, ~/.ssh/id_rsa is used.
-    required: false
     type: str
   clustername:
     description:

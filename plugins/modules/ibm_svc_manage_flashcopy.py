@@ -4,8 +4,7 @@
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
 #
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -18,10 +17,10 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_flashcopy
 short_description: This module manages FlashCopy mappings on IBM Spectrum Virtualize
-                   Family storage systems.
+                   Family storage systems
 description:
-  - Ansible interface to manage 'mkfcmap', 'rmfcmap' and 'chfcmap' volume commands.
-version_added: "2.10.0"
+  - Ansible interface to manage 'mkfcmap', 'rmfcmap', and 'chfcmap' volume commands.
+version_added: "1.4.0"
 options:
     name:
         description:
@@ -30,7 +29,7 @@ options:
         type: str
     state:
         description:
-            - Creates (C(present)) or removes (C(absent)) a FlashCopy
+            - Creates or updates (C(present)), or removes (C(absent)), a FlashCopy
               mapping.
         choices: [ present, absent ]
         required: true
@@ -43,63 +42,75 @@ options:
     domain:
         description:
             - Domain for the Spectrum Virtualize storage system.
+            - Valid when hostname is used for the parameter I(clustername).
         type: str
     username:
         description:
             - REST API username for the Spectrum Virtualize storage system.
-              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+            - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
         type: str
     password:
         description:
             - REST API password for the Spectrum Virtualize storage system.
-              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+            - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
         type: str
     token:
         description:
-        - The authentication token to verify a user on the Spectrum Virtualize storage system.
-          To generate a token, use ibm_svc_auth module.
+            - The authentication token to verify a user on the Spectrum Virtualize storage system.
+            - To generate a token, use ibm_svc_auth module.
         type: str
+        version_added: '1.5.0'
     copytype:
         description:
             - Specifies the copy type when creating the FlashCopy mapping.
+            - Required when C(state=present), to create a FlashCopy mapping.
         choices: [ snapshot, clone]
         type: str
     source:
         description:
             - Specifies the name of the source volume.
+            - Required when C(state=present), to create a FlashCopy mapping.
         type: str
     target:
         description:
             - Specifies the name of the target volume.
+            - Required when C(state=present), to create a FlashCopy mapping.
         type: str
     mdiskgrp:
         description:
-            - Specifies the name of the storage pool to use when
-              creating a volume.
+            - Specifies the name of the storage pool to use when creating the target volume.
+            - If unspecified, the pool associated with the source volume is used.
+            - Valid when C(state=present), to create a FlashCopy mapping.
         type: str
     consistgrp:
         description:
-            - Specifies the name of the consistency group.
+            - Specifies the name of the consistency group to which the FlashCopy mapping is to be added.
+            - Parameters I(consistgrp) and I(noconsistgrp) are mutually exclusive.
+            - Valid when C(state=present), to create or modify a FlashCopy mapping.
         type: str
     noconsistgrp:
         description:
-            - Removes the specified FlashCopy mappings from the consistency group.
+            - If specified True, FlashCopy mapping is removed from the consistency group.
+            - Parameters I(noconsistgrp) and I(consistgrp) are mutually exclusive.
+            - Valid when C(state=present), to modify a FlashCopy mapping.
         type: bool
     copyrate:
         description:
             - Specifies the copy rate. The rate varies between 0-150.
-              If unspecified, the default copy rate is 50 for clone and 0 for snapshot.
+            - If unspecified, the default copy rate of 50 for clone and 0 for snapshot is used.
+            - Valid when C(state=present), to create or modify a FlashCopy mapping.
         type: str
     grainsize:
         description:
-            - Specifies the grain size for the mapping.
-              The grainsize can be set to 64 or 256.
-              If unspecified, the default value of 256 is set.
+            - Specifies the grain size for the FlashCopy mapping.
+            - The grainsize can be set to 64 or 256. The default value is 256.
+            - Valid when C(state=present), to create a FlashCopy mapping.
         type: str
     force:
         description:
             - Brings the target volume online. This parameter is
               required if the FlashCopy mapping is in the stopped state.
+            - Valid when C(state=absent), to delete a FlashCopy mapping.
         type: bool
     validate_certs:
         description:
@@ -112,6 +123,8 @@ options:
         type: str
 author:
     - Sreshtant Bohidar(@Sreshtant-Bohidar)
+notes:
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = '''

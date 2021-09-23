@@ -4,8 +4,7 @@
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Rohit Kumar <rohit.kumar6@ibm.com>
 #
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 
@@ -19,10 +18,10 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_replicationgroup
 short_description: This module manages remote copy consistency group on
-                   IBM Spectrum Virtualize Family storage systems.
-version_added: "2.10.0"
+                   IBM Spectrum Virtualize Family storage systems
+version_added: "1.3.0"
 description:
-  - Ansible interface to manage 'mkrcconsistgrp', 'chrcconsistgrp' and 'rmrcconsistgrp'
+  - Ansible interface to manage 'mkrcconsistgrp', 'chrcconsistgrp', and 'rmrcconsistgrp'
     remote copy consistency group commands.
 options:
     name:
@@ -32,7 +31,7 @@ options:
         type: str
     state:
         description:
-            - Creates/updates (C(present)), removes (C(absent))
+            - Creates or updates (C(present)), removes (C(absent))
               a consistency group.
         choices: [ absent, present ]
         required: true
@@ -46,22 +45,24 @@ options:
     domain:
         description:
             - Domain for the Spectrum Virtualize storage system.
+            - Valid when hostname is used for the parameter I(clustername).
         type: str
     username:
         description:
             - REST API username for the Spectrum Virtualize storage system.
-              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+            - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
         type: str
     password:
         description:
             - REST API password for the Spectrum Virtualize storage system.
-              The parameters 'username' and 'password' are required if not using 'token' to authenticate a user.
+            - The parameters I(username) and I(password) are required if not using I(token) to authenticate a user.
         type: str
     token:
         description:
         - The authentication token to verify a user on the Spectrum Virtualize storage system.
-          To generate a token, use ibm_svc_auth module.
+        - To generate a token, use ibm_svc_auth module.
         type: str
+        version_added: '1.5.0'
     log_path:
         description:
             - Path of debug log file.
@@ -75,7 +76,6 @@ options:
         description:
             - Specifies the name of the remote system.
               Only used while creating a consistency group.
-        required: false
         type: str
     force:
         description:
@@ -83,38 +83,38 @@ options:
               it specifies that you want the system to remove any
               relationship that belongs to the consistency
               group before the group is deleted.
-              If used to start a consistency group,
+            - If used to start a consistency group,
               it specifies that you want the system to process the
               copy operation even if it causes a temporary loss of
               consistency during synchronization.
-              It is required if the consistency group is in the ConsistentStopped
+            - It is required if the consistency group is in the ConsistentStopped
               state, but is not synchronized or is in the idling state -
               except if consistency protection is configured.
-        required: false
         type: bool
     copytype:
         description:
             - Specifies the mirror type of the remote copy. 'metro' means MetroMirror,
               'global' means GlobalMirror.
-              If not specified, a MetroMirror remote copy will
-              be created when creating a remote copy (state='present').
+            - If not specified, a MetroMirror remote copy will
+              be created when creating a remote copy C(state=present).
         type: str
         choices: [ 'metro', 'global' ]
     cyclingmode:
         description:
             - Specifies the behavior of Global Mirror for the relationship.
-              Active-active relationships and relationships with cycling modes set to Multiple
+            - Active-active relationships and relationships with cycling modes set to Multiple
               must always be configured with change volumes.
+            - Applies when C(state=present) and C(copytype=global).
         type: str
-        required: false
         choices: [ 'multi', 'none' ]
     cyclingperiod:
         description:
             - Specifies the cycle period in seconds.
         type: int
-        required: false
 author:
     - rohit(@rohitk-github)
+notes:
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = '''
