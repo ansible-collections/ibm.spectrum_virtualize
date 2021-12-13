@@ -99,7 +99,7 @@ options:
     - vdiskcopy - lists information for volume copy.
     - array - lists information for array MDisks.
     - system - displays the storage system information.
-    choices: [vol, pool, node, iog, host, hc, fcport
+    choices: [vol, pool, node, iog, host, hostvdiskmap, vdiskhostmap, hc, fcport
               , iscsiport, fc, fcmap, fcconsistgrp, rcrelationship, rcconsistgrp
               , vdiskcopy, targetportfc, array, system, all]
     default: "all"
@@ -205,8 +205,7 @@ class IBMSVCGatherInfo(object):
         # logging setup
         log_path = self.module.params['log_path']
         self.log = get_logger(self.__class__.__name__, log_path)
-        self.objectname = self.module.params['objectname']       
-
+        self.objectname = self.module.params['objectname']
         self.restapi = IBMSVCRestApi(
             module=self.module,
             clustername=self.module.params['clustername'],
@@ -496,13 +495,13 @@ class IBMSVCGatherInfo(object):
             self.module.fail_json(msg=msg)
 
     def apply(self):
-        all = ['vol', 'pool', 'node', 'iog', 'host','hc', 'fc',
+        all = ['vol', 'pool', 'node', 'iog', 'host', 'hc', 'fc',
                'fcport', 'iscsiport', 'fcmap', 'rcrelationship',
                'fcconsistgrp', 'rcconsistgrp', 'vdiskcopy',
                'targetportfc', 'array', 'system']
         
-        """host/vdiskmap not added to all as it requires an objectname
-           in order to run, so only use these as gather_subset """
+        # host/vdiskmap not added to all as they require an objectname
+        # in order to run, so only use these as gather_subset
         
         subset = self.module.params['gather_subset']
         if self.objectname and len(subset) != 1:
@@ -595,7 +594,6 @@ class IBMSVCGatherInfo(object):
 
 
 def main():
-    
     v = IBMSVCGatherInfo()
     try:
         v.apply()
