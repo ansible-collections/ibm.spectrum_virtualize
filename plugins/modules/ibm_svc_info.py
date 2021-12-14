@@ -277,9 +277,9 @@ class IBMSVCGatherInfo(object):
         try:
             cmdargs = [self.objectname] if self.objectname else None
             vhmaps = self.restapi.svc_obj_info(cmd='lsvdiskhostmap', cmdopts=None,
-                                             cmdargs=cmdargs)
+                                               cmdargs=cmdargs)
             self.log.info('Successfully listed %d vdisk host maps from array '
-                         '%s', len(vhmaps), self.module.params['clustername'])
+                          '%s', len(vhmaps), self.module.params['clustername'])
             return vhmaps
         except Exception as e:
             msg = ('Get Vdisk Host Maps from array %s failed with error %s ',
@@ -291,9 +291,9 @@ class IBMSVCGatherInfo(object):
         try:
             cmdargs = [self.objectname] if self.objectname else None
             hvmaps = self.restapi.svc_obj_info(cmd='lshostvdiskmap', cmdopts=None,
-                                             cmdargs=cmdargs)
+                                               cmdargs=cmdargs)
             self.log.info('Successfully listed %d host vdisk maps from array '
-                         '%s', len(hvmaps), self.module.params['clustername'])
+                          '%s', len(hvmaps), self.module.params['clustername'])
             return hvmaps
         except Exception as e:
             msg = ('Get Host Vdisk Maps from array %s failed with error %s ',
@@ -499,10 +499,10 @@ class IBMSVCGatherInfo(object):
                'fcport', 'iscsiport', 'fcmap', 'rcrelationship',
                'fcconsistgrp', 'rcconsistgrp', 'vdiskcopy',
                'targetportfc', 'array', 'system']
-        
+
         # host/vdiskmap not added to all as they require an objectname
         # in order to run, so only use these as gather_subset
-        
+
         subset = self.module.params['gather_subset']
         if self.objectname and len(subset) != 1:
             msg = ("objectname(%s) is specified while gather_subset(%s) is not "
