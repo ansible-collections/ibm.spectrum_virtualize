@@ -101,6 +101,12 @@ The modules in the IBM Spectrum Virtualize Ansible collection leverage REST APIs
 2. It is not possible to access REST APIs using an IPv6 address on a cluster.
 3. The Ansible collection can run on all IBM Spectrum Virtualize storage versions above 8.1.3, except versions 8.3.1.3 and 8.3.1.4.
 
+## Releasing, Versioning and Deprecation
+
+1. IBM Spectrum Virtualize Ansible Collection releases follow a quarterly release cycle.
+2. IBM Spectrum Virtualize Ansible Collection releases follow [semantic versioning](https://semver.org/).
+3. IBM Spectrum Virtualize Ansible modules deprecation cycle is aligned with [Ansible](https://docs.ansible.com/ansible/latest/dev_guide/module_lifecycle.html).
+
 ## Contributing
 
 Currently we are not accepting community contributions.
