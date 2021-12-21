@@ -25,3 +25,27 @@ releases:
     - description: Manages volume migration between Spectrum Virtualize storage systems
       name: ibm_svc_manage_migration
       namespace: ''
+  1.7.0:
+    release_date: '2021-12-24'
+    changes:
+      release_summary: Added new modules for managing users, user groups and ownership groups. Added modules for configuring
+        Call Home, remote support assistance and initial setup configurations.
+    modules:
+    - description: Manages users on Spectrum Virtualize system
+      name: ibm_svc_manage_user
+      namespace: ''
+    - description: Manages user groups on Spectrum Virtualize system
+      name: ibm_svc_manage_usergroup
+      namespace: ''
+    - description: Manages ownership groups on Spectrum Virtualize storage systems
+      name: ibm_svc_manage_ownershipgroup
+      namespace: ''
+    - description: Manages Call Home configuration on Spectrum Virtualize storage systems
+      name: ibm_svc_manage_callhome
+      namespace: ''
+    - description: Manages remote support assistance on Spectrum Virtualize storage systems
+      name: ibm_svc_manage_sra
+      namespace: ''
+    - description: Allow user to do initial setup configuration on Spectrum Virtualize storage systems
+      name: ibm_svc_initial_setup
+      namespace: ''
