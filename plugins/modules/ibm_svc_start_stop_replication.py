@@ -16,8 +16,7 @@ ANSIBLE_METADATA = {'status': ['preview'],
 DOCUMENTATION = '''
 ---
 module: ibm_svc_start_stop_replication
-short_description: This module starts or stops remote copies on
-                   IBM Spectrum Virtualize Family storage systems
+short_description: This module starts or stops remote copies on IBM Spectrum Virtualize family storage systems
 version_added: "1.3.0"
 
 description:
@@ -26,13 +25,11 @@ description:
 options:
   name:
     description:
-      - Specifies a name to assign to the new remote copy relationship or group,
-        or to operate on the existing remote copy.
+      - Specifies a name to assign to the new remote copy relationship or group, or to operate on the existing remote copy.
     type: str
   state:
     description:
-      - Starts (C(started)), stops (C(stopped)) a
-        remote copy relationship.
+      - Starts (C(started)) or stops (C(stopped)) a remote copy relationship.
     choices: [started, stopped]
     required: true
     type: str
@@ -59,13 +56,12 @@ options:
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-    - To generate a token, use ibm_svc_auth module.
+    - To generate a token, use the ibm_svc_auth module.
     type: str
     version_added: '1.5.0'
   primary:
     description:
-    - Specifies the copy direction by defining which disk
-      becomes the primary (source).
+    - Specifies the copy direction by defining which disk becomes the primary (source).
     - Applies when C(state=started).
     type: str
     choices: [ 'master', 'aux' ]
@@ -88,8 +84,7 @@ options:
     type: bool
   force:
     description:
-    - Specifies that the system must process the copy operation even if it
-      causes a temporary loss of consistency during synchronization.
+    - Specifies that the system must process the copy operation even if it causes a temporary loss of consistency during synchronization.
     - Applies when C(state=started).
     type: bool
   validate_certs:

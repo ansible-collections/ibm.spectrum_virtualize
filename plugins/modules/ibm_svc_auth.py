@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2020 IBM CORPORATION
+# Copyright (C) 2021 IBM CORPORATION
 # Author(s): Shilpi Jain <shilpi.jain1@ibm.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
@@ -15,7 +15,7 @@ ANSIBLE_METADATA = {'status': ['preview'],
 DOCUMENTATION = '''
 ---
 module: ibm_svc_auth
-short_description: This module generates an authentication token for a user on IBM Spectrum Virtualize Family storage system
+short_description: This module generates an authentication token for a user on IBM Spectrum Virtualize family storage system
 description:
   - Ansible interface to generate the authentication token.
     The token is used to make REST API calls to the storage system.
@@ -97,7 +97,6 @@ token:
     version_added: 1.5.0
 '''
 
-from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi, svc_argument_spec, get_logger
 from ansible.module_utils._text import to_native

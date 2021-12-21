@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2020 IBM CORPORATION
+# Copyright (C) 2021 IBM CORPORATION
 # Author(s): Rohit Kumar <rohit.kumar6@ibm.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
@@ -16,7 +16,7 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_mirrored_volume
 short_description: This module manages mirrored volumes on IBM Spectrum Virtualize
-                   Family storage systems
+                   family storage systems
 description:
   - Ansible interface to manage 'mkvolume', 'addvolumecopy', 'rmvolumecopy', and 'rmvolume' volume commands.
 version_added: "1.4.0"
@@ -55,18 +55,16 @@ options:
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-    - To generate a token, use ibm_svc_auth module.
+    - To generate a token, use the ibm_svc_auth module.
     type: str
     version_added: '1.5.0'
   poolA:
     description:
-    - Specifies the name of first storage pool to be used when
-      creating a mirrored volume.
+    - Specifies the name of first storage pool to be used when creating a mirrored volume.
     type: str
   poolB:
     description:
-    - Specifies the name of second storage pool to be used when
-      creating a mirrored volume.
+    - Specifies the name of second storage pool to be used when creating a mirrored volume.
     type: str
   type:
     description:

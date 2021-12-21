@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2020 IBM CORPORATION
+# Copyright (C) 2021 IBM CORPORATION
 # Author(s): Rohit kumar <rohit.kumar6@ibm.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
@@ -15,7 +15,7 @@ ANSIBLE_METADATA = {'status': ['preview'],
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_migration
-short_description: This module manages volume migration between clusters on IBM Spectrum Virtualize Family storage systems
+short_description: This module manages volume migration between clusters on IBM Spectrum Virtualize family storage systems
 description:
   - Ansible interface to manage the migration commands.
 version_added: "1.6.0"
@@ -83,12 +83,12 @@ options:
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-    - To generate a token, use ibm_svc_auth module.
+    - To generate a token, use the ibm_svc_auth module.
     type: str
   remote_token:
     description:
     - The authentication token to verify a user on the partner Spectrum Virtualize storage system.
-    - To generate a token, use ibm_svc_auth module.
+    - To generate a token, use the ibm_svc_auth module.
       Valid when C(state=initiate).
     type: str
   remote_pool:

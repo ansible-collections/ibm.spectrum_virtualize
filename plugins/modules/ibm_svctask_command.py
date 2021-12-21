@@ -15,7 +15,7 @@ DOCUMENTATION = '''
 ---
 module: ibm_svctask_command
 short_description: This module implements SSH Client which helps to run
-                   svctask CLI command(s) on IBM Spectrum Virtualize Family storage systems
+                   svctask CLI command(s) on IBM Spectrum Virtualize family storage systems
 version_added: "1.2.0"
 description:
 - Runs svctask CLI command(s) on IBM Spectrum Virtualize Family storage systems.
@@ -28,7 +28,7 @@ options:
   command:
     description:
     - A list containing svctask CLI commands to be executed on storage.
-      Each command must start with svctask keyword.
+    - Each command must start with 'svctask' keyword.
     type: list
     elements: str
   usesshkey:
@@ -45,8 +45,7 @@ options:
     type: str
   clustername:
     description:
-    - The hostname or management IP of the
-      Spectrum Virtualize storage system.
+    - The hostname or management IP of the Spectrum Virtualize storage system.
     type: str
     required: true
   username:

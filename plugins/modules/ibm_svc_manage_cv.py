@@ -16,15 +16,14 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_cv
 short_description: This module manages the change volume for a given volume on IBM
-                   Spectrum Virtualize Family storage systems
+                   Spectrum Virtualize family storage systems
 description:
-  - Ansible interface to manage the change volume in remote copy replication on IBM Spectrum Virtualize Family storage systems.
+  - Ansible interface to manage the change volume in remote copy replication on IBM Spectrum Virtualize family storage systems.
 version_added: "1.3.0"
 options:
   state:
     description:
-      - Creates or updates (C(present)), or removes (C(absent)), a
-        change volume.
+      - Creates or updates (C(present)) or removes (C(absent)), a change volume.
     choices: [absent, present]
     required: true
     type: str
@@ -41,12 +40,12 @@ options:
   basevolume:
     description:
     - Specifies the base volume name (master or auxiliary).
-      Required when C(state=present), to create the change volume.
+    - Required when C(state=present), to create the change volume.
     type: str
   ismaster:
     description:
       - Specifies whether the change volume is being (dis)associated with master cluster.
-        Required when the change volume is being associated or disassociated from the master cluster.
+      - Required when the change volume is being associated or disassociated from the master cluster.
     type: bool
     default: true
   clustername:
@@ -72,7 +71,7 @@ options:
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-    - To generate a token, use ibm_svc_auth module.
+    - To generate a token, use the ibm_svc_auth module.
     type: str
     version_added: '1.5.0'
   validate_certs:

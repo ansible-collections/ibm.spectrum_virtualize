@@ -14,8 +14,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = '''
 ---
 module: ibm_svc_mdiskgrp
-short_description: This module manages pools on IBM Spectrum Virtualize
-                   Family storage systems
+short_description: This module manages pools on IBM Spectrum Virtualize family storage systems
 description:
   - Ansible interface to manage 'mkmdiskgrp' and 'rmmdiskgrp' pool commands.
 version_added: "1.0.0"
@@ -54,7 +53,7 @@ options:
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-    - To generate a token, use ibm_svc_auth module.
+    - To generate a token, use the ibm_svc_auth module.
     type: str
     version_added: '1.5.0'
   datareduction:
