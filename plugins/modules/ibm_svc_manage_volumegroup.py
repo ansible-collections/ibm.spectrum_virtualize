@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2020 IBM CORPORATION
+# Copyright (C) 2021 IBM CORPORATION
 # Author(s): Shilpi Jain <shilpi.jain1@ibm.com>
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -17,8 +17,7 @@ ANSIBLE_METADATA = {'status': ['preview'],
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_volumegroup
-short_description: This module manages volume groups on
-                   IBM Spectrum Virtualize Family storage systems
+short_description: This module manages volume groups on IBM Spectrum Virtualize family storage systems
 version_added: "1.6.0"
 description:
   - Ansible interface to manage 'mkvolumegroup', 'chvolumegroup', and 'rmvolumegroup'
@@ -31,8 +30,7 @@ options:
         type: str
     state:
         description:
-            - Creates or updates (C(present)), or removes (C(absent)),
-              a volume group.
+            - Creates or updates (C(present)) or removes (C(absent)) a volume group.
         choices: [ absent, present ]
         required: true
         type: str
@@ -59,7 +57,7 @@ options:
     token:
         description:
             - The authentication token to verify a user on the Spectrum Virtualize storage system.
-            - To generate a token, use ibm_svc_auth module.
+            - To generate a token, use the ibm_svc_auth module.
         type: str
     log_path:
         description:

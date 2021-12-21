@@ -15,11 +15,10 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = '''
 ---
 module: ibm_svc_info
-short_description: This module gathers various information from the
-                   IBM Spectrum Virtualize Family storage systems
+short_description: This module gathers various information from the IBM Spectrum Virtualize family storage systems
 version_added: "1.0.0"
 description:
-- Gathers the list of specified IBM Spectrum Virtualize Family storage system
+- Gathers the list of specified IBM Spectrum Virtualize family storage system
   entities. These include the list of nodes, pools, volumes, hosts,
   host clusters, FC ports, iSCSI ports, target port FC, FC consistgrp,
   vdiskcopy, I/O groups, FC map, FC connectivity, NVMe fabric,
@@ -51,7 +50,7 @@ options:
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-    - To generate a token, use ibm_svc_auth module.
+    - To generate a token, use the ibm_svc_auth module.
     type: str
     version_added: '1.5.0'
   log_path:
@@ -65,8 +64,7 @@ options:
     type: bool
   objectname:
     description:
-    - If specified, only the instance with the 'objectname' are returned. If
-      not specified, all the instances are returned.
+    - If specified, only the instance with the I(objectname) is returned. If not specified, all the instances are returned.
     type: str
   gather_subset:
     type: list
@@ -81,8 +79,6 @@ options:
     - node - lists information for nodes.
     - iog - lists information for I/O groups.
     - host - lists information for hosts.
-    - hostvdiskmap - lists all vdisks mapped to host 'objectname'
-    - vdiskhostmap - lists all hosts vdisk 'objectname' is mapped to
     - hc - lists information for host clusters.
     - fc - lists information for FC connectivity.
     - fcport - lists information for FC ports.
@@ -99,7 +95,7 @@ options:
     - vdiskcopy - lists information for volume copy.
     - array - lists information for array MDisks.
     - system - displays the storage system information.
-    choices: [vol, pool, node, iog, host, hostvdiskmap, vdiskhostmap, hc, fcport
+    choices: [vol, pool, node, iog, host, hc, fcport
               , iscsiport, fc, fcmap, fcconsistgrp, rcrelationship, rcconsistgrp
               , vdiskcopy, targetportfc, array, system, all]
     default: "all"
@@ -180,8 +176,6 @@ class IBMSVCGatherInfo(object):
                                             'node',
                                             'iog',
                                             'host',
-                                            'hostvdiskmap',
-                                            'vdiskhostmap',
                                             'hc',
                                             'fc',
                                             'fcport',
@@ -206,6 +200,7 @@ class IBMSVCGatherInfo(object):
         log_path = self.module.params['log_path']
         self.log = get_logger(self.__class__.__name__, log_path)
         self.objectname = self.module.params['objectname']
+
         self.restapi = IBMSVCRestApi(
             module=self.module,
             clustername=self.module.params['clustername'],
@@ -269,34 +264,6 @@ class IBMSVCGatherInfo(object):
             return hosts
         except Exception as e:
             msg = ('Get Hosts from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_vdisk_host_map(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            vhmaps = self.restapi.svc_obj_info(cmd='lsvdiskhostmap', cmdopts=None,
-                                               cmdargs=cmdargs)
-            self.log.info('Successfully listed %d vdisk host maps from array '
-                          '%s', len(vhmaps), self.module.params['clustername'])
-            return vhmaps
-        except Exception as e:
-            msg = ('Get Vdisk Host Maps from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_host_vdisk_map(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            hvmaps = self.restapi.svc_obj_info(cmd='lshostvdiskmap', cmdopts=None,
-                                               cmdargs=cmdargs)
-            self.log.info('Successfully listed %d host vdisk maps from array '
-                          '%s', len(hvmaps), self.module.params['clustername'])
-            return hvmaps
-        except Exception as e:
-            msg = ('Get Host Vdisk Maps from array %s failed with error %s ',
                    self.module.params['clustername'], str(e))
             self.log.error(msg)
             self.module.fail_json(msg=msg)
@@ -499,10 +466,6 @@ class IBMSVCGatherInfo(object):
                'fcport', 'iscsiport', 'fcmap', 'rcrelationship',
                'fcconsistgrp', 'rcconsistgrp', 'vdiskcopy',
                'targetportfc', 'array', 'system']
-
-        # host/vdiskmap not added to all as they require an objectname
-        # in order to run, so only use these as gather_subset
-
         subset = self.module.params['gather_subset']
         if self.objectname and len(subset) != 1:
             msg = ("objectname(%s) is specified while gather_subset(%s) is not "
@@ -517,8 +480,6 @@ class IBMSVCGatherInfo(object):
         node = []
         iog = []
         host = []
-        hostvdiskmap = []
-        vdiskhostmap = []
         hc = []
         fc = []
         fcport = []
@@ -542,10 +503,6 @@ class IBMSVCGatherInfo(object):
             iog = self.get_iogroups_list()
         if 'host' in subset:
             host = self.get_hosts_list()
-        if 'hostvdiskmap' in subset:
-            hostvdiskmap = self.get_host_vdisk_map()
-        if 'vdiskhostmap' in subset:
-            vdiskhostmap = self.get_vdisk_host_map()
         if 'hc' in subset:
             hc = self.get_host_clusters_list()
         if 'fc' in subset:
@@ -577,8 +534,6 @@ class IBMSVCGatherInfo(object):
             Node=node,
             IOGroup=iog,
             Host=host,
-            HostVdiskMap=hostvdiskmap,
-            VdiskHostMap=vdiskhostmap,
             HostCluster=hc,
             FCConnectivitie=fc,
             FCConsistgrp=fcconsistgrp,

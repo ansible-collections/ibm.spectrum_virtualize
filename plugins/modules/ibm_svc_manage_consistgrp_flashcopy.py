@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2020 IBM CORPORATION
+# Copyright (C) 2021 IBM CORPORATION
 # Author(s): Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
 #
 # GNU General Public License v3.0+
@@ -18,7 +18,7 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_consistgrp_flashcopy
 short_description: This module manages FlashCopy consistency groups on IBM Spectrum Virtualize
-                   Family storage systems
+                   family storage systems
 description:
   - Ansible interface to manage 'mkfcconsistgrp' and 'rmfcconsistgrp' volume commands.
 version_added: "1.4.0"
@@ -36,8 +36,7 @@ options:
         type: str
     clustername:
         description:
-            - The hostname or management IP of the
-              Spectrum Virtualize storage system.
+            - The hostname or management IP of the Spectrum Virtualize storage system.
         type: str
         required: true
     domain:
@@ -58,7 +57,7 @@ options:
     token:
         description:
             - The authentication token to verify a user on the Spectrum Virtualize storage system.
-            - To generate a token, use ibm_svc_auth module.
+            - To generate a token, use the ibm_svc_auth module.
         type: str
         version_added: '1.5.0'
     ownershipgroup:
@@ -223,7 +222,7 @@ class IBMSVCFlashcopyConsistgrp(object):
             cmdopts['force'] = self.force
 
         self.log("Deleting fc consistgrp.. Command %s opts %s", cmd, cmdopts)
-        result = self.restapi.svc_run_command(cmd, cmdopts, cmdargs=[self.name])
+        self.restapi.svc_run_command(cmd, cmdopts, cmdargs=[self.name])
 
     def fcconsistgrp_probe(self, data):
         props = {}
