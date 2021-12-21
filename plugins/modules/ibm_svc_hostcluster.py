@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2020 IBM CORPORATION
+# Copyright (C) 2021 IBM CORPORATION
 # Author(s): Shilpi Jain <shilpi.jain1@ibm.com>
 #
 # GNU General Public License v3.0+
@@ -17,7 +17,7 @@ ANSIBLE_METADATA = {'status': ['preview'],
 DOCUMENTATION = '''
 ---
 module: ibm_svc_hostcluster
-short_description: This module manages host cluster on IBM Spectrum Virtualize Family storage systems
+short_description: This module manages host cluster on IBM Spectrum Virtualize family storage systems
 version_added: "1.5.0"
 description:
   - Ansible interface to manage 'mkhostcluster', 'chhostcluster' and 'rmhostcluster' host commands.
@@ -41,7 +41,7 @@ options:
     domain:
         description:
             - Domain for the Spectrum Virtualize storage system.
-              Valid when hostname is used for the parameter I(clustername).
+            - Valid when hostname is used for the parameter I(clustername).
         type: str
     username:
         description:
@@ -56,19 +56,19 @@ options:
     token:
         description:
             - The authentication token to verify a user on the Spectrum Virtualize storage system.
-            - To generate a token, use ibm_svc_auth module.
+            - To generate a token, use the ibm_svc_auth module.
         type: str
     ownershipgroup:
         description:
             - The name of the ownership group to which the host cluster object is being added.
-              Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
+            - Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
             - Applies when C(state=present).
         type: str
         version_added: '1.6.0'
     noownershipgroup:
         description:
             - If specified True, the host cluster object is removed from the ownership group to which it belongs.
-              Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
+            - Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
             - Applies when C(state=present) to modify an existing hostcluster.
         type: bool
         version_added: '1.6.0'

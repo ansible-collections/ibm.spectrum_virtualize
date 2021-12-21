@@ -18,7 +18,7 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_replication
 short_description: This module manages remote copies (or rcrelationship) on
-                   IBM Spectrum Virtualize Family storage systems
+                   IBM Spectrum Virtualize family storage systems
 version_added: "1.3.0"
 
 description:
@@ -27,8 +27,7 @@ description:
 options:
   name:
     description:
-      - Specifies the name to assign to the new remote copy relationship
-        or to operate on the existing remote copy.
+      - Specifies the name to assign to the new remote copy relationship or to operate on the existing remote copy.
     type: str
   state:
     description:
@@ -60,15 +59,14 @@ options:
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-    - To generate a token, use ibm_svc_auth module.
+    - To generate a token, use the ibm_svc_auth module.
     type: str
     version_added: '1.5.0'
   copytype:
     description:
     - Specifies the mirror type of the remote copy. 'metro' means MetroMirror,
       'global' means GlobalMirror, and 'GMCV' means GlobalMirror with change volume.
-    - If not specified, a MetroMirror remote copy will be created
-      when creating a remote copy C(state=present).
+    - If not specified, a MetroMirror remote copy will be created when creating a remote copy C(state=present).
     type: str
     choices: [ 'metro', 'global' , 'GMCV']
   master:
@@ -94,14 +92,11 @@ options:
     type: bool
   force:
     description:
-    - Specifies that the relationship must be deleted even if it results
-      in the secondary volume containing inconsistent data.
+    - Specifies that the relationship must be deleted even if it results in the secondary volume containing inconsistent data.
     type: bool
   consistgrp:
     description:
-    - Specifies a consistency group that this relationship will join. If not
-      specified by user, the relationship is created as a stand-alone
-      relationship.
+    - Specifies a consistency group that this relationship will join. If not specified by user, the relationship is created as a stand-alone relationship.
     - Applies when C(state=present).
     type: str
   noconsistgrp:

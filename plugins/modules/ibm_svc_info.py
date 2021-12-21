@@ -15,11 +15,10 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = '''
 ---
 module: ibm_svc_info
-short_description: This module gathers various information from the
-                   IBM Spectrum Virtualize Family storage systems
+short_description: This module gathers various information from the IBM Spectrum Virtualize family storage systems
 version_added: "1.0.0"
 description:
-- Gathers the list of specified IBM Spectrum Virtualize Family storage system
+- Gathers the list of specified IBM Spectrum Virtualize family storage system
   entities. These include the list of nodes, pools, volumes, hosts,
   host clusters, FC ports, iSCSI ports, target port FC, FC consistgrp,
   vdiskcopy, I/O groups, FC map, FC connectivity, NVMe fabric,
@@ -51,7 +50,7 @@ options:
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-    - To generate a token, use ibm_svc_auth module.
+    - To generate a token, use the ibm_svc_auth module.
     type: str
     version_added: '1.5.0'
   log_path:
@@ -65,8 +64,7 @@ options:
     type: bool
   objectname:
     description:
-    - If specified, only the instance with the 'objectname' are returned. If
-      not specified, all the instances are returned.
+    - If specified, only the instance with the I(objectname) is returned. If not specified, all the instances are returned.
     type: str
   gather_subset:
     type: list

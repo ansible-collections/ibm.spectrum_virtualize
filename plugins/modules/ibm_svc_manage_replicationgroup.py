@@ -18,7 +18,7 @@ DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_replicationgroup
 short_description: This module manages remote copy consistency group on
-                   IBM Spectrum Virtualize Family storage systems
+                   IBM Spectrum Virtualize family storage systems
 version_added: "1.3.0"
 description:
   - Ansible interface to manage 'mkrcconsistgrp', 'chrcconsistgrp', and 'rmrcconsistgrp'
@@ -31,15 +31,14 @@ options:
         type: str
     state:
         description:
-            - Creates or updates (C(present)), removes (C(absent))
+            - Creates or updates (C(present)) removes (C(absent))
               a consistency group.
         choices: [ absent, present ]
         required: true
         type: str
     clustername:
         description:
-            - The hostname or management IP of the
-              Spectrum Virtualize storage system.
+            - The hostname or management IP of the Spectrum Virtualize storage system.
         type: str
         required: true
     domain:
@@ -60,7 +59,7 @@ options:
     token:
         description:
         - The authentication token to verify a user on the Spectrum Virtualize storage system.
-        - To generate a token, use ibm_svc_auth module.
+        - To generate a token, use the ibm_svc_auth module.
         type: str
         version_added: '1.5.0'
     log_path:
@@ -93,17 +92,14 @@ options:
         type: bool
     copytype:
         description:
-            - Specifies the mirror type of the remote copy. 'metro' means MetroMirror,
-              'global' means GlobalMirror.
-            - If not specified, a MetroMirror remote copy will
-              be created when creating a remote copy C(state=present).
+            - Specifies the mirror type of the remote copy. 'metro' means MetroMirror, 'global' means GlobalMirror.
+            - If not specified, a MetroMirror remote copy will be created when creating a remote copy C(state=present).
         type: str
         choices: [ 'metro', 'global' ]
     cyclingmode:
         description:
             - Specifies the behavior of Global Mirror for the relationship.
-            - Active-active relationships and relationships with cycling modes set to Multiple
-              must always be configured with change volumes.
+            - Active-active relationships and relationships with cycling modes set to Multiple must always be configured with change volumes.
             - Applies when C(state=present) and C(copytype=global).
         type: str
         choices: [ 'multi', 'none' ]

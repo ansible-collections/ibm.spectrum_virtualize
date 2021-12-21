@@ -16,10 +16,10 @@ DOCUMENTATION = '''
 ---
 module: ibm_svcinfo_command
 short_description: This module implements SSH Client which helps to run
-                   svcinfo CLI command on IBM Spectrum Virtualize Family storage systems
+                   svcinfo CLI command on IBM Spectrum Virtualize family storage systems
 version_added: "1.2.0"
 description:
-- Runs single svcinfo CLI command on IBM Spectrum Virtualize Family storage systems.
+- Runs single svcinfo CLI command on IBM Spectrum Virtualize family storage systems.
   Filter options like filtervalue or pipe '|' with grep, awk, and others are
   not supported in the command in this module.
   Paramiko must be installed to use this module.
