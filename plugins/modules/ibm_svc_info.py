@@ -471,7 +471,6 @@ class IBMSVCGatherInfo(object):
                                              cmdargs=cmdargs)
             self.log.info("Successfully listed %d drive from array %s",
                           len(drive_list), self.module.params['clustername'])
-
             return drive
         except Exception as e:
             msg = ('Get Volumes from array %s failed with error %s ',
