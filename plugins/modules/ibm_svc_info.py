@@ -95,9 +95,10 @@ options:
     - vdiskcopy - lists information for volume copy.
     - array - lists information for array MDisks.
     - system - displays the storage system information.
+    - drive - lists information for drives
     choices: [vol, pool, node, iog, host, hc, fcport
               , iscsiport, fc, fcmap, fcconsistgrp, rcrelationship, rcconsistgrp
-              , vdiskcopy, targetportfc, array, system, all]
+              , vdiskcopy, targetportfc, array, system, drive, all]
     default: "all"
 '''
 
@@ -188,6 +189,7 @@ class IBMSVCGatherInfo(object):
                                             'vdiskcopy',
                                             'array',
                                             'system',
+                                            'drive',
                                             'all'
                                             ]),
             )
@@ -461,6 +463,22 @@ class IBMSVCGatherInfo(object):
             self.log.error(msg)
             self.module.fail_json(msg=msg)
 
+    def get_drive_list(self):
+        try:
+            drive = []
+            cmdargs = [self.objectname] if self.objectname else None
+            drive = self.restapi.svc_obj_info(cmd='lsdrive', cmdopts=None,
+                                             cmdargs=cmdargs)
+            self.log.info("Successfully listed %d drive from array %s",
+                          len(drive_list), self.module.params['clustername'])
+
+            return drive
+        except Exception as e:
+            msg = ('Get Volumes from array %s failed with error %s ',
+                   self.module.params['clustername'], str(e))
+            self.log.error(msg)
+            self.module.fail_json(msg=msg)
+
     def apply(self):
         all = ['vol', 'pool', 'node', 'iog', 'host', 'hc', 'fc',
                'fcport', 'iscsiport', 'fcmap', 'rcrelationship',
@@ -492,6 +510,7 @@ class IBMSVCGatherInfo(object):
         vdiskcopy = []
         array = []
         system = []
+        drive = []
 
         if 'vol' in subset:
             vol = self.get_volumes_list()
@@ -527,6 +546,8 @@ class IBMSVCGatherInfo(object):
             array = self.get_array_list()
         if 'system' in subset:
             system = self.get_system_list()
+        if 'drive' in subset:
+            system = self.get_drive_list()
 
         self.module.exit_json(
             Volume=vol,
@@ -545,7 +566,8 @@ class IBMSVCGatherInfo(object):
             FCMap=fcmap,
             RemoteCopy=rcrelationship,
             Array=array,
-            System=system)
+            System=system,
+            Drive=drive)
 
 
 def main():
