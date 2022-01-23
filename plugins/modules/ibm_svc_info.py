@@ -468,9 +468,9 @@ class IBMSVCGatherInfo(object):
             drive = []
             cmdargs = [self.objectname] if self.objectname else None
             drive = self.restapi.svc_obj_info(cmd='lsdrive', cmdopts=None,
-                                             cmdargs=cmdargs)
+                                              cmdargs=cmdargs)
             self.log.info("Successfully listed %d drive from array %s",
-                          len(drive_list), self.module.params['clustername'])
+                          len(drive), self.module.params['clustername'])
             return drive
         except Exception as e:
             msg = ('Get Volumes from array %s failed with error %s ',
