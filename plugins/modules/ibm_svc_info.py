@@ -465,12 +465,19 @@ class IBMSVCGatherInfo(object):
 
     def get_drive_list(self):
         try:
+            data = []
             drive = []
             cmdargs = [self.objectname] if self.objectname else None
-            drive = self.restapi.svc_obj_info(cmd='lsdrive', cmdopts=None,
-                                              cmdargs=cmdargs)
+            data = self.restapi.svc_obj_info(cmd='lsdrive', cmdopts=None,
+                                             cmdargs=cmdargs)
             self.log.info("Successfully listed %d drive from array %s",
-                          len(drive), self.module.params['clustername'])
+                          len(data), self.module.params['clustername'])
+            for d in data:
+                self.log.info("log iteration %s", d["id"])
+                cmdargs = [d["id"]]
+                drive.append(self.restapi.svc_obj_info(cmd='lsdrive',
+                                                       cmdopts=None,
+                                                       cmdargs=cmdargs))
             return drive
         except Exception as e:
             msg = ('Get Volumes from array %s failed with error %s ',
@@ -546,7 +553,7 @@ class IBMSVCGatherInfo(object):
         if 'system' in subset:
             system = self.get_system_list()
         if 'drive' in subset:
-            system = self.get_drive_list()
+            drive = self.get_drive_list()
 
         self.module.exit_json(
             Volume=vol,
