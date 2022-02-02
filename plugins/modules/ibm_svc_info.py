@@ -489,7 +489,7 @@ class IBMSVCGatherInfo(object):
         all = ['vol', 'pool', 'node', 'iog', 'host', 'hc', 'fc',
                'fcport', 'iscsiport', 'fcmap', 'rcrelationship',
                'fcconsistgrp', 'rcconsistgrp', 'vdiskcopy',
-               'targetportfc', 'array', 'system']
+               'targetportfc', 'array', 'system', 'drive']
         subset = self.module.params['gather_subset']
         if self.objectname and len(subset) != 1:
             msg = ("objectname(%s) is specified while gather_subset(%s) is not "
