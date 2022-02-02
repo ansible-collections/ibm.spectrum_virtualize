@@ -22,7 +22,7 @@ description:
   entities. These include the list of nodes, pools, volumes, hosts,
   host clusters, FC ports, iSCSI ports, target port FC, FC consistgrp,
   vdiskcopy, I/O groups, FC map, FC connectivity, NVMe fabric,
-  array, and system.
+  array, drive and system.
 author:
 - Peng Wang (@wangpww)
 options:
