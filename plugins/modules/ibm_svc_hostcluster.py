@@ -10,10 +10,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_hostcluster
@@ -62,20 +58,20 @@ options:
         description:
             - The name of the ownership group to which the host cluster object is being added.
             - Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
-            - Applies when C(state=present).
+            - Applies when I(state=present).
         type: str
         version_added: '1.6.0'
     noownershipgroup:
         description:
             - If specified True, the host cluster object is removed from the ownership group to which it belongs.
             - Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
-            - Applies when C(state=present) to modify an existing hostcluster.
+            - Applies when I(state=present) to modify an existing hostcluster.
         type: bool
         version_added: '1.6.0'
     removeallhosts:
         description:
             - Specifies that all hosts in the host cluster and the associated host cluster object be deleted.
-            - Applies when C(state=absent).
+            - Applies when I(state=absent).
         type: bool
     log_path:
         description:
@@ -148,8 +144,7 @@ EXAMPLES = '''
         removeallhosts: True
 '''
 
-RETURN = '''
-'''
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

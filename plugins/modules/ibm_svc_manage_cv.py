@@ -8,10 +8,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_cv
@@ -40,7 +36,7 @@ options:
   basevolume:
     description:
     - Specifies the base volume name (master or auxiliary).
-    - Required when C(state=present), to create the change volume.
+    - Required when I(state=present), to create the change volume.
     type: str
   ismaster:
     description:
@@ -150,8 +146,8 @@ EXAMPLES = '''
         cvname: vol2_aux_cv
         ismaster: false
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

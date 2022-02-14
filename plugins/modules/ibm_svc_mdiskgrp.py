@@ -7,10 +7,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'community'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_mdiskgrp
@@ -59,28 +55,28 @@ options:
   datareduction:
     description:
     - Defines use of data reduction pools (DRPs) on the MDisk group.
-    - Applies when C(state=present), to create a pool.
+    - Applies when I(state=present), to create a pool.
     type: str
     default: 'no'
     choices: ['yes', 'no']
   easytier:
     description:
     - Defines use of easytier with the MDisk group.
-    - Applies when C(state=present), to create a pool.
+    - Applies when I(state=present), to create a pool.
     type: str
     default: 'off'
     choices: ['on', 'off', 'auto']
   encrypt:
     description:
     - Defines use of encryption with the MDisk group.
-    - Applies when C(state=present), to create a pool.
+    - Applies when I(state=present), to create a pool.
     type: str
     default: 'no'
     choices: ['yes', 'no']
   ext:
     description:
     - Specifies the size of the extents for this group in MB.
-    - Applies when C(state=present), to create a pool.
+    - Applies when I(state=present), to create a pool.
     type: int
   log_path:
     description:
@@ -94,18 +90,18 @@ options:
   parentmdiskgrp:
     description:
       - Parentmdiskgrp for subpool.
-      - Applies when C(state=present), to create a pool.
+      - Applies when I(state=present), to create a pool.
     type: str
   unit:
     description:
       - Unit for subpool.
-      - Applies when C(state=present), to create a pool.
+      - Applies when I(state=present), to create a pool.
     type: str
   size:
     description:
       - Specifies the child pool capacity. The value must be
         a numeric value (and an integer multiple of the extent size).
-      - Applies when C(state=present), to create a pool.
+      - Applies when I(state=present), to create a pool.
     type: int
 author:
     - Peng Wang(@wangpww)
@@ -150,8 +146,7 @@ EXAMPLES = '''
         state: absent
 
 '''
-RETURN = '''
-'''
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

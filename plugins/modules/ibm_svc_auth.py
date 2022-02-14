@@ -8,10 +8,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_auth
@@ -57,6 +53,8 @@ options:
     type: str
 author:
     - Shilpi Jain(@Shilpi-J)
+notes:
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = '''
@@ -87,11 +85,11 @@ EXAMPLES = '''
         easytier: 'off'
         size: "4294967296"
         unit: b
-
 '''
+
 RETURN = '''
 token:
-    description: Authentication token for a user
+    description: Authentication token for a user.
     returned: success
     type: str
     version_added: 1.5.0

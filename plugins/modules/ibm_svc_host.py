@@ -12,10 +12,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_host
@@ -65,48 +61,48 @@ options:
         description:
             - List of Initiator WWPNs to be added to the host. The complete list of WWPNs must be provided.
             - The parameters I(fcwwpn) and I(iscsiname) are mutually exclusive.
-            - Required when C(state=present), to create or modify a Fibre Channel (FC) host.
+            - Required when I(state=present), to create or modify a Fibre Channel (FC) host.
         type: str
     iscsiname:
         description:
             - Initiator IQN to be added to the host.
             - The parameters I(fcwwpn) and I(iscsiname) are mutually exclusive.
-            - Valid when C(state=present), to create host.
+            - Valid when I(state=present), to create host.
         type: str
     iogrp:
         description:
             - Specifies a set of one or more input/output (I/O) groups from which the host can access the volumes.
               Once specified, this parameter cannot be modified.
-            - Valid when C(state=present), to create a host.
+            - Valid when I(state=present), to create a host.
         type: str
     protocol:
         description:
             - Specifies the protocol used by the host to communicate with the storage system. Only 'scsi' protocol is supported.
-            - Valid when C(state=present), to create a host.
+            - Valid when I(state=present), to create a host.
         type: str
     type:
         description:
             - Specifies the type of host.
-            - Valid when C(state=present), to create or modify a host.
+            - Valid when I(state=present), to create or modify a host.
         type: str
     site:
         description:
             - Specifies the site name of the host.
-            - Valid when C(state=present), to create or modify a host.
+            - Valid when I(state=present), to create or modify a host.
         type: str
     hostcluster:
         description:
             - Specifies the name of the host cluster to which the host object is to be added.
               A host cluster must exist before a host object can be added to it.
             - Parameters I(hostcluster) and I(nohostcluster) are mutually exclusive.
-            - Valid when C(state=present), to create or modify a host.
+            - Valid when I(state=present), to create or modify a host.
         type: str
         version_added: '1.5.0'
     nohostcluster:
         description:
-            - If specified True, host object is removed from the host cluster.
+            - If specified as C(True), host object is removed from the host cluster.
             - Parameters I(hostcluster) and I(nohostcluster) are mutually exclusive.
-            - Valid when C(state=present), to modify an existing host.
+            - Valid when I(state=present), to modify an existing host.
         type: bool
         version_added: '1.5.0'
     log_path:
@@ -206,8 +202,7 @@ EXAMPLES = '''
         state: absent
 '''
 
-RETURN = '''
-'''
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

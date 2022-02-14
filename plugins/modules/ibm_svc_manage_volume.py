@@ -8,10 +8,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_volume
@@ -59,12 +55,12 @@ options:
   pool:
     description:
       - Specifies the name of the storage pool to use while creating the volume.
-      - This parameter is required when C(state=present), to create a volume.
+      - This parameter is required when I(state=present), to create a volume.
     type: str
   size:
     description:
       - Defines the size of the volume. This parameter can also be used to resize an existing volume.
-      - Required when C(state=present), to create or modify a volume.
+      - Required when I(state=present), to create or modify a volume.
     type: str
   unit:
     description:
@@ -79,19 +75,19 @@ options:
       - While creating a new volume, the first I/O group in the list is added as both cached & access I/O group,
         while remaining I/O groups are added as access I/O groups.
       - This parameter supports update functionality.
-      - Valid when C(state=present), to create or modify a volume.
+      - Valid when I(state=present), to create or modify a volume.
     type: str
   thin:
     description:
       - Specifies that a thin-provisioned volume is to be created.
       - Parameters 'thin' and 'compressed' are mutually exclusive.
-      - Valid when C(state=present), to create a thin-provisioned volume.
+      - Valid when I(state=present), to create a thin-provisioned volume.
     type: bool
   compressed:
     description:
       - Specifies that a compressed volume is to be created.
       - Parameters 'compressed' and 'thin' are mutually exclusive.
-      - Valid when C(state=present), to create a compressed volume.
+      - Valid when I(state=present), to create a compressed volume.
     type: bool
   buffersize:
     description:
@@ -99,24 +95,24 @@ options:
       - Parameter 'thin' or 'compressed' must be specified to use this parameter.
       - The default buffer size is 2%.
       - I(thin) or I(compressed) is required when using I(buffersize).
-      - Valid when C(state=present), to create a volume.
+      - Valid when I(state=present), to create a volume.
     type: str
   deduplicated:
     description:
       - Specifies that a deduplicated volume is to be created.
-      - Required when C(state=present), to create a deduplicated volume.
+      - Required when I(state=present), to create a deduplicated volume.
     type: bool
   volumegroup:
     description:
       - Specifies the name of the volumegroup to which the volume is to be added.
       - Parameters 'volumegroup' and 'novolumegroup' are mutually exclusive.
-      - Valid when C(state=present), to create or modify a volume.
+      - Valid when I(state=present), to create or modify a volume.
     type: str
   novolumegroup:
     description:
       - If specified True, the volume is removed from its associated volumegroup.
       - Parameters 'novolumegroup' and 'volumegroup' are mutually exclusive.
-      - Valid when C(state=present), to modify a volume.
+      - Valid when I(state=present), to modify a volume.
     type: bool
   validate_certs:
     description:
@@ -263,8 +259,8 @@ EXAMPLES = '''
         name: "volume_name"
         state: "absent"
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

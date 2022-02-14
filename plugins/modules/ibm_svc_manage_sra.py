@@ -10,10 +10,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_sra
@@ -72,13 +68,13 @@ options:
     sra_ip:
         description:
             - Specifies the list of IP addresses or fully qualified domain names for the new support center or proxy server.
-            - Required when C(support=remote) and C(state=enabled), to enable support remote assistannce.
+            - Required when C(support=remote) and I(state=enabled), to enable support remote assistannce.
         type: list
         elements: str
     sra_port:
         description:
             - Specifies the list of port numbers for the new support center or proxy server.
-            - Required when C(support=remote) and C(state=enabled), to enable support remote assistannce.
+            - Required when C(support=remote) and I(state=enabled), to enable support remote assistannce.
         type: list
         elements: str
     validate_certs:
@@ -144,8 +140,7 @@ EXAMPLES = '''
           - proxy_3
 '''
 
-RETURN = '''
-'''
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

@@ -9,10 +9,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_usergroup
@@ -60,19 +56,19 @@ options:
     role:
         description:
             - Specifies the role associated with all users that belong to this user group.
-            - Required when C(state=present).
+            - Required when I(state=present).
         choices: [ Monitor, CopyOperator, Service, FlashCopyAdmin, Administrator, SecurityAdmin, VasaProvider, RestrictedAdmin, 3SiteAdmin ]
         type: str
     ownershipgroup:
         description:
             - Specifies the name of the ownership group.
-            - Applies when C(state=present).
+            - Applies when I(state=present).
             - Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
         type: str
     noownershipgroup:
         description:
             - Specifies that the usergroup is removed from the ownership group it belonged to.
-            - Applies when C(state=present), to modify a user group.
+            - Applies when I(state=present), to modify a user group.
             - Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
         type: bool
     validate_certs:
