@@ -66,6 +66,12 @@ jobs:
       - name: Install ansible (${{ matrix.ansible }})
         run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible }}.tar.gz --disable-pip-version-check
 
+      - name: Make directory for ansible-test 
+        run: |
+          pwd
+          mkdir -p ansible_collections/ibm/spectrum_virtualize
+          rsync -av . ansible_collections/ibm/spectrum_virtualize --exclude ansible_collections/ibm/spectrum_virtualize
+          
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
