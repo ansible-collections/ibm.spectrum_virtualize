@@ -74,7 +74,7 @@ jobs:
       # Run the unit tests
       - name: Run unit test
         run: ansible-test units --docker -v --color --python 2.7
-        working-directory: ansible_collections/ibm/spectrum_virtualize
+        #working-directory: ansible_collections/ibm/spectrum_virtualize
       # Run the unit tests
       - name: Run unit test
         run: ansible-test units --docker -v --color --python 3.8
