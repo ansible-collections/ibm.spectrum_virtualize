@@ -39,6 +39,33 @@ jobs:
         run: ansible-test sanity --docker -v --color
         working-directory: ansible_collections/ibm/spectrum_virtualize
 
+  units:
+    runs-on: ubuntu-latest
+    name: Units (Ⓐ${{ matrix.ansible }})
+    strategy:
+      # As soon as the first unit test fails, cancel the others to free up the CI queue
+      fail-fast: true
+      matrix:
+        ansible:
+          # - stable-2.9 # Only if your collection supports Ansible 2.9
+          - stable-2.10
+          - stable-2.11
+          - stable-2.12
+          
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          # it is just required to run that once as "ansible-test units" in the docker image
+          # will run on all python versions it supports.
+          python-version: 3.8
+
+      - name: Install ansible (${{ matrix.ansible }})
+        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible }}.tar.gz --disable-pip-version-check
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
