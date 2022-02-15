@@ -38,3 +38,15 @@ jobs:
       - name: Run sanity tests spectrum_virtualize
         run: ansible-test sanity --docker -v --color
         working-directory: ansible_collections/ibm/spectrum_virtualize
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          # it is just required to run that once as "ansible-test units" in the docker image
+          # will run on all python versions it supports.
+          python-version: 3.8
+          
+      # Run the unit tests
+      - name: Run unit test
+        run: ansible-test units --docker -v --color
+        working-directory: ansible_collections/ibm/spectrum_virtualize
