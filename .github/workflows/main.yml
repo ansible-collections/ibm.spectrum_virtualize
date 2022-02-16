@@ -16,7 +16,7 @@ jobs:
           - stable-2.9
           - stable-2.10
           - stable-2.11
-          - stable-2.12
+          # - stable-2.12
 
     steps:
       - name: Check out code
@@ -36,22 +36,20 @@ jobs:
           mkdir -p ansible_collections/ibm/spectrum_virtualize
           rsync -av . ansible_collections/ibm/spectrum_virtualize --exclude ansible_collections/ibm/spectrum_virtualize
       - name: Run sanity tests spectrum_virtualize
-        run: ansible-test sanity --docker -v --color
-        working-directory: ansible_collections/ibm/spectrum_virtualize
+        run: ansible-test sanity -v --color --docker --coverage --python 3.8
+        working-directory: ./ansible_collections/ibm/spectrum_virtualize
 
   units:
+    name: Units (${{ matrix.ansible }} on spectrum_virtualize
     runs-on: ubuntu-latest
-    name: Units (Ⓐ${{ matrix.ansible }})
     strategy:
-      # As soon as the first unit test fails, cancel the others to free up the CI queue
-      fail-fast: true
       matrix:
         ansible:
-          # - stable-2.9 # Only if your collection supports Ansible 2.9
+          - stable-2.9
           - stable-2.10
           - stable-2.11
-          - stable-2.12
-          
+          # - stable-2.12
+
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -59,8 +57,6 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          # it is just required to run that once as "ansible-test units" in the docker image
-          # will run on all python versions it supports.
           python-version: 3.8
 
       - name: Install ansible (${{ matrix.ansible }})
@@ -71,17 +67,6 @@ jobs:
           pwd
           mkdir -p ansible_collections/ibm/spectrum_virtualize
           rsync -av . ansible_collections/ibm/spectrum_virtualize --exclude ansible_collections/ibm/spectrum_virtualize
-          
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          
-      # Run the unit tests
-      - name: Run unit test
-        run: ansible-test units --docker -v --color --python 2.7
-        #working-directory: ansible_collections/ibm/spectrum_virtualize
-      # Run the unit tests
-      - name: Run unit test
-        run: ansible-test units --docker -v --color --python 3.8
-        working-directory: ansible_collections/ibm/spectrum_virtualize
+      - name: Run unit test cases
+        run: ansible-test units -v --color --docker --coverage --python 3.8
+        working-directory: ./ansible_collections/ibm/spectrum_virtualize
