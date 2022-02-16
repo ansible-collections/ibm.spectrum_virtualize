@@ -38,3 +38,4 @@ jobs:
       - name: Run sanity tests spectrum_virtualize
         run: ansible-test sanity --python 3.8
         working-directory: ansible_collections/ibm/spectrum_virtualize
+
