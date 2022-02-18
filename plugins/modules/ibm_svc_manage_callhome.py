@@ -9,10 +9,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_callhome
@@ -62,7 +58,7 @@ options:
     proxy_type:
         description:
             - Specifies the proxy type.
-            - Required when C(state=enabled), to create or modify Call Home feature.
+            - Required when I(state=enabled), to create or modify Call Home feature.
             - Proxy gets deleted for C(proxy_type=no_proxy).
             - The parameter is mandatory when C(callhome_type='cloud services')) or C(callhome_type='both').
         choices: [ open_proxy, basic_authentication, certificate, no_proxy ]
@@ -70,99 +66,99 @@ options:
     proxy_url:
         description:
             - Specifies the proxy server URL with a protocol prefix in fully qualified domain name format.
-            - Applies when C(state=enabled) and C(proxy_type=open_proxy) or C(proxy_type=basic_authentication).
+            - Applies when I(state=enabled) and C(proxy_type=open_proxy) or C(proxy_type=basic_authentication).
         type: str
     proxy_port:
         description:
             - Specifies the proxy server port number.
               The value must be in the range 1 - 65535.
-            - Applies when C(state=enabled) and C(proxy_type=open_proxy) or C(proxy_type=basic_authentication).
+            - Applies when I(state=enabled) and C(proxy_type=open_proxy) or C(proxy_type=basic_authentication).
         type: int
     proxy_username:
         description:
             - Specifies the proxy's username.
-            - Applies when C(state=enabled) and C(proxy_type=basic_authentication).
+            - Applies when I(state=enabled) and C(proxy_type=basic_authentication).
         type: str
     proxy_password:
         description:
             - Specifies the proxy's password.
-            - Applies when C(state=enabled) and C(proxy_type=basic_authentication).
+            - Applies when I(state=enabled) and C(proxy_type=basic_authentication).
         type: str
     sslcert:
         description:
             - Specifies the file path of proxy's certificate.
-            - Applies when C(state=enabled) and C(proxy_type=certificate).
+            - Applies when I(state=enabled) and C(proxy_type=certificate).
         type: str
     company_name:
         description:
             - Specifies the user's organization as it should appear in Call Home email.
-            - Required when C(state=enabled).
+            - Required when I(state=enabled).
         type: str
     address:
         description:
             - Specifies the first line of the user's address as it should appear in Call Home email.
-            - Required when C(state=enabled).
+            - Required when I(state=enabled).
         type: str
     city:
         description:
             - Specifies the user's city as it should appear in Call Home email.
-            - Required when C(state=enabled).
+            - Required when I(state=enabled).
         type: str
     province:
         description:
             - Specifies the user's state or province as it should appear in Call Home email.
-            - Required when C(state=enabled).
+            - Required when I(state=enabled).
         type: str
     postalcode:
         description:
             - Specifies the user's zip code or postal code as it should appear in Call Home email.
-            - Required when C(state=enabled).
+            - Required when I(state=enabled).
         type: str
     country:
         description:
             - Specifies the country in which the machine resides as it should appear in Call Home email.
-            - Required when C(state=enabled).
+            - Required when I(state=enabled).
         type: str
     location:
         description:
             - Specifies the physical location of the system that has reported the error.
-            - Required when C(state=enabled).
+            - Required when I(state=enabled).
         type: str
     contact_name:
         description:
             - Specifies the name of the person receiving the email.
-            - Required when C(state=enabled).
+            - Required when I(state=enabled).
         type: str
     contact_email:
         description:
             - Specifies the email of the person.
-            - Required when C(state=enabled).
+            - Required when I(state=enabled).
         type: str
     phonenumber_primary:
         description:
             - Specifies the primary contact telephone number.
-            - Required when C(state=enabled).
+            - Required when I(state=enabled).
         type: str
     phonenumber_secondary:
         description:
             - Specifies the secondary contact telephone number.
-            - Required when C(state=enabled).
+            - Required when I(state=enabled).
         type: str
     serverIP:
         description:
             - Specifies the IP address of the email server.
-            - Required when C(state=enabled) and C(callhome_type=email) or C(callhome_type=both).
+            - Required when I(state=enabled) and C(callhome_type=email) or C(callhome_type=both).
         type: str
     serverPort:
         description:
             - Specifies the port number of the email server.
             - The value must be in the range 1 - 65535.
-            - Required when C(state=enabled) and C(callhome_type=email) or C(callhome_type=both).
+            - Required when I(state=enabled) and C(callhome_type=email) or C(callhome_type=both).
         type: int
     inventory:
         description:
             - Specifies whether the recipient mentioned in parameter I(contact_email) receives inventory email notifications.
-            - Applies when C(state=enabled).
+            - Applies when I(state=enabled).
               If unspecified, default value 'off' will be used.
         choices: ['on', 'off']
         type: str
@@ -176,14 +172,14 @@ options:
     enhancedcallhome:
         description:
             - Specifies that the Call Home function is to send enhanced reports to the support center.
-            - Applies when C(state=enabled).
+            - Applies when I(state=enabled).
             - If unspecified, default value 'off' will be used.
         choices: ['on', 'off']
         type: str
     censorcallhome:
         description:
             - Specifies that sensitive data is deleted from the enhanced Call Home data.
-            - Applies when C(state=enabled).
+            - Applies when I(state=enabled).
             - If unspecified, default value 'off' will be used.
         choices: ['on', 'off']
         type: str
@@ -240,8 +236,8 @@ EXAMPLES = '''
         censorcallhome: "on"
 
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

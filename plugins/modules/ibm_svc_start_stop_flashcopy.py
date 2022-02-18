@@ -9,10 +9,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_start_stop_flashcopy
@@ -67,7 +63,7 @@ options:
     force:
         description:
             - Specifies that all processing associated with the FlashCopy mapping or FlashCopy consistency group be immediately stopped.
-            - Valid when C(state=stopped), to stop a FlashCopy mapping or FlashCopy consistency group.
+            - Valid when I(state=stopped), to stop a FlashCopy mapping or FlashCopy consistency group.
         required: false
         type: bool
     log_path:
@@ -157,8 +153,7 @@ EXAMPLES = '''
         state: stopped
 
 '''
-RETURN = '''
-'''
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

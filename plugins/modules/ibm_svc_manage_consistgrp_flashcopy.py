@@ -10,10 +10,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_consistgrp_flashcopy
@@ -64,20 +60,20 @@ options:
         description:
             - Specifies the name of the ownership group.
             - Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
-            - Valid when C(state=present), to create or modify a FlashCopy consistency group.
+            - Valid when I(state=present), to create or modify a FlashCopy consistency group.
         required: false
         type: str
     noownershipgroup:
         description:
             - If specified True, the consistency group is removed from all associated ownership groups.
             - Parameters I(noownershipgroup) and I(ownershipgroup) are mutually exclusive.
-            - Valid when C(state=present), to modify a FlashCopy consistency group.
+            - Valid when I(state=present), to modify a FlashCopy consistency group.
         required: false
         type: bool
     force:
         description:
             - If specified True, removes all the associated FlashCopy mappings while deleting the FlashCopy consistency group.
-            - Valid when C(state=absent), to delete a FlashCopy consistency group.
+            - Valid when I(state=absent), to delete a FlashCopy consistency group.
         required: false
         type: bool
     log_path:

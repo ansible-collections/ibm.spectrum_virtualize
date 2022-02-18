@@ -7,10 +7,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'community'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_mdisk
@@ -59,7 +55,7 @@ options:
   drive:
     description:
       - Drive(s) to use as members of the RAID array.
-      - Required when C(state=present), to create an MDisk array.
+      - Required when I(state=present), to create an MDisk array.
     type: str
   mdiskgrp:
     description:
@@ -78,13 +74,13 @@ options:
   level:
     description:
       - Specifies the RAID level.
-      - Required when C(state=present), to create an MDisk array.
+      - Required when I(state=present), to create an MDisk array.
     type: str
     choices: ['raid0', 'raid1', 'raid5', 'raid6', 'raid10']
   encrypt:
     description:
       - Defines use of encryption with the MDisk group.
-      - Applies when C(state=present).
+      - Applies when I(state=present).
     type: str
     default: 'no'
     choices: ['yes', 'no']
@@ -131,8 +127,8 @@ EXAMPLES = '''
         state: absent
         mdiskgrp: pool20
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

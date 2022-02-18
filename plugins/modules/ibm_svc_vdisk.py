@@ -10,10 +10,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['deprecated'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_vdisk
@@ -63,22 +59,22 @@ options:
   mdiskgrp:
     description:
     - Specifies the name of the storage pool to use when
-      creating this volume. This parameter is required when C(state=present).
+      creating this volume. This parameter is required when I(state=present).
     type: str
   easytier:
     description:
     - Defines use of easytier with VDisk.
-    - Applies when C(state=present).
+    - Applies when I(state=present).
     type: str
     choices: [ 'on', 'off' ]
   size:
     description:
-    - Defines the size of VDisk. This parameter is required when C(state=present).
+    - Defines the size of VDisk. This parameter is required when I(state=present).
     - This parameter can also be used to resize an existing VDisk.
     type: str
   unit:
     description:
-    - Defines the size option for the storage unit. This parameter is required when C(state=present).
+    - Defines the size option for the storage unit. This parameter is required when I(state=present).
     type: str
     choices: [ b, kb, mb, gb, tb, pb ]
     default: mb
@@ -95,7 +91,7 @@ options:
     description:
     - Defines how much physical space is initially allocated to the thin-provisioned volume in %.
       If rsize is not passed, the volume created is a standard volume.
-    - Applies when C(state=present).
+    - Applies when I(state=present).
     type: str
     version_added: '1.2.0'
   autoexpand:
@@ -176,8 +172,8 @@ EXAMPLES = '''
         name: volume0
         state: absent
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

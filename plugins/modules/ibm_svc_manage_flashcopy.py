@@ -9,10 +9,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_flashcopy
@@ -62,53 +58,53 @@ options:
     copytype:
         description:
             - Specifies the copy type when creating the FlashCopy mapping.
-            - Required when C(state=present), to create a FlashCopy mapping.
+            - Required when I(state=present), to create a FlashCopy mapping.
         choices: [ snapshot, clone]
         type: str
     source:
         description:
             - Specifies the name of the source volume.
-            - Required when C(state=present), to create a FlashCopy mapping.
+            - Required when I(state=present), to create a FlashCopy mapping.
         type: str
     target:
         description:
             - Specifies the name of the target volume.
-            - Required when C(state=present), to create a FlashCopy mapping.
+            - Required when I(state=present), to create a FlashCopy mapping.
         type: str
     mdiskgrp:
         description:
             - Specifies the name of the storage pool to use when creating the target volume.
             - If unspecified, the pool associated with the source volume is used.
-            - Valid when C(state=present), to create a FlashCopy mapping.
+            - Valid when I(state=present), to create a FlashCopy mapping.
         type: str
     consistgrp:
         description:
             - Specifies the name of the consistency group to which the FlashCopy mapping is to be added.
             - Parameters I(consistgrp) and I(noconsistgrp) are mutually exclusive.
-            - Valid when C(state=present), to create or modify a FlashCopy mapping.
+            - Valid when I(state=present), to create or modify a FlashCopy mapping.
         type: str
     noconsistgrp:
         description:
             - If specified True, FlashCopy mapping is removed from the consistency group.
             - Parameters I(noconsistgrp) and I(consistgrp) are mutually exclusive.
-            - Valid when C(state=present), to modify a FlashCopy mapping.
+            - Valid when I(state=present), to modify a FlashCopy mapping.
         type: bool
     copyrate:
         description:
             - Specifies the copy rate. The rate varies between 0-150.
             - If unspecified, the default copy rate of 50 for clone and 0 for snapshot is used.
-            - Valid when C(state=present), to create or modify a FlashCopy mapping.
+            - Valid when I(state=present), to create or modify a FlashCopy mapping.
         type: str
     grainsize:
         description:
             - Specifies the grain size for the FlashCopy mapping.
             - The grainsize can be set to 64 or 256. The default value is 256.
-            - Valid when C(state=present), to create a FlashCopy mapping.
+            - Valid when I(state=present), to create a FlashCopy mapping.
         type: str
     force:
         description:
             - Brings the target volume online. This parameter is required if the FlashCopy mapping is in the stopped state.
-            - Valid when C(state=absent), to delete a FlashCopy mapping.
+            - Valid when I(state=absent), to delete a FlashCopy mapping.
         type: bool
     validate_certs:
         description:
@@ -210,8 +206,8 @@ EXAMPLES = '''
         state: absent
         force: true
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

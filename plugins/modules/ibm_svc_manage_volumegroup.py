@@ -10,10 +10,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_volumegroup
@@ -72,32 +68,32 @@ options:
         description:
             - The name of the ownership group to which the object is being added.
             - I(ownershipgroup) is mutually exclusive with parameters I(safeguardpolicyname) and I(noownershipgroup).
-            - Applies when C(state=present).
+            - Applies when I(state=present).
         type: str
     noownershipgroup:
         description:
             - If specified True, the object is removed from the ownership group to which it belongs.
             - Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
-            - Applies when C(state=present).
+            - Applies when I(state=present).
         type: bool
     safeguardpolicyname:
         description:
             - The name of the Safeguarded policy to be assigned to the volume group.
             - I(safeguardpolicyname) is mutually exclusive with parameters I(nosafeguardpolicy) and I(ownershipgroup).
-            - Applies when C(state=present).
+            - Applies when I(state=present).
         type: str
     nosafeguardpolicy:
         description:
             - If specified True, removes the Safeguarded policy assigned to the volume group.
             - Parameters I(safeguardpolicyname) and I(nosafeguardpolicy) are mutually exclusive.
-            - Applies when C(state=present).
+            - Applies when I(state=present).
         type: bool
     policystarttime:
         description:
             - Specifies the time when the first Safeguarded backup is to be taken.
             - I(safeguardpolicyname) is required when using I(policystarttime).
             - The accepted format is YYMMDDHHMM.
-            - Applies when C(state=present).
+            - Applies when I(state=present).
         type: str
 author:
     - Shilpi Jain(@Shilpi-J)

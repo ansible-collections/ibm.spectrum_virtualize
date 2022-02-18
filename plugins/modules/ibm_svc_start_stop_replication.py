@@ -9,10 +9,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_start_stop_replication
@@ -62,7 +58,7 @@ options:
   primary:
     description:
     - Specifies the copy direction by defining which disk becomes the primary (source).
-    - Applies when C(state=started).
+    - Applies when I(state=started).
     type: str
     choices: [ 'master', 'aux' ]
   isgroup:
@@ -73,19 +69,19 @@ options:
   clean:
     description:
     - Specifies that the volume that is to become a secondary is clean.
-    - Applies when C(state=started).
+    - Applies when I(state=started).
     default: false
     type: bool
   access:
     description:
     - Instructs the system to allow write access to a consistent secondary volume.
-    - Applies when C(state=stopped).
+    - Applies when I(state=stopped).
     default: false
     type: bool
   force:
     description:
     - Specifies that the system must process the copy operation even if it causes a temporary loss of consistency during synchronization.
-    - Applies when C(state=started).
+    - Applies when I(state=started).
     type: bool
   validate_certs:
     description:
@@ -134,8 +130,8 @@ EXAMPLES = '''
         state: stopped
 
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 
 from ansible.module_utils._text import to_native
