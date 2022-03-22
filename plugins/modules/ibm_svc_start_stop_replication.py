@@ -99,36 +99,23 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection for data replication
-  hosts: localhost
-  gather_facts: no
-  vars:
-    clustername: x.x.x.x
-    username: username
-    password: password
-  collections:
-    - ibm.spectrum_virtualize
-  connection: local
-  tasks:
-    - name: Start remote copy
-      ibm_svc_start_stop_replication:
-        name: sample_rcopy
-        clustername: "{{clustername}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/ansible.log
-        state: started
-        clean: true
-
-    - name: Stop remote copy
-      ibm_svc_start_stop_replication:
-        name: sample_rcopy
-        clustername: "{{clustername}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/ansible.log
-        state: stopped
-
+- name: Start remote copy
+  ibm.spectrum_virtualize.ibm_svc_start_stop_replication:
+    name: sample_rcopy
+    clustername: "{{clustername}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/ansible.log
+    state: started
+    clean: true
+- name: Stop remote copy
+  ibm.spectrum_virtualize.ibm_svc_start_stop_replication:
+    name: sample_rcopy
+    clustername: "{{clustername}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/ansible.log
+    state: stopped
 '''
 
 RETURN = '''#'''
@@ -271,7 +258,6 @@ class IBMSVCStartStopReplication(object):
                 self.module.fail_json(msg=msg)
 
     def apply(self):
-        changed = False
         msg = None
         self.log("self state is %s", self.state)
         if self.module.check_mode:

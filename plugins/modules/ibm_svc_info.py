@@ -100,55 +100,31 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to gather storage information
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Get volume info
-      ibm_svc_info:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/ansible.log
-        gather_subset: vol
-
-- name: Using Spectrum Virtualize collection to gather storage information with objectname
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Get volume info
-      ibm_svc_info:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/ansible.log
-        objectname: volumename
-        gather_subset: vol
-
-- name: Using Spectrum Virtualize collection to gather storage information
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Get pool info
-      ibm_svc_info:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/ansible.log
-        gather_subset: pool
-
+- name: Get volume info
+  ibm.spectrum_virtualize.ibm_svc_info:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/ansible.log
+    gather_subset: vol
+- name: Get volume info
+  ibm.spectrum_virtualize.ibm_svc_info:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/ansible.log
+    objectname: volumename
+    gather_subset: vol
+- name: Get pool info
+  ibm.spectrum_virtualize.ibm_svc_info:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/ansible.log
+    gather_subset: pool
 '''
 
 RETURN = '''#'''

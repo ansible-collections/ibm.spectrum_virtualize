@@ -49,3 +49,21 @@ releases:
     - description: Allow user to do initial setup configuration on Spectrum Virtualize storage systems
       name: ibm_svc_initial_setup
       namespace: ''
+  1.8.0:
+    release_date: '2022-3-31'
+    changes:
+      release_summary: Added new modules for managing portsets, IP configuration and safeguarded policies.
+        Also added support to complete initial setup configurations for LMC systems.
+    modules:
+    - description: Manages IP portset on Spectrum Virtualize system
+      name: ibm_svc_manage_portset
+      namespace: ''
+    - description: Manages IP provisioning on Spectrum Virtualize system
+      name: ibm_svc_manage_ip
+      namespace: ''
+    - description: Manages safeguarded policy configuration on Spectrum Virtualize storage systems
+      name: ibm_svc_manage_safeguarded_policy
+      namespace: ''
+    - description: Completes initial setup configuration for Licensed Machine Code (LMC) systems
+      name: ibm_svc_complete_initial_setup
+      namespace: ''

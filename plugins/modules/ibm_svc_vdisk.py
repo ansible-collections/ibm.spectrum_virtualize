@@ -91,7 +91,7 @@ options:
     description:
     - Defines how much physical space is initially allocated to the thin-provisioned volume in %.
       If rsize is not passed, the volume created is a standard volume.
-    - Applies when I(state=present).
+    - Applies when C(state=present).
     type: str
     version_added: '1.2.0'
   autoexpand:
@@ -111,66 +111,43 @@ deprecated:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create a volume
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create a volume
-      ibm_svc_vdisk:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: volume0
-        state: present
-        mdiskgrp: Pool0
-        easytier: 'off'
-        size: "4294967296"
-        unit: b
-
-- name: Using Spectrum Virtualize collection to create a thin-provisioned volume
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create a thin-provisioned volume
-      ibm_svc_vdisk:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: volume0
-        state: present
-        mdiskgrp: Pool0
-        easytier: 'off'
-        size: "4294967296"
-        unit: b
-        rsize: '20%'
-        autoexpand: true
-
-- name: Using Spectrum Virtualize collection to delete a volume
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete a volume
-      ibm_svc_vdisk:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: volume0
-        state: absent
+- name: Create a volume
+  ibm.spectrum_virtualize.ibm_svc_vdisk:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: volume0
+    state: present
+    mdiskgrp: Pool0
+    easytier: 'off'
+    size: "4294967296"
+    unit: b
+- name: Create a thin-provisioned volume
+  ibm.spectrum_virtualize.ibm_svc_vdisk:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: volume0
+    state: present
+    mdiskgrp: Pool0
+    easytier: 'off'
+    size: "4294967296"
+    unit: b
+    rsize: '20%'
+    autoexpand: true
+- name: Delete a volume
+  ibm.spectrum_virtualize.ibm_svc_vdisk:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: volume0
+    state: absent
 '''
 
 RETURN = '''#'''

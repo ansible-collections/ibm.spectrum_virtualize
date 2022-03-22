@@ -89,59 +89,36 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create an empty host cluster
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Define a new host cluster
-      ibm_svc_hostcluster:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: hostcluster0
-        state: present
-        ownershipgroup: group1
-
-- name: Using Spectrum Virtualize collection to update a host cluster
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Update the ownershipgroup of a host cluster
-      ibm_svc_hostcluster:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: hostcluster0
-        state: present
-        noownershipgroup: True
-
-- name: Using Spectrum Virtualize collection to delete a host cluster
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete a host cluster
-      ibm_svc_hostcluster:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: hostcluster0
-        state: absent
-        removeallhosts: True
+- name: Define a new host cluster
+  ibm.spectrum_virtualize.ibm_svc_hostcluster:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: hostcluster0
+    state: present
+    ownershipgroup: group1
+- name: Update the ownershipgroup of a host cluster
+  ibm.spectrum_virtualize.ibm_svc_hostcluster:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: hostcluster0
+    state: present
+    noownershipgroup: True
+- name: Delete a host cluster
+  ibm.spectrum_virtualize.ibm_svc_hostcluster:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: hostcluster0
+    state: absent
+    removeallhosts: True
 '''
 
 RETURN = '''#'''

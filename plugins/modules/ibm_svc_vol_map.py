@@ -87,42 +87,27 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to map a volume to a host
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Map a volume to a host
-      ibm_svc_vol_map:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        volname: volume0
-        host: host4test
-        scsi: 1
-        state: present
-
-- name: Using Spectrum Virtualize collection to unmap a volume from a host
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Unmap a volume from a host
-      ibm_svc_vol_map:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        volname: volume0
-        host: host4test
-        state: absent
+- name: Map a volume to a host
+  ibm.spectrum_virtualize.ibm_svc_vol_map:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    volname: volume0
+    host: host4test
+    scsi: 1
+    state: present
+- name: Unmap a volume from a host
+  ibm.spectrum_virtualize.ibm_svc_vol_map:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    volname: volume0
+    host: host4test
+    state: absent
 '''
 
 RETURN = '''#'''

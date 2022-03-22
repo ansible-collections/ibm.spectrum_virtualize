@@ -82,77 +82,46 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using the IBM Spectrum Virtualize collection to start a FlashCopy mapping
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Start a FlashCopy mapping
-      ibm_svc_start_stop_flashcopy:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: mapping-name
-        state: started
-
-- name: Using the IBM Spectrum Virtualize collection to stop a FlashCopy mapping
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Stop a FlashCopy mapping
-      ibm_svc_start_stop_flashcopy:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: mapping-name
-        state: stopped
-
-- name: Using the IBM Spectrum Virtualize collection to start a FlashCopy consistency group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Start a FlashCopy consistenecy group
-      ibm_svc_start_stop_flashcopy:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: fcconsistgrp-name
-        isgroup: true
-        state: started
-
-- name: Using the IBM Spectrum Virtualize collection to stop a FlashCopy consistency group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Stop a FlashCopy consistency group
-      ibm_svc_start_stop_flashcopy:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: fcconsistgrp-name
-        isgroup: true
-        state: stopped
-
+- name: Start a FlashCopy mapping
+  ibm.spectrum_virtualize.ibm_svc_start_stop_flashcopy:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: mapping-name
+    state: started
+- name: Stop a FlashCopy mapping
+  ibm.spectrum_virtualize.ibm_svc_start_stop_flashcopy:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: mapping-name
+    state: stopped
+- name: Start a FlashCopy consistency group
+  ibm.spectrum_virtualize.ibm_svc_start_stop_flashcopy:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: fcconsistgrp-name
+    isgroup: true
+    state: started
+- name: Stop a FlashCopy consistency group
+  ibm.spectrum_virtualize.ibm_svc_start_stop_flashcopy:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: fcconsistgrp-name
+    isgroup: true
+    state: stopped
 '''
+
 RETURN = '''#'''
 
 from traceback import format_exc

@@ -1,8 +1,7 @@
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Shilpi Jain <shilpi.jain1@ibm.com>
 #
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 """ Support class for IBM SVC generic ansible module """
 
@@ -15,7 +14,7 @@ from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_ut
 
 
 class IBMSVCssh(object):
-    """ Communicate with SVC via SSH
+    """ Communicate with SVC through SSH
         The module use paramiko to connect SVC
     """
 
@@ -53,7 +52,7 @@ class IBMSVCssh(object):
             self.module.fail_json(msg='paramiko is not installed')
         self.client = paramiko.SSHClient()
 
-        # connect via SSH
+        # connect through SSH
         self.is_client_connected = self._svc_connect()
         if not self.is_client_connected:
             self.module.fail_json(msg='Failed to connect')

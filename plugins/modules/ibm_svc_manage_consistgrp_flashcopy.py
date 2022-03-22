@@ -92,45 +92,29 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using the IBM Spectrum Virtualize collection to create a FlashCopy consistency group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create a FlashCopy consistency group
-      ibm_svc_manage_consistgrp_flashcopy:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: consistgroup-name
-        state: present
-        ownershipgroup: ownershipgroup-name
-
-- name: Using the IBM Spectrum Virtualize collection to delete a FlashCopy consistency group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete a FlashCopy consistency group
-      ibm_svc_manage_consistgrp_flashcopy:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: consistgroup-name
-        state: absent
-        force: true
-
+- name: Create a FlashCopy consistency group
+  ibm.spectrum_virtualize.ibm_svc_manage_consistgrp_flashcopy:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: consistgroup-name
+    state: present
+    ownershipgroup: ownershipgroup-name
+- name: Delete a FlashCopy consistency group
+  ibm.spectrum_virtualize.ibm_svc_manage_consistgrp_flashcopy:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: consistgroup-name
+    state: absent
+    force: true
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

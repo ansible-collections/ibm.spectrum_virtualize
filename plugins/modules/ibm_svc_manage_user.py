@@ -83,7 +83,7 @@ options:
     usergroup:
         description:
             - Specifies the name of the user group with which the local user is to be associated.
-            - Applies when I(state=present) and C(auth_type=usergrp).
+            - Applies when I(state=present) and I(auth_type=usergrp).
         type: str
     forcepasswordchange:
         description:
@@ -118,44 +118,29 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using the IBM Spectrum Virtualize collection to create a user
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create a user
-      ibm_svc_manage_user:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        state: present
-        name: user-name
-        user_password: user-password
-        auth_type: usergrp
-        usergroup: usergroup-name
-
-- name: Using the IBM Spectrum Virtualize collection to remove a user
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Remove a user
-      ibm_svc_manage_user:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        state: absent
-        name: user-name
-
+- name: Create a user
+  ibm.spectrum_virtualize.ibm_svc_manage_user:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    state: present
+    name: user-name
+    user_password: user-password
+    auth_type: usergrp
+    usergroup: usergroup-name
+- name: Remove a user
+  ibm.spectrum_virtualize.ibm_svc_manage_user:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    state: absent
+    name: user-name
 '''
+
 RETURN = '''#'''
 
 from traceback import format_exc

@@ -122,89 +122,58 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using the IBM Spectrum Virtualize collection to create a FlashCopy mapping for snapshot
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create FlashCopy mapping for snapshot
-      ibm_svc_manage_flashcopy:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        state: present
-        name: snapshot-name
-        copytype: snapshot
-        source: source-volume-name
-        target: target-volume-name
-        mdiskgrp: Pool0
-        consistgrp: consistencygroup-name
-        copyrate: 50
-        grainsize: 64
-
-- name: Using the IBM Spectrum Virtualize collection to create a FlashCopy mapping for clone
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create FlashCopy mapping for clone
-      ibm_svc_manage_flashcopy:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        state: present
-        name: snapshot-name
-        copytype: clone
-        source: source-volume-name
-        target: target-volume-name
-        mdiskgrp: Pool0
-        consistgrp: consistencygroup-name
-        copyrate: 50
-        grainsize: 64
-
-- name: Using the IBM Spectrum Virtualize collection to delete a FlashCopy mapping for snapshot
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete FlashCopy mapping for snapshot
-      ibm_svc_manage_flashcopy:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: snapshot-name
-        state: absent
-        force: true
-
-- name: Using the IBM Spectrum Virtualize collection to delete a FlashCopy mapping for clone
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete FlashCopy mapping for clone
-      ibm_svc_manage_flashcopy:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: clone-name
-        state: absent
-        force: true
+- name: Create FlashCopy mapping for snapshot
+  ibm.spectrum_virtualize.ibm_svc_manage_flashcopy:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    state: present
+    name: snapshot-name
+    copytype: snapshot
+    source: source-volume-name
+    target: target-volume-name
+    mdiskgrp: Pool0
+    consistgrp: consistencygroup-name
+    copyrate: 50
+    grainsize: 64
+- name: Create FlashCopy mapping for clone
+  ibm.spectrum_virtualize.ibm_svc_manage_flashcopy:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    state: present
+    name: snapshot-name
+    copytype: clone
+    source: source-volume-name
+    target: target-volume-name
+    mdiskgrp: Pool0
+    consistgrp: consistencygroup-name
+    copyrate: 50
+    grainsize: 64
+- name: Delete FlashCopy mapping for snapshot
+  ibm.spectrum_virtualize.ibm_svc_manage_flashcopy:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: snapshot-name
+    state: absent
+    force: true
+- name: Delete FlashCopy mapping for clone
+  ibm.spectrum_virtualize.ibm_svc_manage_flashcopy:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: clone-name
+    state: absent
+    force: true
 '''
 
 RETURN = '''#'''

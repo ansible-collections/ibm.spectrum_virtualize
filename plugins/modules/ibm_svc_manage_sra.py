@@ -62,19 +62,19 @@ options:
     name:
         description:
             - Specifies the list of unique names for the support center or proxy to be defined.
-            - Required when C(support=remote), to enable remote support assistance.
+            - Required when I(support=remote), to enable remote support assistance.
         type: list
         elements: str
     sra_ip:
         description:
             - Specifies the list of IP addresses or fully qualified domain names for the new support center or proxy server.
-            - Required when C(support=remote) and I(state=enabled), to enable support remote assistannce.
+            - Required when I(support=remote) and I(state=enabled), to enable support remote assistannce.
         type: list
         elements: str
     sra_port:
         description:
             - Specifies the list of port numbers for the new support center or proxy server.
-            - Required when C(support=remote) and I(state=enabled), to enable support remote assistannce.
+            - Required when I(support=remote) and I(state=enabled), to enable support remote assistannce.
         type: list
         elements: str
     validate_certs:
@@ -89,55 +89,40 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using IBM Spectrum Virtualize collection to enable and disable remote support assistance.
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  vars_files:
-    - vars.yml
-  tasks:
-    - name: Get authorization token
-      register: result
-      ibm_svc_auth:
-        clustername: "{{ clustername }}"
-        domain: "{{ domain }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        log_path: "{{ log_path }}"
-    - name: Enable support remote assistance
-      ibm_svc_manage_sra:
-        clustername: "{{ clustername }}"
-        domain: "{{ domain }}"
-        token: "{{ result.token }}"
-        log_path: "{{ log_path }}"
-        support: remote
-        state: enabled
-        name:
-          - proxy_1
-          - proxy_2
-          - proxy_3
-        sra_ip:
-          - '0.0.0.0'
-          - '1.1.1.1'
-          - '2.1.2.2'
-        sra_port:
-          - 8888
-          - 9999
-          - 8800
-    - name: Disable support remote assistance
-      ibm_svc_manage_sra:
-        clustername: "{{ clustername }}"
-        domain: "{{ domain }}"
-        token: "{{ result.token }}"
-        log_path: "{{ log_path }}"
-        support: remote
-        state: disabled
-        name:
-          - proxy_1
-          - proxy_2
-          - proxy_3
+- name: Enable support remote assistance
+  ibm.spectrum_virtualize.ibm_svc_manage_sra:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: "{{ log_path }}"
+    support: remote
+    state: enabled
+    name:
+      - proxy_1
+      - proxy_2
+      - proxy_3
+    sra_ip:
+      - '0.0.0.0'
+      - '1.1.1.1'
+      - '2.1.2.2'
+    sra_port:
+      - 8888
+      - 9999
+      - 8800
+- name: Disable support remote assistance
+  ibm.spectrum_virtualize.ibm_svc_manage_sra:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: "{{ log_path }}"
+    support: remote
+    state: disabled
+    name:
+      - proxy_1
+      - proxy_2
+      - proxy_3
 '''
 
 RETURN = '''#'''

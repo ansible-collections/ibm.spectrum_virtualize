@@ -120,68 +120,52 @@ author:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection for data replication
-  hosts: localhost
-  gather_facts: no
-  vars:
-    clustername: x.x.x.x
-    username: username
-    password: password
-    remotecluster: 0000020321E04566
-  collections:
-    - ibm.spectrum_virtualize
-  connection: local
-  tasks:
-    - name: Create remote copy
-      ibm_svc_manage_replication:
-        name: sample_rcopy
-        clustername: "{{clustername}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/ansible.log
-        state: present
-        remotecluster: "{{remotecluster}}"
-        master: SourceVolume0
-        aux: TargetVolume0
-        copytype: global
-        sync: true
-        consistgrp: sample_rccg
-      register: result
-
-    - name: Exclude the remote copy from consistency group
-      ibm_svc_manage_replication:
-        name: sample_rcopy2
-        clustername: "{{clustername}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/ansible.log
-        state: present
-        noconsistgrp: true
-
-    - name: Delete remote copy
-      ibm_svc_manage_replication:
-        name: sample_rcopy3
-        clustername: "{{clustername}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/ansible.log
-        state: absent
-
-    - name: Create GlobalMirror remote copy relationship with change volume
-      ibm_svc_manage_replication:
-        name: sample_rcopy4
-        clustername: "{{clustername}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/ansible.log
-        state: present
-        remotecluster: "{{remotecluster}}"
-        master: SourceVolume1
-        aux: TargetVolume1
-        copytype: GMCV
-        sync: true
-      register: result
-
+- name: Create remote copy
+  ibm.spectrum_virtualize.ibm_svc_manage_replication:
+    name: sample_rcopy
+    clustername: "{{clustername}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/ansible.log
+    state: present
+    remotecluster: "{{remotecluster}}"
+    master: SourceVolume0
+    aux: TargetVolume0
+    copytype: global
+    sync: true
+    consistgrp: sample_rccg
+  register: result
+- name: Exclude the remote copy from consistency group
+  ibm.spectrum_virtualize.ibm_svc_manage_replication:
+    name: sample_rcopy2
+    clustername: "{{clustername}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/ansible.log
+    state: present
+    noconsistgrp: true
+- name: Delete remote copy
+  ibm.spectrum_virtualize.ibm_svc_manage_replication:
+    name: sample_rcopy3
+    clustername: "{{clustername}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/ansible.log
+    state: absent
+- name: Create GlobalMirror remote copy relationship with change volume
+  ibm.spectrum_virtualize.ibm_svc_manage_replication:
+    name: sample_rcopy4
+    clustername: "{{clustername}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/ansible.log
+    state: present
+    remotecluster: "{{remotecluster}}"
+    master: SourceVolume1
+    aux: TargetVolume1
+    copytype: GMCV
+    sync: true
+  register: result
 '''
 
 RETURN = '''#'''

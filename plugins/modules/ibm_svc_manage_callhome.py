@@ -59,35 +59,35 @@ options:
         description:
             - Specifies the proxy type.
             - Required when I(state=enabled), to create or modify Call Home feature.
-            - Proxy gets deleted for C(proxy_type=no_proxy).
-            - The parameter is mandatory when C(callhome_type='cloud services')) or C(callhome_type='both').
+            - Proxy gets deleted for I(proxy_type=no_proxy).
+            - The parameter is mandatory when I(callhome_type='cloud services')) or I(callhome_type='both').
         choices: [ open_proxy, basic_authentication, certificate, no_proxy ]
         type: str
     proxy_url:
         description:
             - Specifies the proxy server URL with a protocol prefix in fully qualified domain name format.
-            - Applies when I(state=enabled) and C(proxy_type=open_proxy) or C(proxy_type=basic_authentication).
+            - Applies when I(state=enabled) and I(proxy_type=open_proxy) or I(proxy_type=basic_authentication).
         type: str
     proxy_port:
         description:
             - Specifies the proxy server port number.
               The value must be in the range 1 - 65535.
-            - Applies when I(state=enabled) and C(proxy_type=open_proxy) or C(proxy_type=basic_authentication).
+            - Applies when I(state=enabled) and I(proxy_type=open_proxy) or I(proxy_type=basic_authentication).
         type: int
     proxy_username:
         description:
             - Specifies the proxy's username.
-            - Applies when I(state=enabled) and C(proxy_type=basic_authentication).
+            - Applies when I(state=enabled) and I(proxy_type=basic_authentication).
         type: str
     proxy_password:
         description:
             - Specifies the proxy's password.
-            - Applies when I(state=enabled) and C(proxy_type=basic_authentication).
+            - Applies when I(state=enabled) and I(proxy_type=basic_authentication).
         type: str
     sslcert:
         description:
             - Specifies the file path of proxy's certificate.
-            - Applies when I(state=enabled) and C(proxy_type=certificate).
+            - Applies when I(state=enabled) and I(proxy_type=certificate).
         type: str
     company_name:
         description:
@@ -147,13 +147,13 @@ options:
     serverIP:
         description:
             - Specifies the IP address of the email server.
-            - Required when I(state=enabled) and C(callhome_type=email) or C(callhome_type=both).
+            - Required when I(state=enabled) and I(callhome_type=email) or I(callhome_type=both).
         type: str
     serverPort:
         description:
             - Specifies the port number of the email server.
             - The value must be in the range 1 - 65535.
-            - Required when I(state=enabled) and C(callhome_type=email) or C(callhome_type=both).
+            - Required when I(state=enabled) and I(callhome_type=email) or I(callhome_type=both).
         type: int
     inventory:
         description:
@@ -199,42 +199,33 @@ notes:
 '''
 
 EXAMPLES = '''
----
-- name: Using IBM Spectrum Virtualize collection to enable Call Home feature.
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Configure callhome with both email and cloud
-      ibm_svc_manage_callhome:
-        clustername: "{{ clustername }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        log_path: "/tmp/playbook.debug"
-        state: "enabled"
-        callhome_type: "both"
-        address: "{{ address }}"
-        city: "{{ city }}"
-        company_name: "{{ company_name }}"
-        contact_email: "{{ contact_email }}"
-        contact_name: "{{ contact_name }}"
-        country: "{{ country }}"
-        location: "{{ location }}"
-        phonenumber_primary: "{{ primary_phonenumber }}"
-        postalcode: "{{ postal_code }}"
-        province: "{{ province }}"
-        proxy_type: "{{ proxy_type }}"
-        proxy_url: "{{ proxy_url }}"
-        proxy_port: "{{ proxy_port }}"
-        serverIP: "{{ server_ip }}"
-        serverPort: "{{ server_port }}"
-        inventory: "on"
-        invemailinterval: 1
-        enhancedcallhome: "on"
-        censorcallhome: "on"
-
+- name: Configure callhome with both email and cloud
+  ibm.spectrum_virtualize.ibm_svc_manage_callhome:
+    clustername: "{{ clustername }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: "/tmp/playbook.debug"
+    state: "enabled"
+    callhome_type: "both"
+    address: "{{ address }}"
+    city: "{{ city }}"
+    company_name: "{{ company_name }}"
+    contact_email: "{{ contact_email }}"
+    contact_name: "{{ contact_name }}"
+    country: "{{ country }}"
+    location: "{{ location }}"
+    phonenumber_primary: "{{ primary_phonenumber }}"
+    postalcode: "{{ postal_code }}"
+    province: "{{ province }}"
+    proxy_type: "{{ proxy_type }}"
+    proxy_url: "{{ proxy_url }}"
+    proxy_port: "{{ proxy_port }}"
+    serverIP: "{{ server_ip }}"
+    serverPort: "{{ server_port }}"
+    inventory: "on"
+    invemailinterval: 1
+    enhancedcallhome: "on"
+    censorcallhome: "on"
 '''
 
 RETURN = '''#'''

@@ -86,65 +86,50 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create and configure master change volume
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create master change volume and associate with rcopy
-      ibm_svc_manage_cv:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        state: present
-        rname: sample_rcopy
-        cvname: vol1_cv
-        basevolume: vol1
-    - name: Create auxiliary change volume and associate with rcopy
-      ibm_svc_manage_cv:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        state: present
-        rname: sample_rcopy
-        cvname: vol2_aux_cv
-        basevolume: vol2
-        ismaster: false
-
-- name: Using Spectrum Virtualize collection to delete a change volume
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete master change volume and disassociate from rcopy
-      ibm_svc_manage_cv:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        state: absent
-        rname: sample_rcopy
-        cvname: vol1_cv
-    - name: Delete auxiliary change volume and disassociate from rcopy
-      ibm_svc_manage_cv:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        state: absent
-        rname: sample_rcopy
-        cvname: vol2_aux_cv
-        ismaster: false
+- name: Create master change volume and associate with rcopy
+  ibm.spectrum_virtualize.ibm_svc_manage_cv:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    state: present
+    rname: sample_rcopy
+    cvname: vol1_cv
+    basevolume: vol1
+- name: Create auxiliary change volume and associate with rcopy
+  ibm.spectrum_virtualize.ibm_svc_manage_cv:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    state: present
+    rname: sample_rcopy
+    cvname: vol2_aux_cv
+    basevolume: vol2
+    ismaster: false
+- name: Delete master change volume and disassociate from rcopy
+  ibm.spectrum_virtualize.ibm_svc_manage_cv:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    state: absent
+    rname: sample_rcopy
+    cvname: vol1_cv
+- name: Delete auxiliary change volume and disassociate from rcopy
+  ibm.spectrum_virtualize.ibm_svc_manage_cv:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    state: absent
+    rname: sample_rcopy
+    cvname: vol2_aux_cv
+    ismaster: false
 '''
 
 RETURN = '''#'''
