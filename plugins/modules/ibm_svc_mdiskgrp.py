@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
-#
+#            Sanjaikumaar M <sanjaikumaar.m@ibm.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
@@ -92,6 +92,20 @@ options:
       - Parentmdiskgrp for subpool.
       - Applies when I(state=present), to create a pool.
     type: str
+  safeguarded:
+    description:
+      - Specify to create a safeguarded child pool.
+      - Applicable only during child pool creation.
+    type: bool
+    version_added: 1.8.0
+  noquota:
+    description:
+      - Specify to create a data reduction child pool.
+      - I(noquota) and I(size) parameters are mutually exclusive.
+      - I(noquota) parameter must be used with I(datareduction) set to yes to create a data reduction child pool.
+      - I(noquota) parameter must be used with I(parentmdiskgrp) in a parent data reduction storage pool.
+    type: bool
+    version_added: 1.8.0
   unit:
     description:
       - Unit for subpool.
@@ -105,47 +119,53 @@ options:
     type: int
 author:
     - Peng Wang(@wangpww)
+    - Sanjaikumaar M (@sanjaikumaar)
 notes:
     - This module supports C(check_mode).
 '''
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create a pool
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Make mdisk group
-      ibm_svc_mdiskgrp:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        name: pool1
-        state: present
-        datareduction: no
-        easytier: auto
-        encrypt: no
-        ext: 1024
-
-- name: Using Spectrum Virtualize collection to delete a pool
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete mdisk group
-      ibm_svc_mdiskgrp:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        name: pool1
-        state: absent
-
+- name: Create mdisk group
+  ibm.spectrum_virtualize.ibm_svc_mdiskgrp:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    name: pool1
+    state: present
+    datareduction: no
+    easytier: auto
+    encrypt: no
+    ext: 1024
+- name: Create a safeguarded backup location
+  ibm.spectrum_virtualize.ibm_svc_mdiskgrp:
+    clustername: "{{clustername}}"
+    token: "{{results.token}}"
+    log_path: "{{log_path}}"
+    parentmdiskgrp: Pool1
+    name: Pool1child1
+    datareduction: 'yes'
+    safeguarded: True
+    ext: 1024
+    noquota: True
+    state: present
+- name: Delete mdisk group
+  ibm.spectrum_virtualize.ibm_svc_mdiskgrp:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    name: pool1
+    state: absent
+- name: Delete a safeguarded backup location
+  ibm.spectrum_virtualize.ibm_svc_mdiskgrp:
+    clustername: "{{clustername}}"
+    token: "{{results.token}}"
+    log_path: "{{log_path}}"
+    parentmdiskgrp: Pool1
+    name: Pool1child1
+    state: absent
 '''
+
 RETURN = '''#'''
 
 from traceback import format_exc
@@ -170,6 +190,8 @@ class IBMSVCmdiskgrp(object):
                 encrypt=dict(type='str', default='no', choices=['yes', 'no']),
                 ext=dict(type='int'),
                 parentmdiskgrp=dict(type='str'),
+                safeguarded=dict(type='bool'),
+                noquota=dict(type='bool'),
                 size=dict(type='int'),
                 unit=dict(type='str')
             )
@@ -194,6 +216,8 @@ class IBMSVCmdiskgrp(object):
         self.easytier = self.module.params.get('easytier', None)
         self.encrypt = self.module.params.get('encrypt', None)
         self.ext = self.module.params.get('ext', None)
+        self.safeguarded = self.module.params.get('safeguarded', False)
+        self.noquota = self.module.params.get('noquota', False)
 
         self.parentmdiskgrp = self.module.params.get('parentmdiskgrp', None)
         self.size = self.module.params.get('size', None)
@@ -233,6 +257,10 @@ class IBMSVCmdiskgrp(object):
         if not self.ext:
             self.module.fail_json(msg="You must pass the ext to the module.")
 
+        if self.noquota or self.safeguarded:
+            if not self.parentmdiskgrp:
+                self.module.fail_json(msg='Required parameter missing: parentmdiskgrp')
+
         if self.module.check_mode:
             self.changed = True
             return
@@ -243,15 +271,19 @@ class IBMSVCmdiskgrp(object):
                 cmdopts['size'] = self.size
             if self.unit:
                 cmdopts['unit'] = self.unit
+            if self.safeguarded:
+                cmdopts['safeguarded'] = self.safeguarded
+            if self.noquota:
+                cmdopts['noquota'] = self.noquota
         else:
-            if self.datareduction:
-                cmdopts['datareduction'] = self.datareduction
             if self.easytier:
                 cmdopts['easytier'] = self.easytier
             if self.encrypt:
                 cmdopts['encrypt'] = self.encrypt
             if self.ext:
                 cmdopts['ext'] = str(self.ext)
+        if self.datareduction:
+            cmdopts['datareduction'] = self.datareduction
         cmdopts['name'] = self.name
         self.log("creating mdisk group command %s opts %s", cmd, cmdopts)
 

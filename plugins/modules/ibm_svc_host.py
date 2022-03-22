@@ -122,84 +122,53 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create an iSCSI host
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Define a new iSCSI host
-      ibm_svc_host:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: host4test
-        state: present
-        iscsiname: iqn.1994-05.com.redhat:2e358e438b8a
-        iogrp: 0:1:2:3
-        protocol: scsi
-        type: generic
-        site: site-name
-
-- name: Using Spectrum Virtualize collection to add a host to a host cluster
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Add a host to an existing host cluster
-      ibm_svc_host:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: host4test
-        state: present
-        hostcluster: hostcluster0
-
-- name: Using Spectrum Virtualize collection to create FC host
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Define a new FC host
-      ibm_svc_host:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: host4test
-        state: present
-        fcwwpn: 100000109B570216:1000001AA0570266
-        iogrp: 0:1:2:3
-        protocol: scsi
-        type: generic
-        site: site-name
-
-- name: Using Spectrum Virtualize collection to delete a host
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete a host
-      ibm_svc_host:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: host4test
-        state: absent
+- name: Define a new iSCSI host
+  ibm.spectrum_virtualize.ibm_svc_host:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: host4test
+    state: present
+    iscsiname: iqn.1994-05.com.redhat:2e358e438b8a
+    iogrp: 0:1:2:3
+    protocol: scsi
+    type: generic
+    site: site-name
+- name: Add a host to an existing host cluster
+  ibm.spectrum_virtualize.ibm_svc_host:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: host4test
+    state: present
+    hostcluster: hostcluster0
+- name: Define a new FC host
+  ibm.spectrum_virtualize.ibm_svc_host:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: host4test
+    state: present
+    fcwwpn: 100000109B570216:1000001AA0570266
+    iogrp: 0:1:2:3
+    protocol: scsi
+    type: generic
+    site: site-name
+- name: Delete a host
+  ibm.spectrum_virtualize.ibm_svc_host:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: host4test
+    state: absent
 '''
 
 RETURN = '''#'''

@@ -87,45 +87,29 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using the IBM Spectrum Virtualize collection to create a user group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create a user group
-      ibm_svc_manage_usergroup:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        state: present
-        name: user-group-name
-        role: Monitor
-        ownershipgroup: ownershipgroup-name
-
-- name: Using the IBM Spectrum Virtualize collection to remove a user group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Remove a user group
-      ibm_svc_manage_usergroup:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        state: absent
-        name: user-group-name
-
+- name: Create a user group
+  ibm.spectrum_virtualize.ibm_svc_manage_usergroup:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    state: present
+    name: user-group-name
+    role: Monitor
+    ownershipgroup: ownershipgroup-name
+- name: Remove a user group
+  ibm.spectrum_virtualize.ibm_svc_manage_usergroup:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    state: absent
+    name: user-group-name
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

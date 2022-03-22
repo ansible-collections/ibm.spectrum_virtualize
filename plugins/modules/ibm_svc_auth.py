@@ -58,33 +58,26 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create a volume
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Obtain an authentication token
-      register: result
-      ibm_svc_auth:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-    - name: Create a volume
-      ibm_svc_vdisk:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        token: "{{result.token}}"
-        name: volume0
-        state: present
-        mdiskgrp: Pool0
-        easytier: 'off'
-        size: "4294967296"
-        unit: b
+- name: Obtain an authentication token
+  register: result
+  ibm.spectrum_virtualize.ibm_svc_auth:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+- name: Create a volume
+  ibm.spectrum_virtualize.ibm_svc_vdisk:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    token: "{{result.token}}"
+    name: volume0
+    state: present
+    mdiskgrp: Pool0
+    easytier: 'off'
+    size: "4294967296"
+    unit: b
 '''
 
 RETURN = '''

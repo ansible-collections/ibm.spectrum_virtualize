@@ -58,7 +58,7 @@ options:
     keepobjects:
         description:
             - If specified, the objects that currently belong to the ownership group will be kept but will be moved to noownershipgroup.
-            - Applies when C(state=disabled).
+            - Applies when I(state=disabled).
         type: bool
     log_path:
         description:
@@ -76,40 +76,25 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create an ownership group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create ownership group
-      ibm_svc_manage_ownershipgroup:
-        clustername: "{{ clustername }}"
-        domain: "{{ domain }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        log_path: /tmp/playbook.debug
-        name: newOwner
-        state: present
-
-- name: Using Spectrum Virtualize collection to delete an ownership group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete ownership group
-      ibm_svc_manage_ownershipgroup:
-        clustername: "{{ clustername }}"
-        domain: "{{ domain }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        log_path: /tmp/playbook.debug
-        name: newOwner
-        state: absent
-        keepobjects: true
+- name: Create ownership group
+  ibm.spectrum_virtualize.ibm_svc_manage_ownershipgroup:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: /tmp/playbook.debug
+    name: newOwner
+    state: present
+- name: Delete ownership group
+  ibm.spectrum_virtualize.ibm_svc_manage_ownershipgroup:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: /tmp/playbook.debug
+    name: newOwner
+    state: absent
+    keepobjects: true
 '''
 
 RETURN = '''#'''

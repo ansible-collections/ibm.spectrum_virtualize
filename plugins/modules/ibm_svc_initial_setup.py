@@ -140,71 +140,48 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to perform initial setup on FlashSystem 9200
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Initial configuration on FlashSystem 9200
-      ibm_svc_initial_setup:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        system_name: cluster_test_0
-        time: 101009142021
-        timezone: 200
-        remote: 50
-        virtualization: 50
-        flash: 50
-        license_key:
-          - 0123-4567-89AB-CDEF
-          - 8921-4567-89AB-GHIJ
-
-- name: Using Spectrum Virtualize collection to set DNS servers
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Add DNS servers
-      ibm_svc_initial_setup:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        system_name: cluster_test_
-        dnsname:
-          - dns_01
-          - dns_02
-        dnsip:
-          - '1.1.1.1'
-          - '2.2.2.2'
-
-- name: Using Spectrum Virtualize collection to delete DNS servers
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete dns_02 server
-      ibm_svc_initial_setup:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        system_name: cluster_test_
-        dnsname:
-          - dns_01
-        dnsip:
-          - '1.1.1.1'
+- name: Initial configuration on FlashSystem 9200
+  ibm.spectrum_virtualize.ibm_svc_initial_setup:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    system_name: cluster_test_0
+    time: 101009142021
+    timezone: 200
+    remote: 50
+    virtualization: 50
+    flash: 50
+    license_key:
+      - 0123-4567-89AB-CDEF
+      - 8921-4567-89AB-GHIJ
+- name: Add DNS servers
+  ibm.spectrum_virtualize.ibm_svc_initial_setup:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    system_name: cluster_test_
+    dnsname:
+      - dns_01
+      - dns_02
+    dnsip:
+      - '1.1.1.1'
+      - '2.2.2.2'
+- name: Delete dns_02 server
+  ibm.spectrum_virtualize.ibm_svc_initial_setup:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    system_name: cluster_test_
+    dnsname:
+      - dns_01
+    dnsip:
+      - '1.1.1.1'
 '''
 
 RETURN = '''#'''
