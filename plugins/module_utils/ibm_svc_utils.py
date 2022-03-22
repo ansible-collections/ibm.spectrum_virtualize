@@ -1,8 +1,7 @@
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
 #
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 """ Support class for IBM SVC ansible modules """
 
@@ -65,7 +64,7 @@ def get_logger(module_name, log_file_name, log_level=logging.INFO):
 
 
 class IBMSVCRestApi(object):
-    """ Communicate with SVC via RestApi
+    """ Communicate with SVC through RestApi
     SVC commands usually have the format
     $ command -opt1 value1 -opt2 value2 arg1 arg2 arg3
     to use the RestApi we transform this into
@@ -99,7 +98,7 @@ class IBMSVCRestApi(object):
         log = get_logger(self.__class__.__name__, log_path)
         self.log = log.info
 
-        # Make sure we can connect via the RestApi
+        # Make sure we can connect through the RestApi
         if self.token is None:
             if not self.username or not self.password:
                 self.module.fail_json(msg="You must pass in either pre-acquired token"
@@ -267,7 +266,7 @@ class IBMSVCRestApi(object):
         return rest['out']
 
     def svc_obj_info(self, cmd, cmdopts, cmdargs):
-        """ Obtain information about an SVC object via the ls command
+        """ Obtain information about an SVC object through the ls command
         :param cmd: svc command to run
         :type cmd: string
         :param cmdopts: svc command options, name parameter and value
@@ -295,10 +294,10 @@ class IBMSVCRestApi(object):
         return rest['out']
 
     def get_auth_token(self):
-        """ Obtain information about an SVC object via the ls command
+        """ Obtain information about an SVC object through the ls command
         :returns: authentication token
         """
-        # Make sure we can connect via the RestApi
+        # Make sure we can connect through the RestApi
         self.token = self._svc_authorize()
         self.log("_connect by using token")
         if not self.token:
