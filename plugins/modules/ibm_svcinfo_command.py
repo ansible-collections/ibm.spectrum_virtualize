@@ -8,10 +8,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'community'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svcinfo_command
@@ -33,7 +29,7 @@ options:
     type: str
   usesshkey:
     description:
-    - For key-pair based SSH connection, set this field as "yes".
+    - For key-pair based SSH connection, set this field as C('yes').
       Provide full path of keyfile in key_filename field.
       If not provided, default path of SSH key is used.
     type: str
@@ -41,7 +37,7 @@ options:
     default: 'no'
   key_filename:
     description:
-    - SSH client private key filename. By default, ~/.ssh/id_rsa is used.
+    - SSH client private key filename. By default, C(~/.ssh/id_rsa) is used.
     type: str
   clustername:
     description:
@@ -63,45 +59,29 @@ options:
     description:
     - Path of debug log file.
     type: str
+notes:
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to run svcinfo CLI command
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  vars:
-    - user: user1
-  tasks:
-    - name: Run svcinfo CLI command using SSH client with password
-      ibm_svcinfo_command:
-        command: "svcinfo lsuser {{user}}"
-        clustername: "{{clustername}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/ansible.log
-
-- name: Using Spectrum Virtualize collection to run svcinfo CLI command using passwordless SSH connection
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Run svcinfo CLI command using passwordless SSH Client
-      ibm_svcinfo_command:
-        command: "svcinfo lsuser"
-        usesshkey: "yes"
-        clustername: "{{clustername}}"
-        username: "{{username}}"
-        password:
-        log_path: /tmp/ansible.log
+- name: Run svcinfo CLI command using SSH client with password
+  ibm.spectrum_virtualize.ibm_svcinfo_command:
+    command: "svcinfo lsuser {{user}}"
+    clustername: "{{clustername}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/ansible.log
+- name: Run svcinfo CLI command using passwordless SSH Client
+  ibm.spectrum_virtualize.ibm_svcinfo_command:
+    command: "svcinfo lsuser"
+    usesshkey: "yes"
+    clustername: "{{clustername}}"
+    username: "{{username}}"
+    password:
+    log_path: /tmp/ansible.log
 '''
 
-RETURN = '''
-'''
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

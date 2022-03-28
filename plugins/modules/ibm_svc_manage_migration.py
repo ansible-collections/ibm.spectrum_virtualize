@@ -8,10 +8,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_migration
@@ -23,12 +19,12 @@ options:
   source_volume:
     description:
       - Specifies the name of the existing source volume to be used in migration.
-      - Required when C(state=initiate) or C(state=cleanup).
+      - Required when I(state=initiate) or I(state=cleanup).
     type: str
   target_volume:
     description:
       - Specifies the name of the volume to be created on the target system.
-      - Required when C(state=initiate).
+      - Required when I(state=initiate).
     type: str
   clustername:
     description:
@@ -38,7 +34,7 @@ options:
   remote_cluster:
     description:
     - Specifies the name of the remote cluster.
-    - Required when C(state=initiate).
+    - Required when I(state=initiate).
     type: str
   domain:
     description:
@@ -65,11 +61,11 @@ options:
     description:
     - REST API password for the partner Spectrum Virtualize storage system.
     - The parameters I(remote_username) and I(remote_password) are required if not using I(remote_token) to authenticate a user on the partner system.
-    - Valid when C(state=initiate).
+    - Valid when I(state=initiate).
     type: str
   relationship_name:
     description:
-    - Name of the migration relationship. Required when C(state=initiate) or C(state=switch).
+    - Name of the migration relationship. Required when I(state=initiate) or I(state=switch).
     type: str
   state:
     description:
@@ -89,12 +85,12 @@ options:
     description:
     - The authentication token to verify a user on the partner Spectrum Virtualize storage system.
     - To generate a token, use the ibm_svc_auth module.
-      Valid when C(state=initiate).
+      Valid when I(state=initiate).
     type: str
   remote_pool:
     description:
     - Specifies the pool on which the volume on Partner Spectrum Virtualize storage system should get created.
-    - Required when C(state=initiate).
+    - Required when I(state=initiate).
     type: str
   validate_certs:
     description:
@@ -104,7 +100,7 @@ options:
   remote_validate_certs:
     description:
     - Validates certification for partner Spectrum Virtualize storage system.
-    - Valid when C(state=initiate).
+    - Valid when I(state=initiate).
     default: false
     type: bool
   replicate_hosts:
@@ -112,7 +108,7 @@ options:
     - Replicates the hosts mapped to a source volume on the source system, to the target system, and maps the hosts to the target volume. The
       user can use ibm_svc_host and ibm_svc_vol_map modules to create and map hosts to the target volume for an
       existing migration relationship.
-    - Valid when C(state=initiate).
+    - Valid when I(state=initiate).
     default: false
     type: bool
   log_path:
@@ -126,67 +122,44 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to initiate migration
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create a target volume
-            Create a relationship
-            Replicate hosts from source volume to target volume
-            Start a relationship
-      ibm_svc_manage_migration:
-        source_volume: "src_vol"
-        target_volume: "target_vol"
-        clustername: "{{ source_cluster }}"
-        remote_cluster: "{{ remote_cluster }}"
-        token: "{{ source_cluster_token }}"
-        state: initiate
-        replicate_hosts: true
-        remote_token: "{{ partner_cluster_token }}"
-        relationship_name: "migrate_vol"
-        log_path: /tmp/ansible.log
-        remote_pool: "{{ remote_pool }}"
-
-- name: Using Spectrum Virtualize collection to switch migration relationship
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Switch replication direction
-      ibm_svc_manage_migration:
-        relationship_name: "migrate_vol"
-        clustername: "{{ source_cluster }}"
-        token: "{{ source_cluster_token }}"
-        state: switch
-        log_path: /tmp/ansible.log
-
-- name: Using Spectrum Virtualize collection to cleanup migration
-  hosts: localhost
-  collections: ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete source volume and migration relationship
-      ibm_svc_manage_migration:
-        clustername: "{{ source_cluster }}"
-        state: cleanup
-        source_volume: "src_vol"
-        token: "{{ source_cluster_token }}"
-        log_path : /tmp/ansible.log
+- name: Create a target volume
+        Create a relationship
+        Replicate hosts from source volume to target volume
+        Start a relationship
+  ibm.spectrum_virtualize.ibm_svc_manage_migration:
+    source_volume: "src_vol"
+    target_volume: "target_vol"
+    clustername: "{{ source_cluster }}"
+    remote_cluster: "{{ remote_cluster }}"
+    token: "{{ source_cluster_token }}"
+    state: initiate
+    replicate_hosts: true
+    remote_token: "{{ partner_cluster_token }}"
+    relationship_name: "migrate_vol"
+    log_path: /tmp/ansible.log
+    remote_pool: "{{ remote_pool }}"
+- name: Switch replication direction
+  ibm.spectrum_virtualize.ibm_svc_manage_migration:
+    relationship_name: "migrate_vol"
+    clustername: "{{ source_cluster }}"
+    token: "{{ source_cluster_token }}"
+    state: switch
+    log_path: /tmp/ansible.log
+- name: Delete source volume and migration relationship
+  ibm.spectrum_virtualize.ibm_svc_manage_migration:
+    clustername: "{{ source_cluster }}"
+    state: cleanup
+    source_volume: "src_vol"
+    token: "{{ source_cluster_token }}"
+    log_path : /tmp/ansible.log
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi, svc_argument_spec, get_logger
 from ansible.module_utils._text import to_native
-import json
 
 
 class IBMSVCMigrate(object):
@@ -342,7 +315,6 @@ class IBMSVCMigrate(object):
             host_wwpn_list = []
             host_iscsi_list = []
             self.log("for host %s", host)
-            cmd = "lshost"
             data = self.restapi.svc_obj_info(cmd='lshost', cmdopts=None, cmdargs=[host])
             nodes_data = data['nodes']
             for node in nodes_data:
@@ -373,7 +345,6 @@ class IBMSVCMigrate(object):
                 source_host_list.append(host)
 
         cmd = 'mkhost'
-        host_list = []
         for host, wwpn in hosts_wwpn.items():
             if host not in remote_hosts_list:
                 cmdopts = {'name': host, 'force': True}
@@ -493,7 +464,7 @@ class IBMSVCMigrate(object):
         elif source_data and not target_data:
             self.vdisk_create(source_data)
             self.log("Target volume successfully created")
-            changed = True
+            self.changed = True
 
     def discover_partner_system(self):
         cmd = 'lspartnership'
@@ -587,7 +558,6 @@ class IBMSVCMigrate(object):
         return self.existing_rel_data
 
     def verify_existing_rel(self, rel_data):
-        error_msg = []
         if self.existing_rel_data:
             master_volume, aux_volume = rel_data['master_vdisk_name'], rel_data['aux_vdisk_name']
             primary, remotecluster, rel_type = rel_data['primary'], rel_data['aux_cluster_name'], rel_data['copy_type']

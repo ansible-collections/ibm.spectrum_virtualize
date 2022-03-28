@@ -7,10 +7,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'community'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_mdisk
@@ -59,7 +55,7 @@ options:
   drive:
     description:
       - Drive(s) to use as members of the RAID array.
-      - Required when C(state=present), to create an MDisk array.
+      - Required when I(state=present), to create an MDisk array.
     type: str
   mdiskgrp:
     description:
@@ -78,13 +74,13 @@ options:
   level:
     description:
       - Specifies the RAID level.
-      - Required when C(state=present), to create an MDisk array.
+      - Required when I(state=present), to create an MDisk array.
     type: str
     choices: ['raid0', 'raid1', 'raid5', 'raid6', 'raid10']
   encrypt:
     description:
       - Defines use of encryption with the MDisk group.
-      - Applies when C(state=present).
+      - Applies when I(state=present).
     type: str
     default: 'no'
     choices: ['yes', 'no']
@@ -93,46 +89,32 @@ author:
 notes:
     - This module supports C(check_mode).
 '''
-EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create a new MDisk array
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create MDisk and name as mdisk20
-      ibm_svc_mdisk:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        name: mdisk20
-        state: present
-        level: raid0
-        drive: '5:6'
-        encrypt: no
-        mdiskgrp: pool20
 
-- name: Using Spectrum Virtualize collection to delete an MDisk array
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete MDisk named mdisk20
-      ibm_svc_mdisk:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        name: mdisk20
-        state: absent
-        mdiskgrp: pool20
+EXAMPLES = '''
+- name: Create MDisk and name as mdisk20
+  ibm.spectrum_virtualize.ibm_svc_mdisk:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    name: mdisk20
+    state: present
+    level: raid0
+    drive: '5:6'
+    encrypt: no
+    mdiskgrp: pool20
+- name: Delete MDisk named mdisk20
+  ibm.spectrum_virtualize.ibm_svc_mdisk:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    name: mdisk20
+    state: absent
+    mdiskgrp: pool20
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

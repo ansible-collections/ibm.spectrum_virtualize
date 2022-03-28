@@ -10,10 +10,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_vol_map
@@ -41,7 +37,7 @@ options:
   scsi:
     description:
       - Specifies the SCSI logical unit number (LUN) ID to assign to a volume on the specified host or host cluster.
-      - Applies when C(state=present).
+      - Applies when I(state=present).
     type: int
   state:
     description:
@@ -91,45 +87,30 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to map a volume to a host
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Map a volume to a host
-      ibm_svc_vol_map:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        volname: volume0
-        host: host4test
-        scsi: 1
-        state: present
+- name: Map a volume to a host
+  ibm.spectrum_virtualize.ibm_svc_vol_map:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    volname: volume0
+    host: host4test
+    scsi: 1
+    state: present
+- name: Unmap a volume from a host
+  ibm.spectrum_virtualize.ibm_svc_vol_map:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    volname: volume0
+    host: host4test
+    state: absent
+'''
 
-- name: Using Spectrum Virtualize collection to unmap a volume from a host
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Unmap a volume from a host
-      ibm_svc_vol_map:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        volname: volume0
-        host: host4test
-        state: absent
-'''
-RETURN = '''
-'''
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

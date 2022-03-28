@@ -9,10 +9,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_user
@@ -60,50 +56,50 @@ options:
     user_password:
         description:
             - Specifies the password associated with the user.
-            - Applies when C(state=present).
+            - Applies when I(state=present).
         type: str
     nopassword:
         description:
             - Specifies that the user's password is to be deleted.
-            - Applies when C(state=present), to modify a user.
+            - Applies when I(state=present), to modify a user.
         type: bool
     keyfile:
         description:
             - Specifies the name of the file containing the Secure Shell (SSH) public key.
-            - Applies when C(state=present).
+            - Applies when I(state=present).
         type: str
     nokey:
         description:
             - Specifies that the user's SSH key is to be deleted.
-            - Applies when C(state=present), to modify a user.
+            - Applies when I(state=present), to modify a user.
         type: bool
     auth_type:
         description:
             - Specifies whether the user authenticates to the system using a remote authentication service or system authentication methods.
             - Only supported value is 'usergrp'.
-            - Required when C(state=present), to create a user.
+            - Required when I(state=present), to create a user.
         choices: [ usergrp ]
         type: str
     usergroup:
         description:
             - Specifies the name of the user group with which the local user is to be associated.
-            - Applies when C(state=present) and C(auth_type=usergrp).
+            - Applies when I(state=present) and I(auth_type=usergrp).
         type: str
     forcepasswordchange:
         description:
             - Specifies that the password is to be changed on next login.
-            - Applies when C(state=present), to modify a user.
+            - Applies when I(state=present), to modify a user.
         type: bool
     lock:
         description:
             - Specifies to lock the account indefinitely. The user cannot log in unless unlocked again with the parameter I(unlock).
-            - Applies when C(state=present), to modify a user.
+            - Applies when I(state=present), to modify a user.
             - Parameters I(lock) and I(unlock) are mutually exclusive.
         type: bool
     unlock:
         description:
             - Specifies to unlock the account so it can be logged in to again.
-            - Applies when C(state=present), to modify a user.
+            - Applies when I(state=present), to modify a user.
             - Parameters I(lock) and I(unlock) are mutually exclusive.
         type: bool
     validate_certs:
@@ -122,46 +118,30 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using the IBM Spectrum Virtualize collection to create a user
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create a user
-      ibm_svc_manage_user:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        state: present
-        name: user-name
-        user_password: user-password
-        auth_type: usergrp
-        usergroup: usergroup-name
-
-- name: Using the IBM Spectrum Virtualize collection to remove a user
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Remove a user
-      ibm_svc_manage_user:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        state: absent
-        name: user-name
-
+- name: Create a user
+  ibm.spectrum_virtualize.ibm_svc_manage_user:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    state: present
+    name: user-name
+    user_password: user-password
+    auth_type: usergrp
+    usergroup: usergroup-name
+- name: Remove a user
+  ibm.spectrum_virtualize.ibm_svc_manage_user:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    state: absent
+    name: user-name
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

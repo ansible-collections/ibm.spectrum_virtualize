@@ -10,10 +10,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_replicationgroup
@@ -93,14 +89,14 @@ options:
     copytype:
         description:
             - Specifies the mirror type of the remote copy. 'metro' means MetroMirror, 'global' means GlobalMirror.
-            - If not specified, a MetroMirror remote copy will be created when creating a remote copy C(state=present).
+            - If not specified, a MetroMirror remote copy will be created when creating a remote copy I(state=present).
         type: str
         choices: [ 'metro', 'global' ]
     cyclingmode:
         description:
             - Specifies the behavior of Global Mirror for the relationship.
             - Active-active relationships and relationships with cycling modes set to Multiple must always be configured with change volumes.
-            - Applies when C(state=present) and C(copytype=global).
+            - Applies when I(state=present) and I(copytype=global).
         type: str
         choices: [ 'multi', 'none' ]
     cyclingperiod:
@@ -114,61 +110,39 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create rc consistency group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Define a new rc consistency group
-      ibm_svc_manage_replicationgroup:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: rccg4test
-        remotecluster: remotecluster
-        state: present
-- name: Using Spectrum Virtualize collection to delete rc consistency group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete rc consistency group
-      ibm_svc_manage_replicationgroup:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: rccg4test
-        force: true
-        state: absent
-- name: Using Spectrum Virtualize collection to update rc consistency group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Update rc consistency group
-      ibm_svc_manage_replicationgroup:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: rccg4test
-        cyclingperiod: 60
-        state: present
+- name: Define a new rc consistency group
+  ibm_svc_manage_replicationgroup:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: rccg4test
+    remotecluster: remotecluster
+    state: present
+- name: Delete rc consistency group
+  ibm_svc_manage_replicationgroup:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: rccg4test
+    force: true
+    state: absent
+- name: Update rc consistency group
+  ibm_svc_manage_replicationgroup:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: rccg4test
+    cyclingperiod: 60
+    state: present
 '''
 
-RETURN = '''
-'''
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

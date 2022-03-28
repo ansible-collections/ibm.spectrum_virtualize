@@ -7,10 +7,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'community'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svctask_command
@@ -65,52 +61,30 @@ options:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to run svctask CLI command using password
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  vars:
-    - volname: 'vol0'
-    - pool: 'pool0'
-    - easy_tier: 'off'
-    - unit: 'gb'
-    - size: 1
-  tasks:
-    - name: Run svctask CLI commands using SSH client with password
-      ibm_svctask_command:
-        command: [
-            "svctask mkvdisk -name {{ volname }} -mdiskgrp '{{ pool }}' -easytier '{{ easy_tier }}' -size {{ size }} -unit {{ unit }}",
-            "svctask rmvdisk {{ volname }}"
-        ]
-        clustername: "{{clustername}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/ansible.log
-
-- name: Using Spectrum Virtualize collection to run svctask CLI command using key
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Run svctask CLI command using passwordless SSH Client
-      ibm_svctask_command:
-        command: [
-            "svctask mkvdisk -name vol0 -mdiskgrp pool0 -easytier off -size 1 -unit gb",
-            "svctask rmvdisk vol0"
-        ]
-        clustername: "{{clustername}}"
-        username: "{{username}}"
-        password:
-        usesshkey: yes
-        log_path: /tmp/ansible.log
+- name: Run svctask CLI commands using SSH client with password
+  ibm.spectrum_virtualize.ibm_svctask_command:
+    command: [
+        "svctask mkvdisk -name {{ volname }} -mdiskgrp '{{ pool }}' -easytier '{{ easy_tier }}' -size {{ size }} -unit {{ unit }}",
+        "svctask rmvdisk {{ volname }}"
+    ]
+    clustername: "{{clustername}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/ansible.log
+- name: Run svctask CLI command using passwordless SSH Client
+  ibm.spectrum_virtualize.ibm_svctask_command:
+    command: [
+        "svctask mkvdisk -name vol0 -mdiskgrp pool0 -easytier off -size 1 -unit gb",
+        "svctask rmvdisk vol0"
+    ]
+    clustername: "{{clustername}}"
+    username: "{{username}}"
+    password:
+    usesshkey: yes
+    log_path: /tmp/ansible.log
 '''
 
-RETURN = '''
-'''
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

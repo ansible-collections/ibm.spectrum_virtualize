@@ -9,10 +9,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_flashcopy
@@ -62,53 +58,53 @@ options:
     copytype:
         description:
             - Specifies the copy type when creating the FlashCopy mapping.
-            - Required when C(state=present), to create a FlashCopy mapping.
+            - Required when I(state=present), to create a FlashCopy mapping.
         choices: [ snapshot, clone]
         type: str
     source:
         description:
             - Specifies the name of the source volume.
-            - Required when C(state=present), to create a FlashCopy mapping.
+            - Required when I(state=present), to create a FlashCopy mapping.
         type: str
     target:
         description:
             - Specifies the name of the target volume.
-            - Required when C(state=present), to create a FlashCopy mapping.
+            - Required when I(state=present), to create a FlashCopy mapping.
         type: str
     mdiskgrp:
         description:
             - Specifies the name of the storage pool to use when creating the target volume.
             - If unspecified, the pool associated with the source volume is used.
-            - Valid when C(state=present), to create a FlashCopy mapping.
+            - Valid when I(state=present), to create a FlashCopy mapping.
         type: str
     consistgrp:
         description:
             - Specifies the name of the consistency group to which the FlashCopy mapping is to be added.
             - Parameters I(consistgrp) and I(noconsistgrp) are mutually exclusive.
-            - Valid when C(state=present), to create or modify a FlashCopy mapping.
+            - Valid when I(state=present), to create or modify a FlashCopy mapping.
         type: str
     noconsistgrp:
         description:
             - If specified True, FlashCopy mapping is removed from the consistency group.
             - Parameters I(noconsistgrp) and I(consistgrp) are mutually exclusive.
-            - Valid when C(state=present), to modify a FlashCopy mapping.
+            - Valid when I(state=present), to modify a FlashCopy mapping.
         type: bool
     copyrate:
         description:
             - Specifies the copy rate. The rate varies between 0-150.
             - If unspecified, the default copy rate of 50 for clone and 0 for snapshot is used.
-            - Valid when C(state=present), to create or modify a FlashCopy mapping.
+            - Valid when I(state=present), to create or modify a FlashCopy mapping.
         type: str
     grainsize:
         description:
             - Specifies the grain size for the FlashCopy mapping.
             - The grainsize can be set to 64 or 256. The default value is 256.
-            - Valid when C(state=present), to create a FlashCopy mapping.
+            - Valid when I(state=present), to create a FlashCopy mapping.
         type: str
     force:
         description:
             - Brings the target volume online. This parameter is required if the FlashCopy mapping is in the stopped state.
-            - Valid when C(state=absent), to delete a FlashCopy mapping.
+            - Valid when I(state=absent), to delete a FlashCopy mapping.
         type: bool
     validate_certs:
         description:
@@ -126,92 +122,61 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using the IBM Spectrum Virtualize collection to create a FlashCopy mapping for snapshot
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create FlashCopy mapping for snapshot
-      ibm_svc_manage_flashcopy:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        state: present
-        name: snapshot-name
-        copytype: snapshot
-        source: source-volume-name
-        target: target-volume-name
-        mdiskgrp: Pool0
-        consistgrp: consistencygroup-name
-        copyrate: 50
-        grainsize: 64
-
-- name: Using the IBM Spectrum Virtualize collection to create a FlashCopy mapping for clone
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create FlashCopy mapping for clone
-      ibm_svc_manage_flashcopy:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        state: present
-        name: snapshot-name
-        copytype: clone
-        source: source-volume-name
-        target: target-volume-name
-        mdiskgrp: Pool0
-        consistgrp: consistencygroup-name
-        copyrate: 50
-        grainsize: 64
-
-- name: Using the IBM Spectrum Virtualize collection to delete a FlashCopy mapping for snapshot
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete FlashCopy mapping for snapshot
-      ibm_svc_manage_flashcopy:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: snapshot-name
-        state: absent
-        force: true
-
-- name: Using the IBM Spectrum Virtualize collection to delete a FlashCopy mapping for clone
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete FlashCopy mapping for clone
-      ibm_svc_manage_flashcopy:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: clone-name
-        state: absent
-        force: true
+- name: Create FlashCopy mapping for snapshot
+  ibm.spectrum_virtualize.ibm_svc_manage_flashcopy:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    state: present
+    name: snapshot-name
+    copytype: snapshot
+    source: source-volume-name
+    target: target-volume-name
+    mdiskgrp: Pool0
+    consistgrp: consistencygroup-name
+    copyrate: 50
+    grainsize: 64
+- name: Create FlashCopy mapping for clone
+  ibm.spectrum_virtualize.ibm_svc_manage_flashcopy:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    state: present
+    name: snapshot-name
+    copytype: clone
+    source: source-volume-name
+    target: target-volume-name
+    mdiskgrp: Pool0
+    consistgrp: consistencygroup-name
+    copyrate: 50
+    grainsize: 64
+- name: Delete FlashCopy mapping for snapshot
+  ibm.spectrum_virtualize.ibm_svc_manage_flashcopy:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: snapshot-name
+    state: absent
+    force: true
+- name: Delete FlashCopy mapping for clone
+  ibm.spectrum_virtualize.ibm_svc_manage_flashcopy:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: clone-name
+    state: absent
+    force: true
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

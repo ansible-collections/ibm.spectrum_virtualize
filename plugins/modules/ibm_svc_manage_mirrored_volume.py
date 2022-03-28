@@ -8,10 +8,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_mirrored_volume
@@ -120,105 +116,66 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using the IBM Spectrum Virtualize collection to create a HyperSwap volume
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create a HyperSwap volume
-      ibm_svc_manage_mirrored_volume:
+- name: Create a HyperSwap volume
+  ibm.spectrum_virtualize.ibm_svc_manage_mirrored_volume:
+    clustername: "{{clustername}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    type: "local hyperswap"
+    name: "vol1"
+    state: present
+    poolA: "pool1"
+    poolB: "pool2"
+    size: "1024"
+- name: Create a thin-provisioned HyperSwap volume
+  ibm.spectrum_virtualize.ibm_svc_manage_mirrored_volume:
+    clustername: "{{clustername}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    type: "local hyperswap"
+    name: "vol2"
+    state: present
+    poolA: "pool1"
+    poolB: "pool2"
+    size: "1024"
+    thin: true
+- name: Delete a mirrored volume
+  ibm.spectrum_virtualize.ibm_svc_manage_mirrored_volume:
+    clustername: "{{clustername}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: "vol2"
+    state: absent
+- name: Create a standard mirror volume
+  block:
+    - name: Create Volume
+      ibm.spectrum_virtualize.ibm_svc_manage_mirrored_volume:
         clustername: "{{clustername}}"
         username: "{{username}}"
         password: "{{password}}"
         log_path: /tmp/playbook.debug
-        type: "local hyperswap"
+        name: "vol4"
+        state: present
+        type: "standard"
+        poolA: "pool1"
+        poolB: "pool3"
+- name: Resize an existing mirrored volume
+  block:
+    - name: Resize an existing mirrored volume
+      ibm.spectrum_virtualize.ibm_svc_manage_mirrored_volume:
+        clustername: "{{clustername}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        log_path: /tmp/playbook.debug
         name: "vol1"
         state: present
-        poolA: "pool1"
-        poolB: "pool2"
-        size: "1024"
-
-- name: Using the IBM Spectrum Virtualize collection to create a thin-provisioned HyperSwap volume
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create a thin-provisioned HyperSwap volume
-      ibm_svc_manage_mirrored_volume:
-        clustername: "{{clustername}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        type: "local hyperswap"
-        name: "vol2"
-        state: present
-        poolA: "pool1"
-        poolB: "pool2"
-        size: "1024"
-        thin: true
-
-- name: Using the IBM Spectrum Virtualize collection to delete a mirrored volume
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete a mirrored volume
-      ibm_svc_manage_mirrored_volume:
-        clustername: "{{clustername}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: "vol2"
-        state: absent
-
-- name: Using the IBM Spectrum Virtualize collection to create standard mirror volume
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create a standard mirror volume
-      block:
-        - name: Create Volume
-          ibm_svc_manage_mirrored_vol:
-            clustername: "{{clustername}}"
-            username: "{{superuser}}"
-            password: "{{password}}"
-            log_path: /tmp/playbook.debug
-            name: "vol4"
-            state: present
-            type: "standard"
-            poolA: "pool1"
-            poolB: "pool3"
-
-- name: Using the IBM Spectrum Virtualize collection to resize a mirrored volume
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Resize an existing mirrored volume
-      block:
-        - name: Resize an existing mirrored volume
-          ibm_svc_manage_mirrored_vol:
-            clustername: "{{clustername}}"
-            username: "{{superuser}}"
-            password: "{{password}}"
-            log_path: /tmp/playbook.debug
-            name: "vol1"
-            state: present
-            size: "{{new_size}}"
+        size: "{{new_size}}"
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

@@ -8,10 +8,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_volume
@@ -59,12 +55,12 @@ options:
   pool:
     description:
       - Specifies the name of the storage pool to use while creating the volume.
-      - This parameter is required when C(state=present), to create a volume.
+      - This parameter is required when I(state=present), to create a volume.
     type: str
   size:
     description:
       - Defines the size of the volume. This parameter can also be used to resize an existing volume.
-      - Required when C(state=present), to create or modify a volume.
+      - Required when I(state=present), to create or modify a volume.
     type: str
   unit:
     description:
@@ -79,19 +75,19 @@ options:
       - While creating a new volume, the first I/O group in the list is added as both cached & access I/O group,
         while remaining I/O groups are added as access I/O groups.
       - This parameter supports update functionality.
-      - Valid when C(state=present), to create or modify a volume.
+      - Valid when I(state=present), to create or modify a volume.
     type: str
   thin:
     description:
       - Specifies that a thin-provisioned volume is to be created.
       - Parameters 'thin' and 'compressed' are mutually exclusive.
-      - Valid when C(state=present), to create a thin-provisioned volume.
+      - Valid when I(state=present), to create a thin-provisioned volume.
     type: bool
   compressed:
     description:
       - Specifies that a compressed volume is to be created.
       - Parameters 'compressed' and 'thin' are mutually exclusive.
-      - Valid when C(state=present), to create a compressed volume.
+      - Valid when I(state=present), to create a compressed volume.
     type: bool
   buffersize:
     description:
@@ -99,24 +95,24 @@ options:
       - Parameter 'thin' or 'compressed' must be specified to use this parameter.
       - The default buffer size is 2%.
       - I(thin) or I(compressed) is required when using I(buffersize).
-      - Valid when C(state=present), to create a volume.
+      - Valid when I(state=present), to create a volume.
     type: str
   deduplicated:
     description:
       - Specifies that a deduplicated volume is to be created.
-      - Required when C(state=present), to create a deduplicated volume.
+      - Required when I(state=present), to create a deduplicated volume.
     type: bool
   volumegroup:
     description:
       - Specifies the name of the volumegroup to which the volume is to be added.
       - Parameters 'volumegroup' and 'novolumegroup' are mutually exclusive.
-      - Valid when C(state=present), to create or modify a volume.
+      - Valid when I(state=present), to create or modify a volume.
     type: str
   novolumegroup:
     description:
       - If specified True, the volume is removed from its associated volumegroup.
       - Parameters 'novolumegroup' and 'volumegroup' are mutually exclusive.
-      - Valid when C(state=present), to modify a volume.
+      - Valid when I(state=present), to modify a volume.
     type: bool
   validate_certs:
     description:
@@ -134,137 +130,88 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create a volume
-  hosts: localhost
-  collections:
-  - ibm.spectrum_virtualize
-  gather_facts: no
-  vars_files:
-  - vars.yml
-  connection: local
-  tasks:
-    - name: Create a volume
-      ibm_svc_manage_volume:
-        clustername: "{{ clustername }}"
-        domain: "{{domain}}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        log_path: "{{ log_path }}"
-        name: "volume_name"
-        state: "present"
-        pool: "pool_name"
-        size: "1"
-        unit: "gb"
-        iogrp: "io_grp0, io_grp1"
-        volumegroup: "test_volumegroup"
-
-- name: Using Spectrum Virtualize collection to create a thin-provisioned volume
-  hosts: localhost
-  collections:
-  - ibm.spectrum_virtualize
-  gather_facts: no
-  vars_files:
-  - vars.yml
-  connection: local
-  tasks:
-    - name: Create a thin-provisioned volume
-      ibm_svc_manage_volume:
-        clustername: "{{ clustername }}"
-        domain: "{{ domain }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        log_path: "{{ log_path }}"
-        name: "volume_name"
-        state: "present"
-        pool: "pool_name"
-        size: "1"
-        unit: "gb"
-        iogrp: "io_grp0, io_grp1"
-        thin: true
-        buffersize: 10%
-
-- name: Using Spectrum Virtualize collection to create a compressed volume
-  hosts: localhost
-  collections:
-  - ibm.spectrum_virtualize
-  gather_facts: no
-  vars_files:
-  - vars.yml
-  connection: local
-  tasks:
-    - name: Create a compressed volume
-      ibm_svc_manage_volume:
-        clustername: "{{ clustername }}"
-        domain: "{{ domain }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        log_path: "{{ log_path }}"
-        name: "volume_name"
-        state: "present"
-        pool: "pool_name"
-        size: "1"
-        unit: "gb"
-        iogrp: "io_grp0, io_grp1"
-        compressed: true
-        buffersize: 10%
-
-- name: Using Spectrum Virtualize collection to update an iogrp
-  hosts: localhost
-  collections:
-  - ibm.spectrum_virtualize
-  gather_facts: no
-  vars_files:
-  - vars.yml
-  connection: local
-  tasks:
-    - name: Creating a volume with iogrp- io_grp0
-      ibm_svc_manage_volume:
-        clustername: "{{ clustername }}"
-        domain: "{{ domain}}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        log_path: "{{ log_path }}"
-        name: "volume_name"
-        state: "present"
-        pool: "pool_name"
-        size: "1"
-        unit: "gb"
-        iogrp: "io_grp0"
-    - name: Adding a new iogrp- io_grp1
-      ibm_svc_manage_volume:
-        clustername: "{{ clustername }}"
-        domain: "{{ domain }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        log_path: "{{ log_path }}"
-        name: "volume_name"
-        state: "present"
-        pool: "pool_name"
-        size: "1"
-        unit: "gb"
-        iogrp: "io_grp0, iogrp1"
-
-- name: Using Spectrum Virtualize collection to delete a volume
-  hosts: localhost
-  collections:
-  - ibm.spectrum_virtualize
-  gather_facts: no
-  vars_files:
-  - vars.yml
-  connection: local
-  tasks:
-    - name: Delete a volume
-      ibm_svc_manage_volume:
-        clustername: "{{ clustername }}"
-        domain: "{{ domain }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        log_path: "{{ log_path }}"
-        name: "volume_name"
-        state: "absent"
+- name: Create a volume
+  ibm.spectrum_virtualize.ibm_svc_manage_volume:
+    clustername: "{{ clustername }}"
+    domain: "{{domain}}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: "{{ log_path }}"
+    name: "volume_name"
+    state: "present"
+    pool: "pool_name"
+    size: "1"
+    unit: "gb"
+    iogrp: "io_grp0, io_grp1"
+    volumegroup: "test_volumegroup"
+- name: Create a thin-provisioned volume
+  ibm.spectrum_virtualize.ibm_svc_manage_volume:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: "{{ log_path }}"
+    name: "volume_name"
+    state: "present"
+    pool: "pool_name"
+    size: "1"
+    unit: "gb"
+    iogrp: "io_grp0, io_grp1"
+    thin: true
+    buffersize: 10%
+- name: Create a compressed volume
+  ibm.spectrum_virtualize.ibm_svc_manage_volume:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: "{{ log_path }}"
+    name: "volume_name"
+    state: "present"
+    pool: "pool_name"
+    size: "1"
+    unit: "gb"
+    iogrp: "io_grp0, io_grp1"
+    compressed: true
+    buffersize: 10%
+- name: Creating a volume with iogrp- io_grp0
+  ibm.spectrum_virtualize.ibm_svc_manage_volume:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain}}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: "{{ log_path }}"
+    name: "volume_name"
+    state: "present"
+    pool: "pool_name"
+    size: "1"
+    unit: "gb"
+    iogrp: "io_grp0"
+- name: Adding a new iogrp- io_grp1
+  ibm.spectrum_virtualize.ibm_svc_manage_volume:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: "{{ log_path }}"
+    name: "volume_name"
+    state: "present"
+    pool: "pool_name"
+    size: "1"
+    unit: "gb"
+    iogrp: "io_grp0, iogrp1"
+- name: Delete a volume
+  ibm.spectrum_virtualize.ibm_svc_manage_volume:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: "{{ log_path }}"
+    name: "volume_name"
+    state: "absent"
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule
@@ -349,7 +296,7 @@ class IBMSVCvolume(object):
                 else:
                     temp.append(item)
             if invalid:
-                self.module.fail_json('Empty or non-existing iogrp detected: %s' % invalid)
+                self.module.fail_json(msg='Empty or non-existing iogrp detected: %s' % invalid)
             self.iogrp = temp
 
     # for validating mandatory parameters of the module
@@ -581,7 +528,6 @@ class IBMSVCvolume(object):
             elif 'shrink' in modify['size']:
                 self.shrink_volume(modify['size']['shrink'])
         # updating volumegroup, novolumegroup of a volume
-        cmd = 'chvdisk'
         cmdopts = {}
         if 'volumegroup' in modify:
             cmdopts['volumegroup'] = modify['volumegroup']['name']

@@ -9,10 +9,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_usergroup
@@ -60,19 +56,19 @@ options:
     role:
         description:
             - Specifies the role associated with all users that belong to this user group.
-            - Required when C(state=present).
+            - Required when I(state=present).
         choices: [ Monitor, CopyOperator, Service, FlashCopyAdmin, Administrator, SecurityAdmin, VasaProvider, RestrictedAdmin, 3SiteAdmin ]
         type: str
     ownershipgroup:
         description:
             - Specifies the name of the ownership group.
-            - Applies when C(state=present).
+            - Applies when I(state=present).
             - Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
         type: str
     noownershipgroup:
         description:
             - Specifies that the usergroup is removed from the ownership group it belonged to.
-            - Applies when C(state=present), to modify a user group.
+            - Applies when I(state=present), to modify a user group.
             - Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
         type: bool
     validate_certs:
@@ -91,45 +87,29 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using the IBM Spectrum Virtualize collection to create a user group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create a user group
-      ibm_svc_manage_usergroup:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        state: present
-        name: user-group-name
-        role: Monitor
-        ownershipgroup: ownershipgroup-name
-
-- name: Using the IBM Spectrum Virtualize collection to remove a user group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Remove a user group
-      ibm_svc_manage_usergroup:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        state: absent
-        name: user-group-name
-
+- name: Create a user group
+  ibm.spectrum_virtualize.ibm_svc_manage_usergroup:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    state: present
+    name: user-group-name
+    role: Monitor
+    ownershipgroup: ownershipgroup-name
+- name: Remove a user group
+  ibm.spectrum_virtualize.ibm_svc_manage_usergroup:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    state: absent
+    name: user-group-name
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

@@ -10,10 +10,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_volumegroup
@@ -72,32 +68,32 @@ options:
         description:
             - The name of the ownership group to which the object is being added.
             - I(ownershipgroup) is mutually exclusive with parameters I(safeguardpolicyname) and I(noownershipgroup).
-            - Applies when C(state=present).
+            - Applies when I(state=present).
         type: str
     noownershipgroup:
         description:
             - If specified True, the object is removed from the ownership group to which it belongs.
             - Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
-            - Applies when C(state=present).
+            - Applies when I(state=present) to modify an existing volume group.
         type: bool
     safeguardpolicyname:
         description:
             - The name of the Safeguarded policy to be assigned to the volume group.
             - I(safeguardpolicyname) is mutually exclusive with parameters I(nosafeguardpolicy) and I(ownershipgroup).
-            - Applies when C(state=present).
+            - Applies when I(state=present).
         type: str
     nosafeguardpolicy:
         description:
             - If specified True, removes the Safeguarded policy assigned to the volume group.
             - Parameters I(safeguardpolicyname) and I(nosafeguardpolicy) are mutually exclusive.
-            - Applies when C(state=present).
+            - Applies when I(state=present) to modify an existing volume group.
         type: bool
     policystarttime:
         description:
             - Specifies the time when the first Safeguarded backup is to be taken.
             - I(safeguardpolicyname) is required when using I(policystarttime).
             - The accepted format is YYMMDDHHMM.
-            - Applies when C(state=present).
+            - Applies when I(state=present).
         type: str
 author:
     - Shilpi Jain(@Shilpi-J)
@@ -106,60 +102,38 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create a volume group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create a new volume group
-      ibm_svc_manage_volumegroup:
-        clustername: "{{ clustername }}"
-        domain: "{{ domain }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        log_path: /tmp/playbook.debug
-        name: vg0
-        state: present
-- name: Using Spectrum Virtualize collection to delete a volume group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete a volume group
-      ibm_svc_manage_volumegroup:
-        clustername: "{{ clustername }}"
-        domain: "{{ domain }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        log_path: /tmp/playbook.debug
-        name: vg0
-        state: absent
-- name: Using Spectrum Virtualize collection to update a volume group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Update existing volume group to remove ownershipgroup and attach a safeguardpolicy to it
-      ibm_svc_manage_volumegroup:
-        clustername: "{{ clustername }}"
-        domain: "{{ domain }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        log_path: /tmp/playbook.debug
-        name: vg0
-        state: present
-        noownershipgroup: True
-        safeguardpolicyname: sg1
+- name: Create a new volume group
+  ibm.spectrum_virtualize.ibm_svc_manage_volumegroup:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: /tmp/playbook.debug
+    name: vg0
+    state: present
+- name: Delete a volume group
+  ibm.spectrum_virtualize.ibm_svc_manage_volumegroup:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: /tmp/playbook.debug
+    name: vg0
+    state: absent
+- name: Update existing volume group to remove ownershipgroup and attach a safeguardpolicy to it
+  ibm.spectrum_virtualize.ibm_svc_manage_volumegroup:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: /tmp/playbook.debug
+    name: vg0
+    state: present
+    noownershipgroup: True
+    safeguardpolicyname: sg1
 '''
 
-RETURN = '''
-'''
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

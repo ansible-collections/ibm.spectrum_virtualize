@@ -10,10 +10,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['deprecated'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_vdisk
@@ -63,22 +59,22 @@ options:
   mdiskgrp:
     description:
     - Specifies the name of the storage pool to use when
-      creating this volume. This parameter is required when C(state=present).
+      creating this volume. This parameter is required when I(state=present).
     type: str
   easytier:
     description:
     - Defines use of easytier with VDisk.
-    - Applies when C(state=present).
+    - Applies when I(state=present).
     type: str
     choices: [ 'on', 'off' ]
   size:
     description:
-    - Defines the size of VDisk. This parameter is required when C(state=present).
+    - Defines the size of VDisk. This parameter is required when I(state=present).
     - This parameter can also be used to resize an existing VDisk.
     type: str
   unit:
     description:
-    - Defines the size option for the storage unit. This parameter is required when C(state=present).
+    - Defines the size option for the storage unit. This parameter is required when I(state=present).
     type: str
     choices: [ b, kb, mb, gb, tb, pb ]
     default: mb
@@ -115,69 +111,46 @@ deprecated:
 '''
 
 EXAMPLES = '''
-- name: Using Spectrum Virtualize collection to create a volume
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create a volume
-      ibm_svc_vdisk:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: volume0
-        state: present
-        mdiskgrp: Pool0
-        easytier: 'off'
-        size: "4294967296"
-        unit: b
-
-- name: Using Spectrum Virtualize collection to create a thin-provisioned volume
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create a thin-provisioned volume
-      ibm_svc_vdisk:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: volume0
-        state: present
-        mdiskgrp: Pool0
-        easytier: 'off'
-        size: "4294967296"
-        unit: b
-        rsize: '20%'
-        autoexpand: true
-
-- name: Using Spectrum Virtualize collection to delete a volume
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete a volume
-      ibm_svc_vdisk:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: volume0
-        state: absent
+- name: Create a volume
+  ibm.spectrum_virtualize.ibm_svc_vdisk:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: volume0
+    state: present
+    mdiskgrp: Pool0
+    easytier: 'off'
+    size: "4294967296"
+    unit: b
+- name: Create a thin-provisioned volume
+  ibm.spectrum_virtualize.ibm_svc_vdisk:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: volume0
+    state: present
+    mdiskgrp: Pool0
+    easytier: 'off'
+    size: "4294967296"
+    unit: b
+    rsize: '20%'
+    autoexpand: true
+- name: Delete a volume
+  ibm.spectrum_virtualize.ibm_svc_vdisk:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: volume0
+    state: absent
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

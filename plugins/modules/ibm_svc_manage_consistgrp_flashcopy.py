@@ -10,10 +10,6 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'status': ['preview'],
-                    'supported_by': 'community',
-                    'metadata_version': '1.1'}
-
 DOCUMENTATION = '''
 ---
 module: ibm_svc_manage_consistgrp_flashcopy
@@ -64,20 +60,20 @@ options:
         description:
             - Specifies the name of the ownership group.
             - Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
-            - Valid when C(state=present), to create or modify a FlashCopy consistency group.
+            - Valid when I(state=present), to create or modify a FlashCopy consistency group.
         required: false
         type: str
     noownershipgroup:
         description:
             - If specified True, the consistency group is removed from all associated ownership groups.
             - Parameters I(noownershipgroup) and I(ownershipgroup) are mutually exclusive.
-            - Valid when C(state=present), to modify a FlashCopy consistency group.
+            - Valid when I(state=present), to modify a FlashCopy consistency group.
         required: false
         type: bool
     force:
         description:
             - If specified True, removes all the associated FlashCopy mappings while deleting the FlashCopy consistency group.
-            - Valid when C(state=absent), to delete a FlashCopy consistency group.
+            - Valid when I(state=absent), to delete a FlashCopy consistency group.
         required: false
         type: bool
     log_path:
@@ -96,45 +92,29 @@ notes:
 '''
 
 EXAMPLES = '''
-- name: Using the IBM Spectrum Virtualize collection to create a FlashCopy consistency group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Create a FlashCopy consistency group
-      ibm_svc_manage_consistgrp_flashcopy:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: consistgroup-name
-        state: present
-        ownershipgroup: ownershipgroup-name
-
-- name: Using the IBM Spectrum Virtualize collection to delete a FlashCopy consistency group
-  hosts: localhost
-  collections:
-    - ibm.spectrum_virtualize
-  gather_facts: no
-  connection: local
-  tasks:
-    - name: Delete a FlashCopy consistency group
-      ibm_svc_manage_consistgrp_flashcopy:
-        clustername: "{{clustername}}"
-        domain: "{{domain}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        log_path: /tmp/playbook.debug
-        name: consistgroup-name
-        state: absent
-        force: true
-
+- name: Create a FlashCopy consistency group
+  ibm.spectrum_virtualize.ibm_svc_manage_consistgrp_flashcopy:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: consistgroup-name
+    state: present
+    ownershipgroup: ownershipgroup-name
+- name: Delete a FlashCopy consistency group
+  ibm.spectrum_virtualize.ibm_svc_manage_consistgrp_flashcopy:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: consistgroup-name
+    state: absent
+    force: true
 '''
-RETURN = '''
-'''
+
+RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule

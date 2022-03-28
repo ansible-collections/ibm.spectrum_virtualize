@@ -11,24 +11,33 @@ jobs:
     name: Sanity (${{ matrix.ansible }} on spectrum_virtualize
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         ansible:
           - stable-2.9
           - stable-2.10
           - stable-2.11
           - stable-2.12
-
+        python:
+          - '2.7'
+          - '3.8'
+        exclude:
+          - ansible: stable-2.12
+            python: '2.7'
     steps:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Set up Python
+      - name: Set up Python${{ matrix.python }}
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: ${{ matrix.python }}
+
+      - name: Upgrade PIP
+        run: python${{ matrix.python }} -m pip install --upgrade pip
 
       - name: Install ansible (${{ matrix.ansible }})
-        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible }}.tar.gz --disable-pip-version-check
+        run: python${{ matrix.python }} -m pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible }}.tar.gz --disable-pip-version-check
 
       - name: Make directory for ansible-test 
         run: |
@@ -36,5 +45,50 @@ jobs:
           mkdir -p ansible_collections/ibm/spectrum_virtualize
           rsync -av . ansible_collections/ibm/spectrum_virtualize --exclude ansible_collections/ibm/spectrum_virtualize
       - name: Run sanity tests spectrum_virtualize
-        run: ansible-test sanity --docker -v --color
-        working-directory: ansible_collections/ibm/spectrum_virtualize
+        run: ansible-test sanity -v --color --python ${{ matrix.python }} --docker --coverage
+        working-directory: ./ansible_collections/ibm/spectrum_virtualize
+
+  units:
+    name: Units (${{ matrix.ansible }} on spectrum_virtualize
+    runs-on: ubuntu-latest
+    strategy:
+      #fail-fast: false
+      matrix:
+        ansible:
+          - stable-2.9
+          - stable-2.10
+          - stable-2.11
+          - stable-2.12
+        python:
+          - '2.7'
+          - '3.8'
+        exclude:
+          - ansible: stable-2.12
+            python: '2.7'
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Python${{ matrix.python }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Upgrade PIP
+        run: python${{ matrix.python }} -m pip install --upgrade pip
+
+      - name: Install ansible (${{ matrix.ansible }})
+        run: python${{ matrix.python }} -m pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible }}.tar.gz --disable-pip-version-check
+
+      - name: Make directory for ansible-test 
+        run: |
+          pwd
+          mkdir -p ansible_collections/ibm/spectrum_virtualize
+          rsync -av . ansible_collections/ibm/spectrum_virtualize --exclude ansible_collections/ibm/spectrum_virtualize
+          
+      - name: Install dependencies
+        run: python${{ matrix.python }} -m pip install paramiko
+
+      - name: Run unit test cases
+        run: ansible-test units -v --color --python ${{ matrix.python }} --requirements --coverage
+        working-directory: ./ansible_collections/ibm/spectrum_virtualize
