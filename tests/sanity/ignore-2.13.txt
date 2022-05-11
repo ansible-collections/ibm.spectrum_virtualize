@@ -1,0 +1,1 @@
+plugins/modules/ibm_svc_vdisk.py validate-modules!skip
