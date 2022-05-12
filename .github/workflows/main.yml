@@ -18,11 +18,14 @@ jobs:
           - stable-2.10
           - stable-2.11
           - stable-2.12
+          - stable-2.13
         python:
           - '2.7'
           - '3.8'
         exclude:
           - ansible: stable-2.12
+            python: '2.7'
+          - ansible: stable-2.13
             python: '2.7'
     steps:
       - name: Check out code
@@ -52,18 +55,21 @@ jobs:
     name: Units (${{ matrix.ansible }} on spectrum_virtualize
     runs-on: ubuntu-latest
     strategy:
-      #fail-fast: false
+      fail-fast: false
       matrix:
         ansible:
           - stable-2.9
           - stable-2.10
           - stable-2.11
           - stable-2.12
+          - stable-2.13
         python:
           - '2.7'
           - '3.8'
         exclude:
           - ansible: stable-2.12
+            python: '2.7'
+          - ansible: stable-2.13
             python: '2.7'
     steps:
       - name: Check out code
