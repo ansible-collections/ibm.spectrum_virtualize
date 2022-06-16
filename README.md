@@ -98,15 +98,18 @@ Alternatively, you can add a full namepsace and collection name in the `collecti
 - ibm_svc_vol_map - Manages volume mapping for IBM Spectrum Virtualize system
 - ibm_svcinfo_command - Runs svcinfo CLI command on IBM Spectrum Virtualize system over SSH session
 - ibm_svctask_command - Runs svctask CLI command(s) on IBM Spectrum Virtualize system over SSH session
+- ibm_sv_manage_ip_partnership - Manages IP partnership configuration on IBM Spectrum Virtualize systems
+- ibm_sv_manage_snapshot - Manages snapshots (mutual consistent images of a volume) on IBM Spectrum Virtualize systems
+- ibm_sv_manage_snapshotpolicy - Manages snapshot policy configuration on IBM Spectrum Virtualize systems
 
 ### Other Feature Information
 - SV Ansible Collection v1.8.0 provides the new 'ibm_svc_complete_initial_setup' module, to complete the automation of Day 0 configuration on Licensed Machine Code (LMC) systems.
   For non-LMC systems, login to the user-interface is required in order to complete the automation of Day 0 configuration.
 - SV Ansible Collection v1.7.0 provided `Setup and Configuration Automation` through different modules. This feature helps user to automate Day 0 configuration.
   This feature includes three modules:
-	- ibm_svc_initial_seutp
-	- ibm_svc_manage_callhome 
-	- ibm_svc_manage_sra
+  - ibm_svc_initial_setup
+  - ibm_svc_manage_callhome 
+  - ibm_svc_manage_sra
 - By proceeding and using these modules, the user acknowledges that [IBM Privacy Statement](https://www.ibm.com/privacy) has been read and understood.
 
 ### Prerequisite
