@@ -91,7 +91,7 @@ options:
     type: bool
   buffersize:
     description:
-      - Specifies the pool capacity that the volume will reserve as a buffer for thin-provissioned and compressed volumes.
+      - Specifies the pool capacity that the volume will reserve as a buffer for thin-provisioned and compressed volumes.
       - Parameter 'thin' or 'compressed' must be specified to use this parameter.
       - The default buffer size is 2%.
       - I(thin) or I(compressed) is required when using I(buffersize).
@@ -110,10 +110,16 @@ options:
     type: str
   novolumegroup:
     description:
-      - If specified True, the volume is removed from its associated volumegroup.
+      - If specified `True`, the volume is removed from its associated volumegroup.
       - Parameters 'novolumegroup' and 'volumegroup' are mutually exclusive.
       - Valid when I(state=present), to modify a volume.
     type: bool
+  old_name:
+    description:
+      - Specifies the old name of the volume during renaming.
+      - Valid when I(state=present), to rename an existing volume.
+    type: str
+    version_added: '1.9.0'
   validate_certs:
     description:
       - Validates certification.
@@ -200,6 +206,15 @@ EXAMPLES = '''
     size: "1"
     unit: "gb"
     iogrp: "io_grp0, iogrp1"
+- name: Rename an existing volume
+  ibm.spectrum_virtualize.ibm_svc_manage_volume:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    old_name: "volume_name"
+    name: "new_volume_name"
+    state: "present"
 - name: Delete a volume
   ibm.spectrum_virtualize.ibm_svc_manage_volume:
     clustername: "{{ clustername }}"
@@ -207,7 +222,7 @@ EXAMPLES = '''
     username: "{{ username }}"
     password: "{{ password }}"
     log_path: "{{ log_path }}"
-    name: "volume_name"
+    name: "new_volume_name"
     state: "absent"
 '''
 
@@ -239,6 +254,7 @@ class IBMSVCvolume(object):
                 thin=dict(type='bool', required=False),
                 compressed=dict(type='bool', required=False),
                 deduplicated=dict(type='bool', required=False),
+                old_name=dict(type='str', required=False)
             )
         )
 
@@ -264,6 +280,10 @@ class IBMSVCvolume(object):
         self.thin = self.module.params['thin']
         self.compressed = self.module.params['compressed']
         self.deduplicated = self.module.params['deduplicated']
+        self.old_name = self.module.params['old_name']
+
+        # internal variable
+        self.changed = False
 
         self.restapi = IBMSVCRestApi(
             module=self.module,
@@ -287,7 +307,7 @@ class IBMSVCvolume(object):
                 existing_iogrp = [item.strip() for item in self.iogrp.split(',') if item]
             uni_exi_iogrp = set(existing_iogrp)
             if len(existing_iogrp) != len(uni_exi_iogrp):
-                self.module.fail_json('Duplicate iogrp detected.')
+                self.module.fail_json(msg='Duplicate iogrp detected.')
             active_iogrp = [item['name'] for item in self.restapi.svc_obj_info('lsiogrp', None, None) if int(item['node_count']) > 0]
             for item in existing_iogrp:
                 item = item.strip()
@@ -303,15 +323,41 @@ class IBMSVCvolume(object):
     def mandatory_parameter_validation(self):
         missing = [item[0] for item in [('name', self.name), ('state', self.state)] if not item[1]]
         if missing:
-            self.module.fail_json('Missing mandatory parameter: [{0}]'.format(', '.join(missing)))
+            self.module.fail_json(msg='Missing mandatory parameter: [{0}]'.format(', '.join(missing)))
         if self.volumegroup and self.novolumegroup:
-            self.module.fail_json('Mutually exclusive parameters detected: [volumegroup] and [novolumegroup]')
+            self.module.fail_json(msg='Mutually exclusive parameters detected: [volumegroup] and [novolumegroup]')
 
-    # for validating required parameter while creating a volume
+    # for validating parameter while removing an existing volume
+    def volume_deletion_parameter_validation(self):
+        if self.old_name:
+            self.module.fail_json(msg='Parameter [old_name] is not supported during volume deletion.')
+
+    # for validating parameter while creating a volume
     def volume_creation_parameter_validation(self):
+        if self.old_name:
+            self.module.fail_json(msg='Parameter [old_name] is not supported during volume creation.')
         missing = [item[0] for item in [('pool', self.pool), ('size', self.size)] if not item[1]]
         if missing:
-            self.module.fail_json('Missing required parameter while creating: [{0}]'.format(', '.join(missing)))
+            self.module.fail_json(msg='Missing required parameter while creating: [{0}]'.format(', '.join(missing)))
+
+    # for validating parameter while renaming a volume
+    def parameter_handling_while_renaming(self):
+        if not self.old_name:
+            self.module.fail_json(msg="Parameter is required while renaming: old_name")
+        parameters = {
+            "pool": self.pool,
+            "size": self.size,
+            "iogrp": self.iogrp,
+            "buffersize": self.buffersize,
+            "volumegroup": self.volumegroup,
+            "novolumegroup": self.novolumegroup,
+            "thin": self.thin,
+            "compressed": self.compressed,
+            "deduplicated": self.deduplicated
+        }
+        parameters_exists = [parameter for parameter, value in parameters.items() if value]
+        if parameters_exists:
+            self.module.fail_json(msg="Parameters {0} not supported while renaming a volume.".format(parameters_exists))
 
     # for validating if volume type is supported or not
     def validate_volume_type(self, data):
@@ -328,9 +374,9 @@ class IBMSVCvolume(object):
             self.module.fail_json(msg="The module cannot be used for managing Mirrored volume.")
 
     # function to get existing volume data
-    def get_existing_volume(self):
+    def get_existing_volume(self, volume_name):
         return self.restapi.svc_obj_info(
-            'lsvdisk', {'bytes': True}, [self.name]
+            'lsvdisk', {'bytes': True}, [volume_name]
         )
 
     # function to get list of associated iogrp to a volume
@@ -373,7 +419,7 @@ class IBMSVCvolume(object):
         if self.name:
             cmdopts['name'] = self.name
         result = self.restapi.svc_run_command(cmd, cmdopts, cmdargs=None)
-        if 'message' in result:
+        if result and 'message' in result:
             self.changed = True
             self.log("create volume result message %s", result['message'])
         else:
@@ -382,6 +428,7 @@ class IBMSVCvolume(object):
 
     # function to remove an existing volume
     def remove_volume(self):
+        self.volume_deletion_parameter_validation()
         if self.module.check_mode:
             self.changed = True
             return
@@ -492,6 +539,7 @@ class IBMSVCvolume(object):
             {'iogrp': ':'.join(list_of_iogrp)},
             [self.name]
         )
+        self.changed = True
 
     # remove iogrp
     def remove_iogrp(self, list_of_iogrp):
@@ -500,6 +548,7 @@ class IBMSVCvolume(object):
             {'iogrp': ':'.join(list_of_iogrp)},
             [self.name]
         )
+        self.changed = True
 
     # function to update an existing volume
     def update_volume(self, modify):
@@ -539,48 +588,75 @@ class IBMSVCvolume(object):
                 cmdopts,
                 [self.name]
             )
+            self.changed = True
+
+    # function for renaming an existing volume with a new name
+    def volume_rename(self, volume_data):
+        msg = None
+        self.parameter_handling_while_renaming()
+        old_volume_data = self.get_existing_volume(self.old_name)
+        if not old_volume_data and not volume_data:
+            self.module.fail_json(msg="Volume [{0}] does not exists.".format(self.old_name))
+        elif old_volume_data and volume_data:
+            self.module.fail_json(msg="Volume [{0}] already exists.".format(self.name))
+        elif not old_volume_data and volume_data:
+            msg = "Volume with name [{0}] already exists.".format(self.name)
+        elif old_volume_data and not volume_data:
+            # when check_mode is enabled
+            if self.module.check_mode:
+                self.changed = True
+                return
+            self.restapi.svc_run_command('chvdisk', {'name': self.name}, [self.old_name])
+            self.changed = True
+            msg = "Volume [{0}] has been successfully rename to [{1}]".format(self.old_name, self.name)
+        return msg
 
     def apply(self):
         changed, msg, modify = False, None, {}
         self.mandatory_parameter_validation()
-        if self.state == 'present':
-            self.assemble_iogrp()
-        volume_data = self.get_existing_volume()
-        if volume_data:
-            self.validate_volume_type(volume_data)
-            if self.state == 'absent':
-                changed = True
-            elif self.state == 'present':
-                modify = self.probe_volume(volume_data)
-                if modify:
+        volume_data = self.get_existing_volume(self.name)
+        if self.state == "present" and self.old_name:
+            msg = self.volume_rename(volume_data)
+        elif self.state == "absent" and self.old_name:
+            self.module.fail_json(msg="Rename functionality is not supported when 'state' is absent.")
+        else:
+            if self.state == 'present':
+                self.assemble_iogrp()
+            if volume_data:
+                self.validate_volume_type(volume_data)
+                if self.state == 'absent':
                     changed = True
-        else:
-            if self.state == 'present':
-                changed = True
-        if changed:
-            if self.state == 'present':
-                if not volume_data:
-                    self.create_volume()
-                    if isinstance(self.iogrp, list):
-                        if len(self.iogrp) > 1:
-                            self.add_iogrp(self.iogrp[1:])
-                    msg = 'volume [%s] has been created' % self.name
-                else:
+                elif self.state == 'present':
+                    modify = self.probe_volume(volume_data)
                     if modify:
-                        self.update_volume(modify)
-                        msg = 'volume [%s] has been modified' % self.name
-            elif self.state == 'absent':
-                self.remove_volume()
-                msg = 'volume [%s] has been deleted.' % self.name
-            if self.module.check_mode:
-                self.log('skipping changes due to check mode.')
-        else:
-            if self.state == 'absent':
-                msg = "volume [%s] did not exist." % self.name
+                        changed = True
             else:
-                msg = "volume [%s] already exists." % self.name
+                if self.state == 'present':
+                    changed = True
+            if changed:
+                if self.state == 'present':
+                    if not volume_data:
+                        self.create_volume()
+                        if isinstance(self.iogrp, list):
+                            if len(self.iogrp) > 1:
+                                self.add_iogrp(self.iogrp[1:])
+                        msg = 'volume [%s] has been created' % self.name
+                    else:
+                        if modify:
+                            self.update_volume(modify)
+                            msg = 'volume [%s] has been modified' % self.name
+                elif self.state == 'absent':
+                    self.remove_volume()
+                    msg = 'volume [%s] has been deleted.' % self.name
+            else:
+                if self.state == 'absent':
+                    msg = "volume [%s] did not exist." % self.name
+                else:
+                    msg = "volume [%s] already exists." % self.name
+        if self.module.check_mode:
+            self.log('skipping changes due to check mode.')
 
-        self.module.exit_json(msg=msg, changed=changed)
+        self.module.exit_json(msg=msg, changed=self.changed)
 
 
 def main():

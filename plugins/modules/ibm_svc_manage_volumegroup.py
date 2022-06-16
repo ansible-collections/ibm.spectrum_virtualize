@@ -3,7 +3,7 @@
 
 # Copyright (C) 2021 IBM CORPORATION
 # Author(s): Shilpi Jain <shilpi.jain1@ibm.com>
-#
+#            Sanjaikumaar M <sanjaikumaar.m@ibm.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
@@ -66,13 +66,13 @@ options:
         type: bool
     ownershipgroup:
         description:
-            - The name of the ownership group to which the object is being added.
+            - Specifies the name of the ownership group to which the object is being added.
             - I(ownershipgroup) is mutually exclusive with parameters I(safeguardpolicyname) and I(noownershipgroup).
             - Applies when I(state=present).
         type: str
     noownershipgroup:
         description:
-            - If specified True, the object is removed from the ownership group to which it belongs.
+            - If specified `True`, the object is removed from the ownership group to which it belongs.
             - Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
             - Applies when I(state=present) to modify an existing volume group.
         type: bool
@@ -84,21 +84,77 @@ options:
         type: str
     nosafeguardpolicy:
         description:
-            - If specified True, removes the Safeguarded policy assigned to the volume group.
+            - If specified `True`, removes the Safeguarded policy assigned to the volume group.
             - Parameters I(safeguardpolicyname) and I(nosafeguardpolicy) are mutually exclusive.
             - Applies when I(state=present) to modify an existing volume group.
         type: bool
+    snapshotpolicy:
+        description:
+            - The name of the snapshot policy to be assigned to the volume group.
+            - I(snapshotpolicy) is mutually exclusive with parameters I(nosnapshotpolicy) and I(ownershipgroup).
+            - Applies when I(state=present).
+        type: str
+        version_added: 1.9.0
+    nosnapshotpolicy:
+        description:
+            - If specified `True`, removes the snapshot policy assigned to the volume group.
+            - Parameters I(snapshotpolicy) and I(nosnapshotpolicy) are mutually exclusive.
+            - Applies when I(state=present) to modify an existing volume group.
+        type: bool
+        version_added: 1.9.0
+    snapshotpolicysuspended:
+        description:
+            - Specifies whether to suspend (C(yes)) or resume (C(no)) the snapshot policy on this volume group.
+            - Applies when I(state=present) to modify an existing volume group.
+        choices: [ 'yes', 'no' ]
+        type: str
+        version_added: 1.9.0
     policystarttime:
         description:
             - Specifies the time when the first Safeguarded backup is to be taken.
+            - This parameter can also be associated with snapshot policy.
             - I(safeguardpolicyname) is required when using I(policystarttime).
             - The accepted format is YYMMDDHHMM.
             - Applies when I(state=present).
         type: str
+    type:
+        description:
+            - Specifies the type of volume group to be created from the snapshot.
+            - Valid during creation of host accessible volume group from an existing snapshot.
+        choices: [ clone, thinclone ]
+        type: str
+        version_added: 1.9.0
+    snapshot:
+        description:
+            - Specifies the name of the snapshot used to prepopulate the new volumes in the new volume group.
+            - Required when creating a host accessible volume group from an existing snapshot.
+        type: str
+        version_added: 1.9.0
+    fromsourcegroup:
+        description:
+            - Specifies the parent volume group of the snapshot. This is used to prepopulate the new volume in the new volume group.
+            - Valid during creation of host accessible volume group from an existing snapshot.
+        type: str
+        version_added: 1.9.0
+    pool:
+        description:
+            - Specifies the pool name where the target volumes are to be created.
+            - Valid during creation of host accessible volume group from an existing snapshot.
+        type: str
+        version_added: 1.9.0
+    iogrp:
+        description:
+            - Specifies the I/O group for new volumes.
+            - Valid during creation of host accessible volume group from an existing snapshot.
+        type: str
+        version_added: 1.9.0
 author:
     - Shilpi Jain(@Shilpi-J)
+    - Sanjaikumaar M (@sanjaikumaar)
 notes:
     - This module supports C(check_mode).
+    - Safeguarded policy and snapshot policy cannot be used at the same time.
+      Therefore, the parameters I(snapshotpolicy) and I(safeguardpolicyname) are mutually exclusive.
 '''
 
 EXAMPLES = '''
@@ -131,6 +187,40 @@ EXAMPLES = '''
     state: present
     noownershipgroup: True
     safeguardpolicyname: sg1
+- name: Update volumegroup with snapshot policy and remove safeguarded policy
+  ibm.spectrum_virtualize.ibm_svc_manage_volumegroup:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: /tmp/playbook.debug
+    name: vg0
+    nosafeguardpolicy: true
+    snapshotpolicy: sp1
+    state: present
+- name: Suspend snapshot policy in an existing volume group
+  ibm.spectrum_virtualize.ibm_svc_manage_volumegroup:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: /tmp/playbook.debug
+    name: vg0
+    snapshotpolicysuspended: true
+    state: present
+- name: Create host accessible volume group from an existing snapshot
+  ibm.spectrum_virtualize.ibm_svc_manage_volumegroup:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: /tmp/playbook.debug
+    name: host_accessible_vg
+    type: clone
+    snapshot: snapshot0
+    fromsourcegroup: vg0
+    pool: Pool0
+    state: present
 '''
 
 RETURN = '''#'''
@@ -156,6 +246,14 @@ class IBMSVCVG(object):
                 safeguardpolicyname=dict(type='str', required=False),
                 nosafeguardpolicy=dict(type='bool', required=False),
                 policystarttime=dict(type='str', required=False),
+                snapshotpolicy=dict(type='str', required=False),
+                nosnapshotpolicy=dict(type='bool', required=False),
+                snapshotpolicysuspended=dict(type='str', choices=['yes', 'no']),
+                type=dict(type='str', choices=['clone', 'thinclone']),
+                snapshot=dict(type='str'),
+                fromsourcegroup=dict(type='str'),
+                pool=dict(type='str'),
+                iogrp=dict(type='str')
             )
         )
 
@@ -172,11 +270,26 @@ class IBMSVCVG(object):
         self.state = self.module.params['state']
 
         # Optional
-        self.ownershipgroup = self.module.params.get('ownershipgroup', None)
-        self.noownershipgroup = self.module.params.get('noownershipgroup', None)
-        self.safeguardpolicyname = self.module.params.get('safeguardpolicyname', None)
-        self.nosafeguardpolicy = self.module.params.get('nosafeguardpolicy', None)
-        self.policystarttime = self.module.params.get('policystarttime', None)
+        self.ownershipgroup = self.module.params.get('ownershipgroup', '')
+        self.noownershipgroup = self.module.params.get('noownershipgroup', False)
+        self.policystarttime = self.module.params.get('policystarttime', '')
+        self.snapshotpolicy = self.module.params.get('snapshotpolicy', '')
+        self.nosnapshotpolicy = self.module.params.get('nosnapshotpolicy', False)
+        self.snapshotpolicysuspended = self.module.params.get('snapshotpolicysuspended', '')
+        self.type = self.module.params.get('type', '')
+        self.snapshot = self.module.params.get('snapshot', '')
+        self.fromsourcegroup = self.module.params.get('fromsourcegroup', '')
+        self.pool = self.module.params.get('pool', '')
+        self.iogrp = self.module.params.get('iogrp', '')
+        self.safeguardpolicyname = self.module.params.get('safeguardpolicyname', '')
+        self.nosafeguardpolicy = self.module.params.get('nosafeguardpolicy', False)
+
+        # Dynamic variable
+        self.parentuid = None
+        self.changed = False
+        self.msg = ''
+
+        self.basic_checks()
 
         self.restapi = IBMSVCRestApi(
             module=self.module,
@@ -188,6 +301,81 @@ class IBMSVCVG(object):
             log_path=log_path,
             token=self.module.params['token']
         )
+
+    def basic_checks(self):
+        if not self.name:
+            self.module.fail_json(msg='Missing mandatory parameter: name')
+
+        if self.state == 'present':
+            if self.policystarttime:
+                if not self.snapshotpolicy and not self.safeguardpolicyname:
+                    self.module.fail_json(
+                        msg='Either `snapshotpolicy` or `safeguardpolicyname` should be passed along with `policystarttime`.'
+                    )
+        else:
+            unwanted = ('ownershipgroup', 'noownershipgroup', 'safeguardpolicyname',
+                        'nosafeguardpolicy', 'snapshotpolicy', 'nosnapshotpolicy',
+                        'policystarttime', 'type', 'fromsourcegroup', 'pool', 'iogrp')
+
+            param_exists = ', '.join((param for param in unwanted if getattr(self, param)))
+
+            if param_exists:
+                self.module.fail_json(
+                    msg='State=absent but following parameters exists: {0}'.format(param_exists)
+                )
+
+    def create_validation(self):
+        mutually_exclusive = (
+            ('ownershipgroup', 'safeguardpolicyname'),
+            ('ownershipgroup', 'snapshotpolicy'),
+            ('ownershipgroup', 'policystarttime'),
+            ('snapshotpolicy', 'safeguardpolicyname'),
+        )
+
+        for param1, param2 in mutually_exclusive:
+            if getattr(self, param1) and getattr(self, param2):
+                self.module.fail_json(
+                    msg='Mutually exclusive parameters: {0}, {1}'.format(param1, param2)
+                )
+
+        unsupported = ('nosafeguardpolicy', 'noownershipgroup', 'nosnapshotpolicy', 'snapshotpolicysuspended')
+        unsupported_exists = ', '.join((field for field in unsupported if getattr(self, field)))
+
+        if unsupported_exists:
+            self.module.fail_json(
+                msg='Following paramters not supported during creation scenario: {0}'.format(unsupported_exists)
+            )
+
+        if self.type and not self.snapshot:
+            self.module.fail_json(
+                msg='type={0} but following parameter is missing: snapshot'.format(self.type)
+            )
+
+    def update_validation(self):
+        mutually_exclusive = (
+            ('ownershipgroup', 'noownershipgroup'),
+            ('safeguardpolicyname', 'nosafeguardpolicy'),
+            ('ownershipgroup', 'safeguardpolicyname'),
+            ('ownershipgroup', 'snapshotpolicy'),
+            ('ownershipgroup', 'policystarttime'),
+            ('nosafeguardpolicy', 'nosnapshotpolicy'),
+            ('snapshotpolicy', 'nosnapshotpolicy'),
+            ('snapshotpolicy', 'safeguardpolicyname')
+        )
+
+        for param1, param2 in mutually_exclusive:
+            if getattr(self, param1) and getattr(self, param2):
+                self.module.fail_json(
+                    msg='Mutually exclusive parameters: {0}, {1}'.format(param1, param2)
+                )
+
+        unsupported = ('type', 'snapshot', 'fromsourcegroup', 'pool', 'iogrp')
+        unsupported_exists = ', '.join((param for param in unsupported if getattr(self, param)))
+
+        if unsupported_exists:
+            self.module.fail_json(
+                msg='Following paramters not supported during update: {0}'.format(unsupported_exists)
+            )
 
     def get_existing_vg(self):
         merged_result = {}
@@ -201,66 +389,81 @@ class IBMSVCVG(object):
         else:
             merged_result = data
 
+        if merged_result and ((self.snapshotpolicy and self.policystarttime) or self.snapshotpolicysuspended):
+            # Making new call as snapshot_policy_start_time not available in lsvolumegroup CLI
+            SP_data = self.restapi.svc_obj_info(
+                cmd='lsvolumegroupsnapshotpolicy',
+                cmdopts=None,
+                cmdargs=[self.name]
+            )
+            merged_result['snapshot_policy_start_time'] = SP_data['snapshot_policy_start_time']
+            merged_result['snapshot_policy_suspended'] = SP_data['snapshot_policy_suspended']
+
         return merged_result
 
+    def set_parentuid(self):
+        if self.snapshot and not self.fromsourcegroup:
+            cmdopts = {
+                "filtervalue": "snapshot_name={0}".format(self.snapshot)
+            }
+            data = self.restapi.svc_obj_info(
+                cmd='lsvolumesnapshot',
+                cmdopts=cmdopts,
+                cmdargs=None
+            )
+            try:
+                result = next(
+                    filter(
+                        lambda obj: obj['volume_group_name'] == '',
+                        data
+                    )
+                )
+            except StopIteration:
+                self.module.fail_json(
+                    msg='Orphan Snapshot ({0}) does not exists for the given name'.format(self.snapshot)
+                )
+            else:
+                self.parentuid = result['parent_uid']
+
     def vg_probe(self, data):
-        props = {}
-        if self.ownershipgroup and self.noownershipgroup:
-            self.module.fail_json(msg="You must not pass in both 'ownershipgroup' and "
-                                      "'noownershipgroup' to the module.")
+        # Mapping the parameters with the existing data for comparision
+        params_mapping = (
+            ('ownershipgroup', data['owner_name']),
+            ('noownershipgroup', not bool(data['owner_name'])),
+            ('nosafeguardpolicy', not bool(data['safeguarded_policy_name'])),
+            ('nosnapshotpolicy', not bool(data['snapshot_policy_name'])),
+        )
 
-        if self.safeguardpolicyname and self.nosafeguardpolicy:
-            self.module.fail_json(msg="You must not pass in both 'safeguardpolicyname' and "
-                                      "'nosafeguardpolicy' to the module.")
+        props = dict((k, getattr(self, k)) for k, v in params_mapping if getattr(self, k) and getattr(self, k) != v)
 
-        if self.ownershipgroup and self.safeguardpolicyname:
-            self.module.fail_json(msg="You must not pass in both 'ownershipgroup' and "
-                                      "'safeguardpolicyname' to the module.")
-
-        if self.ownershipgroup and self.policystarttime:
-            self.module.fail_json(msg="'policystarttime' can be used with safeguardpolicyname only.")
-
-        if self.nosafeguardpolicy and self.policystarttime:
-            self.module.fail_json(msg="'policystarttime' can be used with safeguardpolicyname only.")
-
-        if self.policystarttime and not self.safeguardpolicyname and not data['safeguarded_policy_name']:
-            self.module.fail_json(msg="'policystarttime' can be used with safeguardpolicyname only.")
-
-        if self.ownershipgroup and (not data['owner_name'] or self.ownershipgroup != data['owner_name']):
-            props['ownershipgroup'] = self.ownershipgroup
-
-        if self.noownershipgroup and data['owner_name']:
-            props['noownershipgroup'] = self.noownershipgroup
-
-        if self.safeguardpolicyname and (not data['safeguarded_policy_name'] or self.safeguardpolicyname != data['safeguarded_policy_name']):
-            props['safeguardpolicyname'] = self.safeguardpolicyname
+        if self.safeguardpolicyname and self.safeguardpolicyname != data['safeguarded_policy_name']:
+            props['safeguardedpolicy'] = self.safeguardpolicyname
+            # If policy is changed, existing policystarttime will be erased so adding time without any check
             if self.policystarttime:
                 props['policystarttime'] = self.policystarttime
-        elif self.safeguardpolicyname and self.safeguardpolicyname == data['safeguarded_policy_name']:
-            if self.policystarttime and (not data['safeguarded_policy_start_time'] or (self.policystarttime + "00") != data['safeguarded_policy_start_time']):
-                props['safeguardpolicyname'] = self.safeguardpolicyname
+        elif self.safeguardpolicyname:
+            if self.policystarttime and self.policystarttime + '00' != data['safeguarded_policy_start_time']:
+                props['safeguardedpolicy'] = self.safeguardpolicyname
+                props['policystarttime'] = self.policystarttime
+        elif self.snapshotpolicy and self.snapshotpolicy != data['snapshot_policy_name']:
+            props['snapshotpolicy'] = self.snapshotpolicy
+            if self.policystarttime:
+                props['policystarttime'] = self.policystarttime
+        elif self.snapshotpolicy:
+            if self.policystarttime and self.policystarttime + '00' != data['snapshot_policy_start_time']:
+                props['snapshotpolicy'] = self.snapshotpolicy
                 props['policystarttime'] = self.policystarttime
 
-        if self.nosafeguardpolicy and data['safeguarded_policy_name']:
-            props['nosafeguardpolicy'] = self.nosafeguardpolicy
+        # Adding snapshotpolicysuspended to props
+        if self.snapshotpolicysuspended and self.snapshotpolicysuspended != data['snapshot_policy_suspended']:
+            props['snapshotpolicysuspended'] = self.snapshotpolicysuspended
 
-        self.log("volumegroup props = '%s'", props)
+        self.log("volumegroup props = %s", props)
 
         return props
 
     def vg_create(self):
-        if self.ownershipgroup and self.noownershipgroup:
-            self.module.fail_json(msg="You must not pass in both 'ownershipgroup' and "
-                                      "'noownershipgroup' to the module.")
-
-        if self.safeguardpolicyname and self.nosafeguardpolicy:
-            self.module.fail_json(msg="You must not pass in both 'safeguardpolicyname' and "
-                                      "'nosafeguardpolicy' to the module.")
-
-        if self.ownershipgroup and self.safeguardpolicyname:
-            self.module.fail_json(msg="You must not pass in both 'ownershipgroup' and "
-                                      "'safeguardpolicyname' to the module.")
-
+        self.create_validation()
         if self.module.check_mode:
             self.changed = True
             return
@@ -270,85 +473,73 @@ class IBMSVCVG(object):
         # Make command
         cmd = 'mkvolumegroup'
         cmdopts = {'name': self.name}
+
+        if self.type:
+            optional_params = ('type', 'snapshot', 'pool', 'iogrp')
+            cmdopts.update(
+                dict(
+                    (param, getattr(self, param)) for param in optional_params if getattr(self, param)
+                )
+            )
+            self.set_parentuid()
+            if self.parentuid:
+                cmdopts['fromsourceuid'] = self.parentuid
+            else:
+                cmdopts['fromsourcegroup'] = self.fromsourcegroup
+
         if self.ownershipgroup:
             cmdopts['ownershipgroup'] = self.ownershipgroup
-
-        if self.safeguardpolicyname and self.policystarttime:
-            cmdopts['safeguardedpolicy'] = self.safeguardpolicyname
-            cmdopts['policystarttime'] = self.policystarttime
         elif self.safeguardpolicyname:
             cmdopts['safeguardedpolicy'] = self.safeguardpolicyname
+            if self.policystarttime:
+                cmdopts['policystarttime'] = self.policystarttime
+        elif self.snapshotpolicy:
+            cmdopts['snapshotpolicy'] = self.snapshotpolicy
+            if self.policystarttime:
+                cmdopts['policystarttime'] = self.policystarttime
 
         self.log("creating volumegroup '%s'", cmdopts)
 
         # Run command
         result = self.restapi.svc_run_command(cmd, cmdopts, cmdargs=None)
         self.log("create volume group result %s", result)
-
-        if 'message' in result:
-            self.changed = True
-            self.log("create volume group result message %s", result['message'])
-        else:
-            self.module.fail_json(
-                msg="Failed to create volume group [%s]" % self.name)
+        # Any error would have been raised in svc_run_command
+        self.changed = True
 
     def vg_update(self, modify):
+        self.update_validation()
         if self.module.check_mode:
             self.changed = True
             return
 
         # update the volume group
         self.log("updating volume group '%s' ", self.name)
+        cmdargs = [self.name]
 
+        try:
+            del modify['snapshotpolicysuspended']
+        except KeyError:
+            self.log("snapshotpolicysuspended modification not reqiured!!")
+        else:
+            cmd = 'chvolumegroupsnapshotpolicy'
+            cmdopts = {'snapshotpolicysuspended': self.snapshotpolicysuspended}
+            self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
+
+        cmd = 'chvolumegroup'
+        unmaps = ('noownershipgroup', 'nosafeguardpolicy', 'nosnapshotpolicy')
+        for field in unmaps:
+            cmdopts = {}
+            if field == 'nosafeguardpolicy' and field in modify:
+                cmdopts['nosafeguardedpolicy'] = modify.pop('nosafeguardpolicy')
+                self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
+            elif field in modify:
+                cmdopts[field] = modify.pop(field)
+                self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
         if modify:
-            self.log("updating volume group with properties %s", modify)
-            cmd = 'chvolumegroup'
-            cmdargs = [self.name]
-            for prop in modify:
-                cmdopts = {}
-                if 'noownershipgroup' in modify and 'nosafeguardpolicy' in modify:
-                    cmdopts['noownershipgroup'] = True
-                    self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-                    cmdopts = {}
-                    cmdopts['nosafeguardedpolicy'] = True
-                    self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-                elif 'nosafeguardpolicy' in modify and 'ownershipgroup' in modify:
-                    cmdopts['nosafeguardedpolicy'] = True
-                    self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-                    cmdopts = {}
-                    cmdopts["ownershipgroup"] = self.ownershipgroup
-                    self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-                elif 'noownershipgroup' in modify and 'safeguardpolicyname' in modify:
-                    cmdopts['noownershipgroup'] = True
-                    self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-                    cmdopts = {}
-                    if 'policystarttime' in modify:
-                        cmdopts['safeguardedpolicy'] = self.safeguardpolicyname
-                        cmdopts['policystarttime'] = self.policystarttime
-                    else:
-                        cmdopts['safeguardedpolicy'] = self.safeguardpolicyname
-                    self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-                elif 'noownershipgroup' in modify:
-                    cmdopts['noownershipgroup'] = True
-                    self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-                elif 'nosafeguardpolicy' in modify:
-                    cmdopts['nosafeguardedpolicy'] = True
-                    self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-                elif 'ownershipgroup' in modify:
-                    cmdopts["ownershipgroup"] = self.ownershipgroup
-                    self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-                elif 'safeguardpolicyname' in modify and 'policystarttime' in modify:
-                    cmdopts['safeguardedpolicy'] = self.safeguardpolicyname
-                    cmdopts['policystarttime'] = self.policystarttime
-                    self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-                elif 'safeguardpolicyname' in modify:
-                    cmdopts['safeguardedpolicy'] = self.safeguardpolicyname
-                    self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
-                else:
-                    self.log("Unsupported Parameter")
-
-            # Any error would have been raised in svc_run_command
-            self.changed = True
+            cmdopts = modify
+            self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
+        # Any error would have been raised in svc_run_command
+        self.changed = True
 
     def vg_delete(self):
         if self.module.check_mode:
@@ -368,45 +559,30 @@ class IBMSVCVG(object):
     def apply(self):
         changed = False
         msg = None
-        modify = {}
         vg_data = self.get_existing_vg()
 
         if vg_data:
-            if self.state == 'absent':
-                self.log(
-                    "CHANGED: Volume group exists, requested state is 'absent'")
-                changed = True
-            elif self.state == 'present':
+            if self.state == 'present':
                 modify = self.vg_probe(vg_data)
                 if modify:
-                    changed = True
-        else:
-            if self.state == 'present':
-                self.log(
-                    "CHANGED: Volume group does not exist, but requested state is 'present'")
-                changed = True
-        if changed:
-            if self.state == 'present':
-                if not vg_data:
-                    self.vg_create()
-                    msg = "volume group %s has been created." % self.name
-                else:
                     self.vg_update(modify)
-                    msg = "volume group [%s] has been modified." % self.name
-            elif self.state == 'absent':
-                self.vg_delete()
-                msg = "volume group [%s] has been deleted." % self.name
-
-            if self.module.check_mode:
-                msg = 'skipping changes due to check mode.'
-        else:
-            self.log("exiting with no changes")
-            if self.state in ['absent']:
-                msg = "Volume group [%s] does not exist." % self.name
+                    self.msg = "volume group [%s] has been modified." % self.name
+                else:
+                    self.msg = "No Modifications detected, Volume group already exists."
             else:
-                msg = "No Modifications detected, Volume group already exists."
+                self.vg_delete()
+                self.msg = "volume group [%s] has been deleted." % self.name
+        else:
+            if self.state == 'absent':
+                self.msg = "Volume group [%s] does not exist." % self.name
+            else:
+                self.vg_create()
+                self.msg = "volume group [%s] has been created." % self.name
 
-        self.module.exit_json(msg=msg, changed=changed)
+        if self.module.check_mode:
+            self.msg = 'skipping changes due to check mode.'
+
+        self.module.exit_json(msg=self.msg, changed=self.changed)
 
 
 def main():

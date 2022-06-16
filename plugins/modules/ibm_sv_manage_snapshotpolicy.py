@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2022 IBM CORPORATION
-# Author(s): Sanjaikumaar M <sanjaikumaar.m@ibm.com>
+# Author(s): Shilpi Jain <shilpi.jain1@ibm.com>
 #
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -12,12 +12,12 @@ __metaclass__ = type
 
 DOCUMENTATION = '''
 ---
-module: ibm_svc_manage_safeguarded_policy
-short_description: This module manages safeguarded policy configuration on IBM Spectrum Virtualize family storage systems
-version_added: "1.8.0"
+module: ibm_sv_manage_snapshotpolicy
+short_description: This module manages snapshot policy configuration on IBM Spectrum Virtualize family storage systems
+version_added: "1.9.0"
 description:
-  - Ansible interface to manage 'mksafeguardedpolicy' and 'rmsafeguardedpolicy' safeguarded policy commands.
-  - Safeguarded copy functionality is introduced in IBM Spectrum Virtualize 8.4.2.
+  - Ansible interface to manage 'mksnapshotpolicy' and 'rmsnapshotpolicy' snapshot policy commands.
+  - Snapshot policy is introduced in IBM Spectrum Virtualize 8.5.1.0.
 options:
     clustername:
         description:
@@ -42,7 +42,7 @@ options:
     token:
         description:
             - The authentication token to verify a user on the Spectrum Virtualize storage system.
-            - To generate a token, use the ibm_svc_auth module.
+            - To generate a token, use the M(ibm.spectrum_virtualize.ibm_svc_auth) module.
         type: str
     log_path:
         description:
@@ -50,25 +50,25 @@ options:
         type: str
     state:
         description:
-            - Creates (C(present)) or deletes (C(absent)) a safeguarded policy.
-            - Resume (C(resume)) or suspend (C(suspend)) the safeguarded copy functionality system wide.
+            - Creates (C(present)) or deletes (C(absent)) a snapshot policy.
+            - Resume (C(resume)) or suspend (C(suspend)) the snapshot policy, system-wide.
         choices: [ present, absent, suspend, resume ]
         required: true
         type: str
     name:
         description:
-            - Specifies the name of safeguarded policy.
+            - Specifies a unique name of the snapshot policy.
             - Not applicable when I(state=suspend) or I(state=resume).
         type: str
     backupunit:
         description:
-            - Specify the backup unit in mentioned metric.
+            - Specifies the backup unit in mentioned metric.
             - Applies when I(state=present).
         choices: [ minute, hour, day, week, month ]
         type: str
     backupinterval:
         description:
-            - Specifies the interval of backup.
+            - Specifies the backup interval.
             - Applies when I(state=present).
         type: str
     backupstarttime:
@@ -81,47 +81,53 @@ options:
             - Specifies the retention days for the backup.
             - Applies when I(state=present).
         type: str
+    removefromvolumegroups:
+        description:
+            - Specify to remove the volume group association from the snapshot policy.
+            - Applies when I(state=absent).
+            - This option is allowed only for SecurityAdmin users.
+        type: bool
     validate_certs:
         description:
             - Validates certification.
         default: false
         type: bool
 author:
-    - Sanjaikumaar M (@sanjaikumaar)
+    - Shilpi Jain(@Shilpi-J)
 notes:
     - This module supports C(check_mode).
 '''
 
 EXAMPLES = '''
-- name: Create safeguarded policy
-  ibm.spectrum_virtualize.ibm_svc_manage_safeguarded_policy:
+- name: Create snapshot policy
+  ibm.spectrum_virtualize.ibm_sv_manage_snapshotpolicy:
     clustername: "{{cluster}}"
     username: "{{username}}"
     password: "{{password}}"
-    name: sgpolicy0
+    name: policy0
     backupunit: day
     backupinterval: 1
     backupstarttime: 2102281800
     retentiondays: 15
     state: present
-- name: Suspend safeguarded copy functionality
-  ibm.spectrum_virtualize.ibm_svc_manage_safeguarded_policy:
+- name: Suspend snapshot policy functionality
+  ibm.spectrum_virtualize.ibm_sv_manage_snapshotpolicy:
     clustername: "{{cluster}}"
     username: "{{username}}"
     password: "{{password}}"
     state: suspend
-- name: Resume safeguarded copy functionality
-  ibm.spectrum_virtualize.ibm_svc_manage_safeguarded_policy:
+- name: Resume snapshot policy functionality
+  ibm.spectrum_virtualize.ibm_sv_manage_snapshotpolicy:
     clustername: "{{cluster}}"
     username: "{{username}}"
     password: "{{password}}"
     state: resume
-- name: Delete safeguarded policy
-  ibm.spectrum_virtualize.ibm_svc_manage_safeguarded_policy:
+- name: Delete snapshot policy
+  ibm.spectrum_virtualize.ibm_sv_manage_snapshotpolicy:
     clustername: "{{cluster}}"
     username: "{{username}}"
     password: "{{password}}"
-    name: sgpolicy0
+    name: policy0
     state: absent
 '''
 
@@ -136,7 +142,7 @@ from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_ut
 from ansible.module_utils._text import to_native
 
 
-class IBMSVCSafeguardedPolicy:
+class IBMSVCSnapshotPolicy:
 
     def __init__(self):
         argument_spec = svc_argument_spec()
@@ -163,6 +169,9 @@ class IBMSVCSafeguardedPolicy:
                 retentiondays=dict(
                     type='str',
                 ),
+                removefromvolumegroups=dict(
+                    type='bool'
+                ),
             )
         )
 
@@ -176,11 +185,12 @@ class IBMSVCSafeguardedPolicy:
         self.backupinterval = self.module.params.get('backupinterval', '')
         self.backupstarttime = self.module.params.get('backupstarttime', '')
         self.retentiondays = self.module.params.get('retentiondays', '')
+        self.removefromvolumegroups = self.module.params.get('removefromvolumegroups', False)
 
         self.basic_checks()
 
         # Variable to cache data
-        self.sg_policy_details = None
+        self.snapshot_policy_details = None
 
         # logging setup
         self.log_path = self.module.params['log_path']
@@ -206,7 +216,14 @@ class IBMSVCSafeguardedPolicy:
             exists = list(filter(lambda x: not getattr(self, x), fields))
 
             if any(exists):
-                self.module.fail_json(msg="State is present but following parameters are missing: {0}".format(', '.join(exists)))
+                self.module.fail_json(
+                    msg="State is present but following parameters are missing: {0}".format(', '.join(exists))
+                )
+
+            if self.removefromvolumegroups:
+                self.module.fail_json(
+                    msg="`removefromvolumegroups` parameter is not supported when state=present"
+                )
         elif self.state == 'absent':
             if not self.name:
                 self.module.fail_json(msg="Missing mandatory parameter: name")
@@ -223,10 +240,10 @@ class IBMSVCSafeguardedPolicy:
             if any(exists):
                 self.module.fail_json(msg='{0} should not be passed when state={1}'.format(', '.join(exists), self.state))
 
-    def is_sg_exists(self):
+    def policy_exists(self):
         merged_result = {}
         data = self.restapi.svc_obj_info(
-            cmd='lssafeguardedschedule',
+            cmd='lssnapshotschedule',
             cmdopts=None,
             cmdargs=[self.name]
         )
@@ -236,16 +253,16 @@ class IBMSVCSafeguardedPolicy:
         else:
             merged_result = data
 
-        self.sg_policy_details = merged_result
+        self.snapshot_policy_details = merged_result
 
         return merged_result
 
-    def create_sg_policy(self):
+    def create_snapshot_policy(self):
         if self.module.check_mode:
             self.changed = True
             return
 
-        cmd = 'mksafeguardedpolicy'
+        cmd = 'mksnapshotpolicy'
         cmdopts = {
             'name': self.name,
             'backupstarttime': self.backupstarttime,
@@ -255,15 +272,15 @@ class IBMSVCSafeguardedPolicy:
         }
 
         self.restapi.svc_run_command(cmd, cmdopts, cmdargs=None)
-        self.log('Safeguarded policy (%s) created', self.name)
+        self.log('Snapshot policy (%s) created', self.name)
         self.changed = True
 
-    def sg_probe(self):
+    def snapshot_policy_probe(self):
         field_mappings = (
-            ('backupinterval', self.sg_policy_details['backup_interval']),
-            ('backupstarttime', self.sg_policy_details['backup_start_time']),
-            ('retentiondays', self.sg_policy_details['retention_days']),
-            ('backupunit', self.sg_policy_details['backup_unit'])
+            ('backupinterval', self.snapshot_policy_details['backup_interval']),
+            ('backupstarttime', self.snapshot_policy_details['backup_start_time']),
+            ('retentiondays', self.snapshot_policy_details['retention_days']),
+            ('backupunit', self.snapshot_policy_details['backup_unit'])
         )
         updates = []
 
@@ -275,51 +292,57 @@ class IBMSVCSafeguardedPolicy:
 
         return updates
 
-    def delete_sg_policy(self):
+    def delete_snapshot_policy(self):
         if self.module.check_mode:
             self.changed = True
             return
 
-        cmd = 'rmsafeguardedpolicy'
+        cmd = 'rmsnapshotpolicy'
         cmdargs = [self.name]
+        cmdopts = None
 
-        self.restapi.svc_run_command(cmd, cmdopts=None, cmdargs=cmdargs)
-        self.log('Safeguarded policy (%s) deleted', self.name)
+        if self.removefromvolumegroups:
+            cmdopts = {
+                'removefromvolumegroups': True
+            }
+
+        self.restapi.svc_run_command(cmd, cmdopts=cmdopts, cmdargs=cmdargs)
+        self.log('Snapshot policy (%s) deleted', self.name)
         self.changed = True
 
-    def update_safeguarded_copy_functionality(self):
+    def update_snapshot_scheduler(self):
         if self.module.check_mode:
             self.changed = True
             return
 
         cmd = 'chsystem'
-        cmdopts = {'safeguardedcopysuspended': 'yes' if self.state == 'suspend' else 'no'}
+        cmdopts = {'snapshotpolicysuspended': 'yes' if self.state == 'suspend' else 'no'}
 
         self.restapi.svc_run_command(cmd, cmdopts=cmdopts, cmdargs=None)
-        self.log('Safeguarded copy functionality status changed: %s', self.state)
+        self.log('Snapshot scheduler status changed: %s', self.state)
         self.changed = True
 
     def apply(self):
         if self.state in ['resume', 'suspend']:
-            self.update_safeguarded_copy_functionality()
-            self.msg = 'Safeguarded copy functionality {0}ed'.format(self.state.rstrip('e'))
+            self.update_snapshot_scheduler()
+            self.msg = 'Snapshot scheduler {0}ed'.format(self.state.rstrip('e'))
         else:
-            if self.is_sg_exists():
+            if self.policy_exists():
                 if self.state == 'present':
-                    modifications = self.sg_probe()
+                    modifications = self.snapshot_policy_probe()
                     if any(modifications):
                         self.msg = 'Policy modification is not supported in ansible. Please delete and recreate new policy.'
                     else:
-                        self.msg = 'Safeguarded policy ({0}) already exists. No modifications done.'.format(self.name)
+                        self.msg = 'Snapshot policy ({0}) already exists. No modifications done.'.format(self.name)
                 else:
-                    self.delete_sg_policy()
-                    self.msg = 'Safeguarded policy ({0}) deleted.'.format(self.name)
+                    self.delete_snapshot_policy()
+                    self.msg = 'Snapshot policy ({0}) deleted.'.format(self.name)
             else:
                 if self.state == 'absent':
-                    self.msg = 'Safeguarded policy ({0}) does not exist. No modifications done.'.format(self.name)
+                    self.msg = 'Snapshot policy ({0}) does not exist. No modifications done.'.format(self.name)
                 else:
-                    self.create_sg_policy()
-                    self.msg = 'Safeguarded policy ({0}) created.'.format(self.name)
+                    self.create_snapshot_policy()
+                    self.msg = 'Snapshot policy ({0}) created.'.format(self.name)
 
         if self.module.check_mode:
             self.msg = 'skipping changes due to check mode.'
@@ -331,7 +354,7 @@ class IBMSVCSafeguardedPolicy:
 
 
 def main():
-    v = IBMSVCSafeguardedPolicy()
+    v = IBMSVCSnapshotPolicy()
     try:
         v.apply()
     except Exception as e:
