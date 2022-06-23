@@ -428,34 +428,34 @@ class IBMSVCVG(object):
     def vg_probe(self, data):
         # Mapping the parameters with the existing data for comparision
         params_mapping = (
-            ('ownershipgroup', data['owner_name']),
-            ('noownershipgroup', not bool(data['owner_name'])),
-            ('nosafeguardpolicy', not bool(data['safeguarded_policy_name'])),
-            ('nosnapshotpolicy', not bool(data['snapshot_policy_name'])),
+            ('ownershipgroup', data.get('owner_name', '')),
+            ('noownershipgroup', not bool(data.get('owner_name', ''))),
+            ('nosafeguardpolicy', not bool(data.get('safeguarded_policy_name', ''))),
+            ('nosnapshotpolicy', not bool(data.get('snapshot_policy_name', ''))),
         )
 
         props = dict((k, getattr(self, k)) for k, v in params_mapping if getattr(self, k) and getattr(self, k) != v)
 
-        if self.safeguardpolicyname and self.safeguardpolicyname != data['safeguarded_policy_name']:
+        if self.safeguardpolicyname and self.safeguardpolicyname != data.get('safeguarded_policy_name', ''):
             props['safeguardedpolicy'] = self.safeguardpolicyname
             # If policy is changed, existing policystarttime will be erased so adding time without any check
             if self.policystarttime:
                 props['policystarttime'] = self.policystarttime
         elif self.safeguardpolicyname:
-            if self.policystarttime and self.policystarttime + '00' != data['safeguarded_policy_start_time']:
+            if self.policystarttime and self.policystarttime + '00' != data.get('safeguarded_policy_start_time', ''):
                 props['safeguardedpolicy'] = self.safeguardpolicyname
                 props['policystarttime'] = self.policystarttime
-        elif self.snapshotpolicy and self.snapshotpolicy != data['snapshot_policy_name']:
+        elif self.snapshotpolicy and self.snapshotpolicy != data.get('snapshot_policy_name', ''):
             props['snapshotpolicy'] = self.snapshotpolicy
             if self.policystarttime:
                 props['policystarttime'] = self.policystarttime
         elif self.snapshotpolicy:
-            if self.policystarttime and self.policystarttime + '00' != data['snapshot_policy_start_time']:
+            if self.policystarttime and self.policystarttime + '00' != data.get('snapshot_policy_start_time', ''):
                 props['snapshotpolicy'] = self.snapshotpolicy
                 props['policystarttime'] = self.policystarttime
 
         # Adding snapshotpolicysuspended to props
-        if self.snapshotpolicysuspended and self.snapshotpolicysuspended != data['snapshot_policy_suspended']:
+        if self.snapshotpolicysuspended and self.snapshotpolicysuspended != data.get('snapshot_policy_suspended', ''):
             props['snapshotpolicysuspended'] = self.snapshotpolicysuspended
 
         self.log("volumegroup props = %s", props)
