@@ -278,9 +278,6 @@ class IBMSVSnapshot:
             )
 
     def update_validation(self):
-        if self.name == self.old_name:
-            self.module.fail_json(msg='New name and old name should be different.')
-
         unsupported = ('snapshot_pool', 'ignorelegacy')
         unsupported_exists = ', '.join((param for param in unsupported if getattr(self, param)))
 
@@ -294,20 +291,28 @@ class IBMSVSnapshot:
 
     def rename_validation(self, updates):
         if self.old_name and self.name:
+            if self.name == self.old_name:
+                self.module.fail_json(msg='New name and old name should be different.')
+
             new = self.is_snapshot_exists()
             existing = self.is_snapshot_exists(old_name=self.old_name)
 
             if existing:
                 if new:
                     self.module.fail_json(
-                        msg='Snapshot ({0}) already exists for the given new name'.format(self.name)
+                        msg='Snapshot ({0}) already exists for the given new name.'.format(self.name)
                     )
                 else:
                     updates.append('name')
             else:
-                self.module.fail_json(
-                    msg='Snapshot ({0}) does not exists for the given old name'.format(self.old_name)
-                )
+                if not new:
+                    self.module.fail_json(
+                        msg='Snapshot ({0}) does not exists for the given old name.'.format(self.old_name)
+                    )
+                else:
+                    self.module.exit_json(
+                        msg='Snapshot ({0}) already renamed. No modifications done.'.format(self.name)
+                    )
 
     def is_snapshot_exists(self, old_name=None, force=False):
         old_name = old_name if old_name else self.name
@@ -457,7 +462,7 @@ class IBMSVSnapshot:
                 modifications = self.snapshot_probe()
                 if any(modifications):
                     self.update_snapshot(modifications)
-                    self.msg = 'Snapshot ({0}) updated'.format(self.name)
+                    self.msg = 'Snapshot ({0}) updated.'.format(self.name)
                 else:
                     self.msg = 'Snapshot ({0}) already exists. No modifications done.'.format(self.name)
             else:
@@ -467,7 +472,7 @@ class IBMSVSnapshot:
                 self.msg = 'Snapshot ({0}) does not exists.'.format(self.name)
             else:
                 self.create_snapshot()
-                self.msg += 'Snapshot ({0}) created. '.format(self.name)
+                self.msg = 'Snapshot ({0}) created.'.format(self.name)
 
         if self.module.check_mode:
             self.msg = 'skipping changes due to check mode.'
