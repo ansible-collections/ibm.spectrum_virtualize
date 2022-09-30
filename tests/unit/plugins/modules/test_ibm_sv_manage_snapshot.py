@@ -136,9 +136,39 @@ class TestIBMSVSnapshot(unittest.TestCase):
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_sv_manage_snapshot.IBMSVSnapshot.is_snapshot_exists')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_sv_manage_snapshot.IBMSVSnapshot.lsvolumegroupsnapshot')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_create_snapshot_validation(self, svc_authorize_mock, snapshot_exists_mock):
+    def test_update_snapshot_validation_1(self, svc_authorize_mock,
+                                          lsvolumegroupsnapshot_mock,
+                                          snapshot_exists_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'snapshot0',
+            'src_volumegroup_name': 'volgrp0',
+            'ownershipgroup': 'owner0',
+            'safeguarded': True,
+            'retentiondays': 5,
+            'state': 'present',
+        })
+        snapshot_exists_mock.return_value = True
+        lsvolumegroupsnapshot_mock.return_value = {'owner_name': '', 'safeguarded': 'yes'}
+        ss = IBMSVSnapshot()
+
+        with pytest.raises(AnsibleFailJson) as exc:
+            ss.apply()
+        self.assertTrue(exc.value.args[0]['failed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_sv_manage_snapshot.IBMSVSnapshot.is_snapshot_exists')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_create_snapshot_validation(self, svc_authorize_mock,
+                                        snapshot_exists_mock):
         set_module_args({
             'clustername': 'clustername',
             'domain': 'domain',
@@ -158,9 +188,13 @@ class TestIBMSVSnapshot(unittest.TestCase):
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_sv_manage_snapshot.IBMSVSnapshot.is_snapshot_exists')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_sv_manage_snapshot.IBMSVSnapshot.lsvolumegroupsnapshot')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_update_snapshot_validation(self, svc_authorize_mock, snapshot_exists_mock):
+    def test_update_snapshot_validation_2(self, svc_authorize_mock,
+                                          lsvolumegroupsnapshot_mock,
+                                          snapshot_exists_mock):
         set_module_args({
             'clustername': 'clustername',
             'domain': 'domain',
@@ -169,9 +203,11 @@ class TestIBMSVSnapshot(unittest.TestCase):
             'name': 'snapshot0',
             'src_volumegroup_name': 'volgrp0',
             'snapshot_pool': 'childpool0',
+            'ownershipgroup': 'owner0',
             'state': 'present',
         })
-        snapshot_exists_mock.return_value = False
+        snapshot_exists_mock.return_value = True
+        lsvolumegroupsnapshot_mock.return_value = {'owner_name': ''}
         ss = IBMSVSnapshot()
 
         with pytest.raises(AnsibleFailJson) as exc:
@@ -253,6 +289,81 @@ class TestIBMSVSnapshot(unittest.TestCase):
            'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_create_safeguarded_volumegroup_snapshot(self,
+                                                     svc_authorize_mock,
+                                                     svc_run_command_mock,
+                                                     snapshot_exists_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'snapshot0',
+            'src_volumegroup_name': 'volgrp0',
+            'state': 'present',
+            'safeguarded': True,
+            'retentiondays': 2
+        })
+
+        snapshot_exists_mock.return_value = {}
+
+        fc = IBMSVSnapshot()
+
+        with pytest.raises(AnsibleExitJson) as exc:
+            fc.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_sv_manage_snapshot.IBMSVSnapshot.is_snapshot_exists')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_sv_manage_snapshot.IBMSVSnapshot.lsvolumegroupsnapshot')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_create_safeguarded_volumegroup_snapshot_idempotency(self,
+                                                                 svc_authorize_mock,
+                                                                 svc_run_command_mock,
+                                                                 lsvg_mock,
+                                                                 snapshot_exists_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'snapshot0',
+            'src_volumegroup_name': 'volgrp0',
+            'state': 'present',
+            'safeguarded': True,
+            'retentiondays': 2
+        })
+
+        snapshot_exists_mock.return_value = {
+            "id": '0',
+            "name": 'snapshot0',
+            "owner_name": '',
+            'safeguarded': 'yes'
+        }
+
+        lsvg_mock.return_value = {
+            "id": '0',
+            "name": 'snapshot0',
+            "owner_name": '',
+            'safeguarded': 'yes'
+        }
+
+        fc = IBMSVSnapshot()
+
+        with pytest.raises(AnsibleExitJson) as exc:
+            fc.apply()
+        self.assertFalse(exc.value.args[0]['changed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_sv_manage_snapshot.IBMSVSnapshot.is_snapshot_exists')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
     def test_create_volume_snapshot(self,
                                     svc_authorize_mock,
                                     svc_run_command_mock,
@@ -306,6 +417,79 @@ class TestIBMSVSnapshot(unittest.TestCase):
         lsvg_mock.return_value = {
             'id': 1,
             'snapshot_name': 'snapshot0'
+        }
+
+        fc = IBMSVSnapshot()
+
+        with pytest.raises(AnsibleExitJson) as exc:
+            fc.apply()
+        self.assertFalse(exc.value.args[0]['changed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_sv_manage_snapshot.IBMSVSnapshot.is_snapshot_exists')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_create_safeguarded_volume_snapshot(self,
+                                                svc_authorize_mock,
+                                                svc_run_command_mock,
+                                                snapshot_exists_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'snapshot0',
+            'src_volume_names': 'vol0:vol1',
+            'state': 'present',
+            'safeguarded': True,
+            'retentiondays': 2
+        })
+
+        snapshot_exists_mock.return_value = {}
+
+        fc = IBMSVSnapshot()
+
+        with pytest.raises(AnsibleExitJson) as exc:
+            fc.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_sv_manage_snapshot.IBMSVSnapshot.is_snapshot_exists')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_sv_manage_snapshot.IBMSVSnapshot.lsvolumegroupsnapshot')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_create_safeguarded_volume_snapshot_idempotency(self,
+                                                            svc_authorize_mock,
+                                                            svc_run_command_mock,
+                                                            lsvg_mock,
+                                                            snapshot_exists_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'snapshot0',
+            'src_volume_names': 'vol0:vol1',
+            'state': 'present',
+            'safeguarded': True,
+            'retentiondays': 2
+        })
+
+        snapshot_exists_mock.return_value = {
+            'id': 1,
+            'snapshot_name': 'snapshot0',
+            'safeguarded': 'yes'
+        }
+
+        lsvg_mock.return_value = {
+            'id': 1,
+            'snapshot_name': 'snapshot0',
+            'safeguarded': 'yes'
         }
 
         fc = IBMSVSnapshot()
@@ -406,8 +590,6 @@ class TestIBMSVSnapshot(unittest.TestCase):
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_sv_manage_snapshot.IBMSVSnapshot.is_snapshot_exists')
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
-           'ibm_sv_manage_snapshot.IBMSVSnapshot.delete_snapshot')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
@@ -415,7 +597,6 @@ class TestIBMSVSnapshot(unittest.TestCase):
     def test_delete_snapshot(self,
                              svc_authorize_mock,
                              svc_run_command_mock,
-                             delete_mock,
                              snapshot_exists_mock):
         set_module_args({
             'clustername': 'clustername',
@@ -426,16 +607,20 @@ class TestIBMSVSnapshot(unittest.TestCase):
             'state': 'absent',
         })
 
-        snapshot_exists_mock.return_value = {
-            "id": '0',
-            "name": 'snapshot0',
-            "owner_name": ''
-        }
+        snapshot_exists_mock.side_effect = iter([
+            {
+                "id": '0',
+                "name": 'snapshot0',
+                "owner_name": ''
+            },
+            {}
+        ])
 
         fc = IBMSVSnapshot()
 
         with pytest.raises(AnsibleExitJson) as exc:
             fc.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_sv_manage_snapshot.IBMSVSnapshot.is_snapshot_exists')
@@ -483,11 +668,18 @@ class TestIBMSVSnapshot(unittest.TestCase):
             'state': 'absent',
         })
 
-        snapshot_exists_mock.return_value = {
-            "id": '0',
-            "name": 'snapshot0',
-            "owner_name": ''
-        }
+        snapshot_exists_mock.side_effect = iter([
+            {
+                "id": '0',
+                "name": 'snapshot0',
+                "owner_name": ''
+            },
+            {
+                "id": '0',
+                "name": 'snapshot0',
+                "owner_name": ''
+            }
+        ])
 
         fc = IBMSVSnapshot()
 

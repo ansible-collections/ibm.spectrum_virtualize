@@ -4,8 +4,7 @@
 # Copyright (C) 2021 IBM CORPORATION
 # Author(s): Shilpi Jain <shilpi.jain1@ibm.com>
 #
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -52,7 +51,7 @@ options:
     token:
         description:
             - The authentication token to verify a user on the Spectrum Virtualize storage system.
-            - To generate a token, use the ibm_svc_auth module.
+            - To generate a token, use the M(ibm.spectrum_virtualize.ibm_svc_auth) module.
         type: str
     ownershipgroup:
         description:

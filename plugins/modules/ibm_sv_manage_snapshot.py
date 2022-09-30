@@ -4,8 +4,7 @@
 # Copyright (C) 2022 IBM CORPORATION
 # Author(s): Sanjaikumaar M <sanjaikumaar.m@ibm.com>
 #
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -91,6 +90,20 @@ options:
             - Specifies the name of the ownershipgroup.
             - Valid when I(state=present), to update an existing snapshot.
         type: str
+    safeguarded:
+        description:
+            - Flag to create a safeguarded snapshot.
+            - I(safeguarded) and I(retentiondays) are required together.
+            - Supported in SV build 8.5.2.0 or later.
+        type: bool
+        version_added: 1.10.0
+    retentiondays:
+        description:
+            - Specifies the retention period in days.
+            - I(safeguarded) and I(retentiondays) are required together.
+            - Applies, when I(state=present) to create a safeguarded snapshot.
+        type: int
+        version_added: 1.10.0
     validate_certs:
         description:
             - Validates certification.
@@ -127,6 +140,17 @@ EXAMPLES = '''
    src_volume_names: vdisk0:vdisk1
    snapshot_pool: Pool0Childpool0
    state: present
+- name: Create safeguarded snapshot
+  ibm.spectrum_virtualize.ibm_sv_manage_snapshot:
+   clustername: '{{clustername}}'
+   username: '{{username}}'
+   password: '{{password}}'
+   name: ansible_2
+   src_volume_names: vdisk0:vdisk1
+   safeguarded: true
+   retentiondays: 1
+   snapshot_pool: Pool0Childpool0
+   state: present
 - name: Update snapshot ansible_2
   ibm.spectrum_virtualize.ibm_sv_manage_snapshot:
    clustername: '{{clustername}}'
@@ -158,7 +182,9 @@ RETURN = '''#'''
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import (
-    IBMSVCRestApi, svc_argument_spec,
+    IBMSVCRestApi,
+    svc_argument_spec,
+    strtobool,
     get_logger
 )
 from ansible.module_utils._text import to_native
@@ -196,6 +222,12 @@ class IBMSVSnapshot:
                 ),
                 ownershipgroup=dict(
                     type='str',
+                ),
+                safeguarded=dict(
+                    type='bool'
+                ),
+                retentiondays=dict(
+                    type='int',
                 )
             )
         )
@@ -216,6 +248,8 @@ class IBMSVSnapshot:
         self.snapshot_pool = self.module.params.get('snapshot_pool', '')
         self.volumegroup = self.module.params.get('src_volumegroup_name', '')
         self.volumes = self.module.params.get('src_volume_names', '')
+        self.safeguarded = self.module.params.get('safeguarded', False)
+        self.retentiondays = self.module.params.get('retentiondays')
 
         self.basic_checks()
 
@@ -252,7 +286,7 @@ class IBMSVSnapshot:
                     msg='Mutually exclusive parameters: src_volumegroup_name, src_volume_names'
                 )
         elif self.state == 'absent':
-            invalids = ('snapshot_pool', 'ignorelegacy', 'ownershipgroup', 'old_name')
+            invalids = ('snapshot_pool', 'ignorelegacy', 'ownershipgroup', 'old_name', 'safeguarded', 'retentiondays')
             invalid_exists = ', '.join((var for var in invalids if getattr(self, var)))
 
             if self.volumes:
@@ -277,20 +311,9 @@ class IBMSVSnapshot:
                 msg='`ownershipgroup` parameter is not supported during snapshot creation'
             )
 
-    def update_validation(self):
-        unsupported = ('snapshot_pool', 'ignorelegacy')
-        unsupported_exists = ', '.join((param for param in unsupported if getattr(self, param)))
-
-        if self.volumes:
-            unsupported_exists = 'src_volume_names, {0}'.format(unsupported_exists)
-
-        if unsupported_exists:
-            self.module.fail_json(
-                msg='Following paramters not applicable for update operation: {0}'.format(unsupported_exists)
-            )
-
     def rename_validation(self, updates):
         if self.old_name and self.name:
+
             if self.name == self.old_name:
                 self.module.fail_json(msg='New name and old name should be different.')
 
@@ -390,6 +413,10 @@ class IBMSVSnapshot:
             cmdopts['pool'] = self.snapshot_pool
         if self.ignorelegacy:
             cmdopts['ignorelegacy'] = self.ignorelegacy
+        if self.retentiondays:
+            cmdopts['retentiondays'] = self.retentiondays
+        if self.safeguarded:
+            cmdopts['safeguarded'] = self.safeguarded
 
         if self.volumegroup:
             cmdopts['volumegroup'] = self.volumegroup
@@ -409,11 +436,15 @@ class IBMSVSnapshot:
         if self.ownershipgroup and ls_data['owner_name'] != self.ownershipgroup:
             updates.append('ownershipgroup')
 
+        if self.safeguarded in {True, False} and self.safeguarded != strtobool(ls_data.get('safeguarded', 0)):
+            self.module.fail_json(
+                msg='Following paramter not applicable for update operation: safeguarded'
+            )
+
         self.log('Snapshot probe result: %s', updates)
         return updates
 
     def update_snapshot(self, updates):
-        self.update_validation()
         if self.module.check_mode:
             self.changed = True
             return
