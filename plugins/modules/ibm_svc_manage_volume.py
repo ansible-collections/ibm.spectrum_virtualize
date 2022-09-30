@@ -654,6 +654,7 @@ class IBMSVCvolume(object):
                 else:
                     msg = "volume [%s] already exists." % self.name
         if self.module.check_mode:
+            msg = 'Skipping changes due to check mode.'
             self.log('skipping changes due to check mode.')
 
         self.module.exit_json(msg=msg, changed=self.changed)

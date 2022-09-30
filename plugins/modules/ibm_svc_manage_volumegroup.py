@@ -53,7 +53,7 @@ options:
     token:
         description:
             - The authentication token to verify a user on the Spectrum Virtualize storage system.
-            - To generate a token, use the ibm_svc_auth module.
+            - To generate a token, use the M(ibm.spectrum_virtualize.ibm_svc_auth) module.
         type: str
     log_path:
         description:
@@ -132,7 +132,8 @@ options:
         version_added: 1.9.0
     fromsourcegroup:
         description:
-            - Specifies the parent volume group of the snapshot. This is used to prepopulate the new volume in the new volume group.
+            - Specifies the parent volume group of the snapshot. This is used to prepopulate the new volume in the
+              new volume group.
             - Valid during creation of host accessible volume group from an existing snapshot.
         type: str
         version_added: 1.9.0
@@ -148,6 +149,40 @@ options:
             - Valid during creation of host accessible volume group from an existing snapshot.
         type: str
         version_added: 1.9.0
+    safeguarded:
+        description:
+            - If specified, the snapshot policy creates safeguarded snapshots.
+            - Should be specified along with I(snapshotpolicy).
+            - Valid during creation and update of a volume group.
+            - Supported from Spectrum Virtualize family storage systems 8.5.2.0 or later.
+        default: false
+        type: bool
+        version_added: 1.10.0
+    ignoreuserfcmaps:
+        description:
+            - Allows user to create snapshots through the scheduler or manually with `addsnapshot`.
+              This can only be used if a volume in the volume group is used as a source of a user legacy
+              FlashCopy mapping.
+            - Valid during creation and update of a volume group.
+            - Supported from Spectrum Virtualize family storage systems 8.5.2.0 or later.
+        choices: [ 'yes', 'no' ]
+        type: str
+        version_added: 1.10.0
+    replicationpolicy:
+        description:
+            - Specifies the name of the replication policy to be assigned to the volume group.
+            - Applies when I(state=present).
+            - Supported from Spectrum Virtualize family storage systems 8.5.2.1 or later.
+        type: str
+        version_added: 1.10.0
+    noreplicationpolicy:
+        description:
+            - If specified `True`, removes the replication policy assigned to the volume group.
+            - Parameters I(replicationpolicy) and I(noreplicationpolicy) are mutually exclusive.
+            - Applies when I(state=present) to modify an existing volume group.
+            - Supported from Spectrum Virtualize family storage systems 8.5.2.1 or later.
+        type: bool
+        version_added: 1.10.0
 author:
     - Shilpi Jain(@Shilpi-J)
     - Sanjaikumaar M (@sanjaikumaar)
@@ -198,6 +233,18 @@ EXAMPLES = '''
     nosafeguardpolicy: true
     snapshotpolicy: sp1
     state: present
+- name: Update volumegroup with safeguarded snapshot policy and ignoreuserfcmaps
+  ibm.spectrum_virtualize.ibm_svc_manage_volumegroup:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    log_path: /tmp/playbook.debug
+    name: vg0
+    safeguarded: true
+    snapshotpolicy: sp1
+    ignoreuserfcmaps: yes
+    state: present
 - name: Suspend snapshot policy in an existing volume group
   ibm.spectrum_virtualize.ibm_svc_manage_volumegroup:
     clustername: "{{ clustername }}"
@@ -228,7 +275,7 @@ RETURN = '''#'''
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import \
-    IBMSVCRestApi, svc_argument_spec, get_logger
+    IBMSVCRestApi, svc_argument_spec, get_logger, strtobool
 from ansible.module_utils._text import to_native
 
 
@@ -253,7 +300,11 @@ class IBMSVCVG(object):
                 snapshot=dict(type='str'),
                 fromsourcegroup=dict(type='str'),
                 pool=dict(type='str'),
-                iogrp=dict(type='str')
+                iogrp=dict(type='str'),
+                safeguarded=dict(type='bool', default=False),
+                ignoreuserfcmaps=dict(type='str', choices=['yes', 'no']),
+                replicationpolicy=dict(type='str'),
+                noreplicationpolicy=dict(type='bool')
             )
         )
 
@@ -283,6 +334,10 @@ class IBMSVCVG(object):
         self.iogrp = self.module.params.get('iogrp', '')
         self.safeguardpolicyname = self.module.params.get('safeguardpolicyname', '')
         self.nosafeguardpolicy = self.module.params.get('nosafeguardpolicy', False)
+        self.safeguarded = self.module.params.get('safeguarded', False)
+        self.ignoreuserfcmaps = self.module.params.get('ignoreuserfcmaps', '')
+        self.replicationpolicy = self.module.params.get('replicationpolicy', '')
+        self.noreplicationpolicy = self.module.params.get('noreplicationpolicy', False)
 
         # Dynamic variable
         self.parentuid = None
@@ -312,10 +367,17 @@ class IBMSVCVG(object):
                     self.module.fail_json(
                         msg='Either `snapshotpolicy` or `safeguardpolicyname` should be passed along with `policystarttime`.'
                     )
+            if self.safeguarded:
+                if not self.snapshotpolicy:
+                    self.module.fail_json(
+                        msg='Parameter `safeguarded` should be passed along with `snapshotpolicy`'
+                    )
         else:
             unwanted = ('ownershipgroup', 'noownershipgroup', 'safeguardpolicyname',
                         'nosafeguardpolicy', 'snapshotpolicy', 'nosnapshotpolicy',
-                        'policystarttime', 'type', 'fromsourcegroup', 'pool', 'iogrp')
+                        'policystarttime', 'type', 'fromsourcegroup', 'pool', 'iogrp',
+                        'safeguarded', 'ignoreuserfcmaps', 'replicationpolicy',
+                        'noreplicationpolicy')
 
             param_exists = ', '.join((param for param in unwanted if getattr(self, param)))
 
@@ -330,6 +392,7 @@ class IBMSVCVG(object):
             ('ownershipgroup', 'snapshotpolicy'),
             ('ownershipgroup', 'policystarttime'),
             ('snapshotpolicy', 'safeguardpolicyname'),
+            ('replicationpolicy', 'noreplicationpolicy')
         )
 
         for param1, param2 in mutually_exclusive:
@@ -338,7 +401,8 @@ class IBMSVCVG(object):
                     msg='Mutually exclusive parameters: {0}, {1}'.format(param1, param2)
                 )
 
-        unsupported = ('nosafeguardpolicy', 'noownershipgroup', 'nosnapshotpolicy', 'snapshotpolicysuspended')
+        unsupported = ('nosafeguardpolicy', 'noownershipgroup', 'nosnapshotpolicy',
+                       'snapshotpolicysuspended', 'noreplicationpolicy')
         unsupported_exists = ', '.join((field for field in unsupported if getattr(self, field)))
 
         if unsupported_exists:
@@ -351,7 +415,7 @@ class IBMSVCVG(object):
                 msg='type={0} but following parameter is missing: snapshot'.format(self.type)
             )
 
-    def update_validation(self):
+    def update_validation(self, data):
         mutually_exclusive = (
             ('ownershipgroup', 'noownershipgroup'),
             ('safeguardpolicyname', 'nosafeguardpolicy'),
@@ -360,7 +424,8 @@ class IBMSVCVG(object):
             ('ownershipgroup', 'policystarttime'),
             ('nosafeguardpolicy', 'nosnapshotpolicy'),
             ('snapshotpolicy', 'nosnapshotpolicy'),
-            ('snapshotpolicy', 'safeguardpolicyname')
+            ('snapshotpolicy', 'safeguardpolicyname'),
+            ('replicationpolicy', 'noreplicationpolicy')
         )
 
         for param1, param2 in mutually_exclusive:
@@ -369,8 +434,15 @@ class IBMSVCVG(object):
                     msg='Mutually exclusive parameters: {0}, {1}'.format(param1, param2)
                 )
 
-        unsupported = ('type', 'snapshot', 'fromsourcegroup', 'pool', 'iogrp')
-        unsupported_exists = ', '.join((param for param in unsupported if getattr(self, param)))
+        unsupported_maps = (
+            ('type', data.get('volume_group_type', '')),
+            ('snapshot', data.get('source_snapshot', '')),
+            ('fromsourcegroup', data.get('source_volume_group_name', ''))
+        )
+        unsupported = (
+            fields[0] for fields in unsupported_maps if getattr(self, fields[0]) and getattr(self, fields[0]) != fields[1]
+        )
+        unsupported_exists = ', '.join(unsupported)
 
         if unsupported_exists:
             self.module.fail_json(
@@ -381,7 +453,7 @@ class IBMSVCVG(object):
         merged_result = {}
 
         data = self.restapi.svc_obj_info(cmd='lsvolumegroup', cmdopts=None,
-                                         cmdargs=[self.name])
+                                         cmdargs=['-gui', self.name])
 
         if isinstance(data, list):
             for d in data:
@@ -426,12 +498,16 @@ class IBMSVCVG(object):
                 self.parentuid = result['parent_uid']
 
     def vg_probe(self, data):
+        self.update_validation(data)
         # Mapping the parameters with the existing data for comparision
         params_mapping = (
             ('ownershipgroup', data.get('owner_name', '')),
+            ('ignoreuserfcmaps', data.get('ignore_user_flash_copy_maps', '')),
+            ('replicationpolicy', data.get('replication_policy_name', '')),
             ('noownershipgroup', not bool(data.get('owner_name', ''))),
             ('nosafeguardpolicy', not bool(data.get('safeguarded_policy_name', ''))),
             ('nosnapshotpolicy', not bool(data.get('snapshot_policy_name', ''))),
+            ('noreplicationpolicy', not bool(data.get('replication_policy_name', '')))
         )
 
         props = dict((k, getattr(self, k)) for k, v in params_mapping if getattr(self, k) and getattr(self, k) != v)
@@ -447,12 +523,16 @@ class IBMSVCVG(object):
                 props['policystarttime'] = self.policystarttime
         elif self.snapshotpolicy and self.snapshotpolicy != data.get('snapshot_policy_name', ''):
             props['snapshotpolicy'] = self.snapshotpolicy
+            props['safeguarded'] = self.safeguarded
             if self.policystarttime:
                 props['policystarttime'] = self.policystarttime
         elif self.snapshotpolicy:
             if self.policystarttime and self.policystarttime + '00' != data.get('snapshot_policy_start_time', ''):
                 props['snapshotpolicy'] = self.snapshotpolicy
                 props['policystarttime'] = self.policystarttime
+            if self.safeguarded not in ('', None) and self.safeguarded != strtobool(data.get('snapshot_policy_safeguarded', 0)):
+                props['snapshotpolicy'] = self.snapshotpolicy
+                props['safeguarded'] = self.safeguarded
 
         # Adding snapshotpolicysuspended to props
         if self.snapshotpolicysuspended and self.snapshotpolicysuspended != data.get('snapshot_policy_suspended', ''):
@@ -472,20 +552,35 @@ class IBMSVCVG(object):
 
         # Make command
         cmd = 'mkvolumegroup'
-        cmdopts = {'name': self.name}
+        cmdopts = {
+            'name': self.name,
+            'safeguarded': self.safeguarded
+        }
 
         if self.type:
-            optional_params = ('type', 'snapshot', 'pool', 'iogrp')
+            optional_params = ('type', 'snapshot', 'pool')
             cmdopts.update(
                 dict(
                     (param, getattr(self, param)) for param in optional_params if getattr(self, param)
                 )
             )
+            if self.iogrp:
+                cmdopts['iogroup'] = self.iogrp
+
             self.set_parentuid()
             if self.parentuid:
                 cmdopts['fromsourceuid'] = self.parentuid
             else:
                 cmdopts['fromsourcegroup'] = self.fromsourcegroup
+
+        if self.ignoreuserfcmaps:
+            if self.ignoreuserfcmaps == 'yes':
+                cmdopts['ignoreuserfcmaps'] = True
+            else:
+                cmdopts['ignoreuserfcmaps'] = False
+
+        if self.replicationpolicy:
+            cmdopts['replicationpolicy'] = self.replicationpolicy
 
         if self.ownershipgroup:
             cmdopts['ownershipgroup'] = self.ownershipgroup
@@ -507,7 +602,6 @@ class IBMSVCVG(object):
         self.changed = True
 
     def vg_update(self, modify):
-        self.update_validation()
         if self.module.check_mode:
             self.changed = True
             return
@@ -526,7 +620,7 @@ class IBMSVCVG(object):
             self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
 
         cmd = 'chvolumegroup'
-        unmaps = ('noownershipgroup', 'nosafeguardpolicy', 'nosnapshotpolicy')
+        unmaps = ('noownershipgroup', 'nosafeguardpolicy', 'nosnapshotpolicy', 'noreplicationpolicy')
         for field in unmaps:
             cmdopts = {}
             if field == 'nosafeguardpolicy' and field in modify:
@@ -557,8 +651,6 @@ class IBMSVCVG(object):
         self.changed = True
 
     def apply(self):
-        changed = False
-        msg = None
         vg_data = self.get_existing_vg()
 
         if vg_data:
