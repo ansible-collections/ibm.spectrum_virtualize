@@ -51,6 +51,22 @@ def svc_ssh_argument_spec():
     )
 
 
+def strtobool(val):
+    '''
+    Converts a string representation to boolean.
+
+    This is a built-in function available in python till the version 3.9 under disutils.util
+    but this has been deprecated in 3.10 and may not be available in future python releases
+    so adding the source code here.
+    '''
+    if val in {'y', 'yes', 't', 'true', 'on', '1'}:
+        return 1
+    elif val in {'n', 'no', 'f', 'false', 'off', '0'}:
+        return 0
+    else:
+        raise ValueError("invalid truth value %r" % (val,))
+
+
 def get_logger(module_name, log_file_name, log_level=logging.INFO):
     FORMAT = '%(asctime)s.%(msecs)03d %(levelname)5s %(thread)d %(filename)s:%(funcName)s():%(lineno)s %(message)s'
     DATEFORMAT = '%Y-%m-%dT%H:%M:%S'
