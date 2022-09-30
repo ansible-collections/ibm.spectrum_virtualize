@@ -105,7 +105,9 @@ class TestIBMSVCvdisk(unittest.TestCase):
             "safeguarded_policy_name": "",
             "safeguarded_policy_start_time": "",
             "snapshot_policy_name": "",
-            "snapshot_policy_suspended": "no"
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no"
         }
         vg = IBMSVCVG()
         vg.get_existing_vg()
@@ -134,7 +136,9 @@ class TestIBMSVCvdisk(unittest.TestCase):
             "safeguarded_policy_name": "",
             "safeguarded_policy_start_time": "",
             "snapshot_policy_name": "",
-            "snapshot_policy_suspended": "no"
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no"
         }
         vg = IBMSVCVG()
         probe_data = vg.vg_probe(data)
@@ -164,7 +168,9 @@ class TestIBMSVCvdisk(unittest.TestCase):
             "safeguarded_policy_name": "",
             "safeguarded_policy_start_time": "",
             "snapshot_policy_name": "",
-            "snapshot_policy_suspended": "no"
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no"
         }
         vg = IBMSVCVG()
         probe_data = vg.vg_probe(data)
@@ -194,7 +200,9 @@ class TestIBMSVCvdisk(unittest.TestCase):
             "safeguarded_policy_name": "",
             "safeguarded_policy_start_time": "",
             "snapshot_policy_name": "",
-            "snapshot_policy_suspended": "no"
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no"
         }
         vg = IBMSVCVG()
         probe_data = vg.vg_probe(data)
@@ -224,7 +232,9 @@ class TestIBMSVCvdisk(unittest.TestCase):
             "safeguarded_policy_name": "",
             "safeguarded_policy_start_time": "",
             "snapshot_policy_name": "",
-            "snapshot_policy_suspended": "no"
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no"
         }
         vg = IBMSVCVG()
         probe_data = vg.vg_probe(data)
@@ -254,7 +264,9 @@ class TestIBMSVCvdisk(unittest.TestCase):
             "safeguarded_policy_name": "old_policy_name",
             "safeguarded_policy_start_time": "",
             "snapshot_policy_name": "",
-            "snapshot_policy_suspended": "no"
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no"
         }
         vg = IBMSVCVG()
         probe_data = vg.vg_probe(data)
@@ -285,12 +297,13 @@ class TestIBMSVCvdisk(unittest.TestCase):
             "safeguarded_policy_name": "",
             "safeguarded_policy_start_time": "",
             "snapshot_policy_name": "",
-            "snapshot_policy_suspended": "no"
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no"
         }
         vg = IBMSVCVG()
-        probe_data = vg.vg_probe(data)
         with pytest.raises(AnsibleFailJson) as exc:
-            vg.vg_update(probe_data)
+            vg.vg_probe(data)
         self.assertTrue(exc.value.args[0]['failed'])
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
@@ -318,12 +331,13 @@ class TestIBMSVCvdisk(unittest.TestCase):
             "safeguarded_policy_name": "",
             "safeguarded_policy_start_time": "",
             "snapshot_policy_name": "",
-            "snapshot_policy_suspended": "no"
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no"
         }
         vg = IBMSVCVG()
-        probe_data = vg.vg_probe(data)
         with pytest.raises(AnsibleFailJson) as exc:
-            vg.vg_update(probe_data)
+            vg.vg_probe(data)
         self.assertTrue(exc.value.args[0]['failed'])
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
@@ -351,45 +365,13 @@ class TestIBMSVCvdisk(unittest.TestCase):
             "safeguarded_policy_name": "",
             "safeguarded_policy_start_time": "",
             "snapshot_policy_name": "",
-            "snapshot_policy_suspended": "no"
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no"
         }
         vg = IBMSVCVG()
-        probe_data = vg.vg_probe(data)
         with pytest.raises(AnsibleFailJson) as exc:
-            vg.vg_update(probe_data)
-        self.assertTrue(exc.value.args[0]['failed'])
-
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
-           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_failure_for_mutual_exclusive_parameter_4(self, mock_svc_authorize):
-        set_module_args({
-            'clustername': 'clustername',
-            'domain': 'domain',
-            'username': 'username',
-            'password': 'password',
-            'name': 'test_volume',
-            'state': 'present',
-            'noownershipgroup': True,
-            'safeguardpolicyname': 'policy_name'
-        })
-        data = {
-            "id": "8",
-            "name": "test_volumegroup",
-            "volume_count": "0",
-            "backup_status": "empty",
-            "last_backup_time": "",
-            "owner_id": "",
-            "owner_name": "",
-            "safeguarded_policy_id": "",
-            "safeguarded_policy_name": "",
-            "safeguarded_policy_start_time": "",
-            "snapshot_policy_name": "",
-            "snapshot_policy_suspended": "no"
-        }
-        vg = IBMSVCVG()
-        probe_data = vg.vg_probe(data)
-        with pytest.raises(AnsibleFailJson) as exc:
-            vg.vg_update(probe_data)
+            vg.vg_probe(data)
         self.assertTrue(exc.value.args[0]['failed'])
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
@@ -630,7 +612,9 @@ class TestIBMSVCvdisk(unittest.TestCase):
             "safeguarded_policy_name": "",
             "safeguarded_policy_start_time": "",
             "snapshot_policy_name": "",
-            "snapshot_policy_suspended": "no"
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no"
         }
         with pytest.raises(AnsibleExitJson) as exc:
             vg = IBMSVCVG()
@@ -666,7 +650,9 @@ class TestIBMSVCvdisk(unittest.TestCase):
             "safeguarded_policy_name": "",
             "safeguarded_policy_start_time": "",
             "snapshot_policy_name": "",
-            "snapshot_policy_suspended": "no"
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no"
         }
         srcm.return_value = None
         with pytest.raises(AnsibleExitJson) as exc:
@@ -703,7 +689,9 @@ class TestIBMSVCvdisk(unittest.TestCase):
             "safeguarded_policy_name": "",
             "safeguarded_policy_start_time": "",
             "snapshot_policy_name": "",
-            "snapshot_policy_suspended": "no"
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no"
         }
         with pytest.raises(AnsibleExitJson) as exc:
             vg = IBMSVCVG()
@@ -749,6 +737,7 @@ class TestIBMSVCvdisk(unittest.TestCase):
             'password': 'password',
             'name': 'test_volumegroup',
             'snapshotpolicy': 'ss_policy1',
+            'replicationpolicy': 'rp0',
             'state': 'present',
         })
         svc_obj_info_mock.return_value = {}
@@ -773,6 +762,7 @@ class TestIBMSVCvdisk(unittest.TestCase):
             'password': 'password',
             'name': 'test_volumegroup',
             'snapshotpolicy': 'ss_policy1',
+            'replicationpolicy': 'rp0',
             'state': 'present',
         })
         svc_obj_info_mock.return_value = {
@@ -787,7 +777,10 @@ class TestIBMSVCvdisk(unittest.TestCase):
             "safeguarded_policy_name": "",
             "safeguarded_policy_start_time": "",
             "snapshot_policy_name": "ss_policy1",
-            "snapshot_policy_suspended": "no"
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no",
+            "replication_policy_name": "rp0"
         }
         with pytest.raises(AnsibleExitJson) as exc:
             vg = IBMSVCVG()
@@ -800,7 +793,35 @@ class TestIBMSVCvdisk(unittest.TestCase):
            'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_update_snapshot_policy(self, mock_svc_authorize, svc_obj_info_mock,
+    def test_create_volumegroup_with_safeguarded_snapshotpolicy(self,
+                                                                mock_svc_authorize,
+                                                                svc_obj_info_mock,
+                                                                svc_run_command_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test_volumegroup',
+            'snapshotpolicy': 'ss_policy1',
+            'safeguarded': True,
+            'ignoreuserfcmaps': 'yes',
+            'state': 'present',
+        })
+        svc_obj_info_mock.return_value = {}
+        with pytest.raises(AnsibleExitJson) as exc:
+            vg = IBMSVCVG()
+            vg.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_update_snapshot_policy(self, mock_svc_authorize,
+                                    svc_obj_info_mock,
                                     svc_run_command_mock):
         set_module_args({
             'clustername': 'clustername',
@@ -809,6 +830,7 @@ class TestIBMSVCvdisk(unittest.TestCase):
             'password': 'password',
             'name': 'test_volumegroup',
             'snapshotpolicy': 'ss_policy2',
+            'replicationpolicy': 'rp0',
             'state': 'present',
         })
         data = {
@@ -823,12 +845,59 @@ class TestIBMSVCvdisk(unittest.TestCase):
             "safeguarded_policy_name": "",
             "safeguarded_policy_start_time": "",
             "snapshot_policy_name": "ss_policy1",
-            "snapshot_policy_suspended": "no"
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no",
+            "replication_policy_name": ""
         }
 
         vg = IBMSVCVG()
         probe_data = vg.vg_probe(data)
         self.assertTrue('snapshotpolicy' in probe_data)
+        self.assertTrue('replicationpolicy' in probe_data)
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_update_safeguarded_snapshot_policy(self, mock_svc_authorize,
+                                                svc_obj_info_mock,
+                                                svc_run_command_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test_volumegroup',
+            'snapshotpolicy': 'ss_policy2',
+            'safeguarded': True,
+            'ignoreuserfcmaps': 'yes',
+            'state': 'present',
+        })
+        data = {
+            "id": "8",
+            "name": "test_volumegroup",
+            "volume_count": "0",
+            "backup_status": "empty",
+            "last_backup_time": "",
+            "owner_id": "",
+            "owner_name": "",
+            "safeguarded_policy_id": "",
+            "safeguarded_policy_name": "",
+            "safeguarded_policy_start_time": "",
+            "snapshot_policy_name": "ss_policy1",
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no"
+        }
+
+        vg = IBMSVCVG()
+        probe_data = vg.vg_probe(data)
+        self.assertTrue('safeguarded' in probe_data)
+        self.assertTrue('snapshotpolicy' in probe_data)
+        self.assertTrue('ignoreuserfcmaps' in probe_data)
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
@@ -846,6 +915,7 @@ class TestIBMSVCvdisk(unittest.TestCase):
             'password': 'password',
             'name': 'test_volumegroup',
             'nosnapshotpolicy': True,
+            'noreplicationpolicy': True,
             'state': 'present',
         })
         data = {
@@ -860,12 +930,16 @@ class TestIBMSVCvdisk(unittest.TestCase):
             "safeguarded_policy_name": "",
             "safeguarded_policy_start_time": "",
             "snapshot_policy_name": "ss_policy2",
-            "snapshot_policy_suspended": "no"
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no",
+            "replication_policy_name": "rp0"
         }
 
         vg = IBMSVCVG()
         probe_data = vg.vg_probe(data)
         self.assertTrue('nosnapshotpolicy' in probe_data)
+        self.assertTrue('noreplicationpolicy' in probe_data)
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
@@ -897,7 +971,9 @@ class TestIBMSVCvdisk(unittest.TestCase):
             "safeguarded_policy_name": "",
             "safeguarded_policy_start_time": "",
             "snapshot_policy_name": "ss_policy2",
-            "snapshot_policy_suspended": "no"
+            "snapshot_policy_suspended": "no",
+            "ignore_user_flash_copy_maps": "no",
+            "snapshot_policy_safeguarded": "no"
         }
 
         vg = IBMSVCVG()
