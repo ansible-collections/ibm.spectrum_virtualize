@@ -2,7 +2,7 @@
 
 [![Code of conduct](https://img.shields.io/badge/code%20of%20conduct-Ansible-silver.svg)](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html )
 
-This collection provides a series of Ansible modules and plugins for interacting with the IBM Spectrum Virtualize family storage products. These products include the IBM SAN Volume Controller, IBM FlashSystem family members built with IBM Spectrum Virtualize (FlashSystem 5xxx, 7xxx, 9xxx), IBM Storwize family, and IBM Spectrum Virtualize for Public Cloud. For more information regarding these products, see [IBM Documentation](https://www.ibm.com/docs/en ).
+This collection provides a series of Ansible modules and plugins for interacting with the IBM Spectrum Virtualize family storage products. These products include the IBM SAN Volume Controller, IBM FlashSystem family members built with IBM Spectrum Virtualize (FlashSystem 5xxx, 7xxx, 9xxx), IBM Storwize family, and IBM Spectrum Virtualize for Public Cloud. For more information regarding these products, see [IBM Documentation](https://www.ibm.com/docs/).
 
 ## Requirements
 
@@ -68,39 +68,44 @@ Alternatively, you can add a full namepsace and collection name in the `collecti
 
 ### Modules
 
-- ibm_svc_auth - Generates an authentication token for a user on IBM Spectrum Virtualize family storage system
+- ibm_svc_auth - Generates an authentication token for a user on Spectrum Virtualize storage systems
 - ibm_svc_complete_initial_setup - Completes the initial setup configuration for LMC systems
-- ibm_svc_host - Manages hosts on IBM Spectrum Virtualize system
-- ibm_svc_hostcluster - Manages host cluster on IBM Spectrum Virtualize system
-- ibm_svc_info - Collects information on IBM Spectrum Virtualize system
-- ibm_svc_initial_setup - Manages initial setup configuration on IBM Spectrum Virtualize system
-- ibm_svc_manage_callhome - Manages configuration of Call Home feature on IBM Spectrum Virtualize system
-- ibm_svc_manage_consistgrp_flashcopy - Manages FlashCopy consistency groups on IBM Spectrum Virtualize system
-- ibm_svc_manage_cv - Manages the change volume in remote copy replication on IBM Spectrum Virtualize system
-- ibm_svc_manage_flashcopy - Manages FlashCopy mappings on IBM Spectrum Virtualize system
-- ibm_svc_manage_ip - Manages IP provisioning on IBM Spectrum Virtualize system
-- ibm_svc_manage_mirrored_volume - Manages mirrored volumes on IBM Spectrum Virtualize system
-- ibm_svc_manage_migration - Manages volume migration between clusters on IBM Spectrum Virtualize system
-- ibm_svc_manage_ownershipgroup - Manages ownership groups on IBM Spectrum Virtualize system
-- ibm_svc_manage_portset - Manages IP portset on IBM Spectrum Virtualize system
-- ibm_svc_manage_replication - Manages remote copy replication on IBM Spectrum Virtualize system
-- ibm_svc_manage_replicationgroup - Manages remote copy consistency groups on IBM Spectrum Virtualize system
-- ibm_svc_manage_safeguarded_policy - Manages safeguarded policy configuration on IBM Spectrum Virtualize system
-- ibm_svc_manage_sra - Manages the remote support assistance configuration on IBM Spectrum Virtualize system
-- ibm_svc_manage_user - Manages user on IBM Spectrum Virtualize system
-- ibm_svc_manage_usergroup - Manages user groups on IBM Spectrum Virtualize system
-- ibm_svc_manage_volume - Manages standard volumes on IBM Spectrum Virtualize system
-- ibm_svc_manage_volumegroup - Manages volume groups on IBM Spectrum Virtualize system
-- ibm_svc_mdisk - Manages MDisks for IBM Spectrum Virtualize system
-- ibm_svc_mdiskgrp - Manages pools for IBM Spectrum Virtualize system
-- ibm_svc_start_stop_flashcopy - Starts or stops FlashCopy mapping and consistency groups on IBM Spectrum Virtualize system
-- ibm_svc_start_stop_replication - Starts or stops remote-copy independent relationships or consistency groups on IBM Spectrum Virtualize system
-- ibm_svc_vol_map - Manages volume mapping for IBM Spectrum Virtualize system
-- ibm_svcinfo_command - Runs svcinfo CLI command on IBM Spectrum Virtualize system over SSH session
-- ibm_svctask_command - Runs svctask CLI command(s) on IBM Spectrum Virtualize system over SSH session
-- ibm_sv_manage_ip_partnership - Manages IP partnership configuration on IBM Spectrum Virtualize systems
-- ibm_sv_manage_snapshot - Manages snapshots (mutual consistent images of a volume) on IBM Spectrum Virtualize systems
-- ibm_sv_manage_snapshotpolicy - Manages snapshot policy configuration on IBM Spectrum Virtualize systems
+- ibm_svc_host - Manages hosts on Spectrum Virtualize storage systems
+- ibm_svc_hostcluster - Manages host cluster on Spectrum Virtualize storage systems
+- ibm_svc_info - Collects information on Spectrum Virtualize storage systems
+- ibm_svc_initial_setup - Manages initial setup configuration on Spectrum Virtualize storage systems
+- ibm_svc_manage_callhome - Manages configuration of Call Home feature on Spectrum Virtualize storage systems
+- ibm_svc_manage_consistgrp_flashcopy - Manages FlashCopy consistency groups on Spectrum Virtualize storage systems
+- ibm_svc_manage_cv - Manages the change volume in remote copy replication on Spectrum Virtualize storage systems
+- ibm_svc_manage_flashcopy - Manages FlashCopy mappings on Spectrum Virtualize storage systems
+- ibm_svc_manage_ip - Manages IP provisioning on Spectrum Virtualize storage systems
+- ibm_svc_manage_migration - Manages volume migration between clusters on Spectrum Virtualize storage systems
+- ibm_svc_manage_mirrored_volume - Manages mirrored volumes on Spectrum Virtualize storage systems
+- ibm_svc_manage_ownershipgroup - Manages ownership groups on Spectrum Virtualize storage systems
+- ibm_svc_manage_portset - Manages IP portset on Spectrum Virtualize storage systems
+- ibm_svc_manage_replication - Manages remote copy replication on Spectrum Virtualize storage systems
+- ibm_svc_manage_replicationgroup - Manages remote copy consistency groups on Spectrum Virtualize storage systems
+- ibm_svc_manage_safeguarded_policy - Manages safeguarded policy configuration on Spectrum Virtualize storage systems
+- ibm_svc_manage_sra - Manages the remote support assistance configuration on Spectrum Virtualize storage systems
+- ibm_svc_manage_user - Manages user on Spectrum Virtualize storage systems
+- ibm_svc_manage_usergroup - Manages user groups on Spectrum Virtualize storage systems
+- ibm_svc_manage_volume - Manages standard volumes on Spectrum Virtualize storage systems
+- ibm_svc_manage_volumegroup - Manages volume groups on Spectrum Virtualize storage systems
+- ibm_svc_mdisk - Manages MDisks for Spectrum Virtualize storage systems
+- ibm_svc_mdiskgrp - Manages pools for Spectrum Virtualize storage systems
+- ibm_svc_start_stop_flashcopy - Starts or stops FlashCopy mapping and consistency groups on Spectrum Virtualize storage systems
+- ibm_svc_start_stop_replication - Starts or stops remote-copy independent relationships or consistency groups on Spectrum Virtualize storage systems
+- ibm_svc_vol_map - Manages volume mapping for Spectrum Virtualize storage systems
+- ibm_svcinfo_command - Runs svcinfo CLI command on Spectrum Virtualize storage systems over SSH session
+- ibm_svctask_command - Runs svctask CLI command(s) on Spectrum Virtualize storage systems over SSH session
+- ibm_sv_manage_ip_partnership - Manages IP partnership configuration on Spectrum Virtualize storage systems
+- ibm_sv_manage_provisioning_policy - Manages provisioning policy configuration on Spectrum Virtualize storage systems
+- ibm_sv_manage_replication_policy - Manages policy-based replication configuration on Spectrum Virtualize storage systems
+- ibm_sv_manage_snapshot - Manages snapshots (mutual consistent images of a volume) on Spectrum Virtualize storage systems
+- ibm_sv_manage_snapshotpolicy - Manages snapshot policy configuration on Spectrum Virtualize storage systems
+- ibm_sv_manage_SSL_certificate - Exports an existing system certificate on to Spectrum Virtualize storage systems
+- ibm_sv_manage_truststore_for_replication - Manages certificate trust stores for replication on Spectrum Virtualize family storage systems
+- ibm_sv_switch_replication_direction - Switches the replication direction on Spectrum Virtualize storage systems
 
 ### Other Feature Information
 - SV Ansible Collection v1.8.0 provides the new 'ibm_svc_complete_initial_setup' module, to complete the automation of Day 0 configuration on Licensed Machine Code (LMC) systems.
@@ -121,7 +126,7 @@ Alternatively, you can add a full namepsace and collection name in the `collecti
 The modules in the IBM Spectrum Virtualize Ansible collection leverage REST APIs to connect to the IBM Spectrum Virtualize storage system. This has following limitations:
 1. Using the REST APIs to list more than 2000 objects may create a loss of service from the API side, as it automatically restarts due to memory constraints.
 2. It is not possible to access REST APIs using an IPv6 address on a cluster.
-3. The Ansible collection can run on all IBM Spectrum Virtualize storage versions above 8.1.3, except versions 8.3.1.3 and 8.3.1.4.
+3. The Ansible collection can run on all IBM Spectrum Virtualize storage system versions above 8.1.3, except versions 8.3.1.3 and 8.3.1.4.
 4. At time of release of the SV Ansible v1.8.0 collection, no module is available for non LMC systems to automate license agreements acceptance, including EULA.
    User will be presented with a GUI setup wizard upon user-interface login, whether the Ansible modules have been used for initial configuration or not.
 
