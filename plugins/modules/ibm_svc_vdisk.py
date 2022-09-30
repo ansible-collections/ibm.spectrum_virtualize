@@ -107,7 +107,7 @@ notes:
 deprecated:
   removed_in: 2.0.0
   why: New module released
-  alternative: Use M(ibm_svc_manage_volume) instead.
+  alternative: Use M(ibm.spectrum_virtualize.ibm_svc_manage_volume) instead.
 '''
 
 EXAMPLES = '''

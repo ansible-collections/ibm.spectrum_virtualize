@@ -49,7 +49,7 @@ options:
   token:
     description:
     - The authentication token to verify a user on the Spectrum Virtualize storage system.
-    - To generate a token, use the ibm_svc_auth module.
+    - To generate a token, use the M(ibm.spectrum_virtualize.ibm_svc_auth) module.
     type: str
     version_added: '1.5.0'
   datareduction:
@@ -111,6 +111,39 @@ options:
       - Unit for subpool.
       - Applies when I(state=present), to create a pool.
     type: str
+  provisioningpolicy:
+    description:
+      - Specify the name of the provisioning policy to map it with the pool.
+      - Applies, when I(state=present).
+    type: str
+    version_added: 1.10.0
+  noprovisioningpolicy:
+    description:
+      - Specify to unmap provisioning policy from the pool.
+      - Applies, when I(state=present) to modify an existing pool.
+    type: bool
+    version_added: 1.10.0
+  replicationpoollinkuid:
+    description:
+      - Specifies the replication pool unique identifier which should be same as the pool that present in the replication server.
+      - Applies, when I(state=present).
+      - Supported in SV build 8.5.2.1 or later.
+    type: str
+    version_added: 1.10.0
+  resetreplicationpoollinkuid:
+    description:
+      - If set, any links between this pool on local system and pools on remote systems will be removed.
+      - Applies, when I(state=present) to modify an existing pool.
+      - Supported in SV build 8.5.2.1 or later.
+    type: bool
+    version_added: 1.10.0
+  replication_partner_clusterid:
+    description:
+      - Specifies the id or name of the partner cluster which will be used for replication.
+      - Applies, when I(state=present).
+      - Supported in SV build 8.5.2.1 or later.
+    type: str
+    version_added: 1.10.0
   size:
     description:
       - Specifies the child pool capacity. The value must be
@@ -131,6 +164,9 @@ EXAMPLES = '''
     username: "{{username}}"
     password: "{{password}}"
     name: pool1
+    provisioningpolicy: pp0
+    replicationpoollinkuid: 000000000000000
+    replication_partner_clusterid: 000000000032432342
     state: present
     datareduction: no
     easytier: auto
@@ -193,7 +229,12 @@ class IBMSVCmdiskgrp(object):
                 safeguarded=dict(type='bool'),
                 noquota=dict(type='bool'),
                 size=dict(type='int'),
-                unit=dict(type='str')
+                unit=dict(type='str'),
+                provisioningpolicy=dict(type='str'),
+                noprovisioningpolicy=dict(type='bool'),
+                replicationpoollinkuid=dict(type='str'),
+                resetreplicationpoollinkuid=dict(type='bool'),
+                replication_partner_clusterid=dict(type='str'),
             )
         )
 
@@ -218,14 +259,20 @@ class IBMSVCmdiskgrp(object):
         self.ext = self.module.params.get('ext', None)
         self.safeguarded = self.module.params.get('safeguarded', False)
         self.noquota = self.module.params.get('noquota', False)
+        self.provisioningpolicy = self.module.params.get('provisioningpolicy', '')
+        self.noprovisioningpolicy = self.module.params.get('noprovisioningpolicy', False)
+        self.replicationpoollinkuid = self.module.params.get('replicationpoollinkuid', '')
+        self.resetreplicationpoollinkuid = self.module.params.get('resetreplicationpoollinkuid', False)
+        self.replication_partner_clusterid = self.module.params.get('replication_partner_clusterid', '')
 
         self.parentmdiskgrp = self.module.params.get('parentmdiskgrp', None)
         self.size = self.module.params.get('size', None)
         self.unit = self.module.params.get('unit', None)
 
-        # Handling missing mandatory parameters name
-        if not self.name:
-            self.module.fail_json(msg='Missing mandatory parameter: name')
+        # Dynamic variable
+        self.partnership_index = None
+
+        self.basic_checks()
 
         self.restapi = IBMSVCRestApi(
             module=self.module,
@@ -238,9 +285,39 @@ class IBMSVCmdiskgrp(object):
             token=self.module.params['token']
         )
 
+    def basic_checks(self):
+        if not self.name:
+            self.module.fail_json(msg='Missing mandatory parameter: name')
+
+        if self.state == 'present':
+            message = 'Following parameters are required together: replicationpoollinkuid, replication_partner_clusterid'
+            if self.replication_partner_clusterid:
+                if not self.replicationpoollinkuid:
+                    self.module.fail_json(msg=message)
+            else:
+                if self.replicationpoollinkuid:
+                    self.module.fail_json(msg=message)
+
+            if self.replicationpoollinkuid and self.resetreplicationpoollinkuid:
+                self.module.fail_json(
+                    msg='Mutually exclusive parameters: replicationpoollinkuid, resetreplicationpoollinkuid'
+                )
+
     def mdiskgrp_exists(self):
-        return self.restapi.svc_obj_info(cmd='lsmdiskgrp', cmdopts=None,
-                                         cmdargs=[self.name])
+        merged_result = {}
+        data = self.restapi.svc_obj_info(
+            cmd='lsmdiskgrp',
+            cmdopts=None,
+            cmdargs=['-gui', self.name]
+        )
+
+        if isinstance(data, list):
+            for d in data:
+                merged_result.update(d)
+        else:
+            merged_result = data
+
+        return merged_result
 
     def mdiskgrp_create(self):
         # So ext is optional to mkmdiskgrp but make required in ansible
@@ -260,6 +337,8 @@ class IBMSVCmdiskgrp(object):
         if self.noquota or self.safeguarded:
             if not self.parentmdiskgrp:
                 self.module.fail_json(msg='Required parameter missing: parentmdiskgrp')
+
+        self.check_partnership()
 
         if self.module.check_mode:
             self.changed = True
@@ -282,14 +361,21 @@ class IBMSVCmdiskgrp(object):
                 cmdopts['encrypt'] = self.encrypt
             if self.ext:
                 cmdopts['ext'] = str(self.ext)
+        if self.provisioningpolicy:
+            cmdopts['provisioningpolicy'] = self.provisioningpolicy
         if self.datareduction:
             cmdopts['datareduction'] = self.datareduction
+        if self.replicationpoollinkuid:
+            cmdopts['replicationpoollinkuid'] = self.replicationpoollinkuid
         cmdopts['name'] = self.name
         self.log("creating mdisk group command %s opts %s", cmd, cmdopts)
 
         # Run command
         result = self.restapi.svc_run_command(cmd, cmdopts, cmdargs=None)
         self.log("creating mdisk group result %s", result)
+
+        if self.replication_partner_clusterid:
+            self.set_bit_mask()
 
         if 'message' in result:
             self.changed = True
@@ -298,6 +384,34 @@ class IBMSVCmdiskgrp(object):
         else:
             self.module.fail_json(
                 msg="Failed to create mdisk group [%s]" % (self.name))
+
+    def check_partnership(self):
+        if self.replication_partner_clusterid:
+            merged_result = {}
+            result = self.restapi.svc_obj_info(
+                cmd='lspartnership',
+                cmdopts=None,
+                cmdargs=['-gui', self.replication_partner_clusterid]
+            )
+
+            if isinstance(result, list):
+                for res in result:
+                    merged_result = res
+            else:
+                merged_result = result
+
+            if merged_result:
+                self.partnership_index = merged_result.get('partnership_index')
+            else:
+                self.module.fail_json(
+                    msg='Partnership does not exist for the given cluster ({0}).'.format(self.replication_partner_clusterid)
+                )
+
+    def set_bit_mask(self, systemmask=None):
+        cmd = 'chmdiskgrp'
+        bit_mask = '1'.ljust(int(self.partnership_index) + 1, '0') if not systemmask else systemmask
+        cmdopts = {'replicationpoollinkedsystemsmask': bit_mask}
+        self.restapi.svc_run_command(cmd, cmdopts, cmdargs=[self.name])
 
     def mdiskgrp_delete(self):
         if self.module.check_mode:
@@ -320,32 +434,40 @@ class IBMSVCmdiskgrp(object):
         # updte the mdisk group
         self.log("updating mdiskgrp '%s'", self.name)
 
-        # cmd = 'chmdiskgrp'
-        # cmdopts = {}
-        # TBD: Be smarter handling many properties.
-        # if 'easytier' in modify:
-        #    cmdopts['easytier'] = self.easytier
-        # cmdargs = [self.name]
+        systemmask = None
+        cmd = 'chmdiskgrp'
 
-        # result = self.restapi.svc_run_command(cmd, cmdopts, cmdargs)
+        if 'replicationpoollinkedsystemsmask' in modify:
+            systemmask = modify.pop('replicationpoollinkedsystemsmask')
 
-        # Any error will have been raised in svc_run_command
-        # chmkdiskgrp does not output anything when successful.
+        if modify:
+            cmdopts = modify
+            self.restapi.svc_run_command(cmd, cmdopts, cmdargs=[self.name])
+
+        if systemmask or 'replicationpoollinkuid' in modify:
+            self.set_bit_mask(systemmask)
+
         self.changed = True
 
     # TBD: Implement a more generic way to check for properties to modify.
     def mdiskgrp_probe(self, data):
-        props = []
+        props = {}
 
-        # TBD: The parameter is easytier but the view has easy_tier label.
-        # if self.easytier:
-        #    if self.easytier != data['easy_tier']:
-        #        props += ['easytier']
+        if self.noprovisioningpolicy and data.get('provisioning_policy_name', ''):
+            props['noprovisioningpolicy'] = self.noprovisioningpolicy
+        if self.provisioningpolicy and self.provisioningpolicy != data.get('provisioning_policy_name', ''):
+            props['provisioningpolicy'] = self.provisioningpolicy
+        if self.replicationpoollinkuid and self.replicationpoollinkuid != data.get('replication_pool_link_uid', ''):
+            props['replicationpoollinkuid'] = self.replicationpoollinkuid
+        if self.resetreplicationpoollinkuid:
+            props['resetreplicationpoollinkuid'] = self.resetreplicationpoollinkuid
+        if self.replication_partner_clusterid:
+            self.check_partnership()
+            bit_mask = '1'.ljust(int(self.partnership_index) + 1, '0')
+            if bit_mask.zfill(64) != data.get('replication_pool_linked_systems_mask', ''):
+                props['replicationpoollinkedsystemsmask'] = bit_mask
 
-        if props is []:
-            props = None
-
-        self.log("mdiskgrp_probe props='%s'", data)
+        self.log("mdiskgrp_probe props='%s'", props)
         return props
 
     def apply(self):
@@ -392,7 +514,7 @@ class IBMSVCmdiskgrp(object):
             if self.state == 'absent':
                 msg = "Mdisk group [%s] did not exist." % self.name
             else:
-                msg = "Mdisk group [%s] already exists." % self.name
+                msg = "Mdisk group [%s] already exists. No modifications done" % self.name
 
         self.module.exit_json(msg=msg, changed=changed)
 

@@ -6,8 +6,7 @@
 #            Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
 #            Rohit Kumar <rohit.kumar6@ibm.com>
 #
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -54,7 +53,7 @@ options:
     token:
         description:
             - The authentication token to verify a user on the Spectrum Virtualize storage system.
-            - To generate a token, use the ibm_svc_auth module.
+            - To generate a token, use the M(ibm.spectrum_virtualize.ibm_svc_auth) module.
         type: str
         version_added: '1.5.0'
     fcwwpn:
@@ -105,6 +104,12 @@ options:
             - Valid when I(state=present), to modify an existing host.
         type: bool
         version_added: '1.5.0'
+    old_name:
+        description:
+            - Specifies the old name of the host while renaming.
+            - Valid when I(state=present), to rename an existing host.
+        type: str
+        version_added: '1.9.0'
     log_path:
         description:
             - Path of debug log file.
@@ -160,6 +165,15 @@ EXAMPLES = '''
     protocol: scsi
     type: generic
     site: site-name
+- name: Rename an existing host
+  ibm.spectrum_virtualize.ibm_svc_host:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    old_name: "host4test"
+    name: "new_host_name"
+    state: "present"
 - name: Delete a host
   ibm.spectrum_virtualize.ibm_svc_host:
     clustername: "{{clustername}}"
@@ -167,7 +181,7 @@ EXAMPLES = '''
     username: "{{username}}"
     password: "{{password}}"
     log_path: /tmp/playbook.debug
-    name: host4test
+    name: new_host_name
     state: absent
 '''
 
@@ -195,7 +209,8 @@ class IBMSVChost(object):
                 type=dict(type='str'),
                 site=dict(type='str'),
                 hostcluster=dict(type='str'),
-                nohostcluster=dict(type='bool')
+                nohostcluster=dict(type='bool'),
+                old_name=dict(type='str', required=False)
             )
         )
 
@@ -220,6 +235,10 @@ class IBMSVChost(object):
         self.site = self.module.params.get('site', '')
         self.hostcluster = self.module.params.get('hostcluster', '')
         self.nohostcluster = self.module.params.get('nohostcluster', '')
+        self.old_name = self.module.params.get('old_name', '')
+
+        # internal variable
+        self.changed = False
 
         # Handling duplicate fcwwpn
         if self.fcwwpn:
@@ -245,6 +264,22 @@ class IBMSVChost(object):
             token=self.module.params['token']
         )
 
+    # for validating parameter while renaming a volume
+    def parameter_handling_while_renaming(self):
+        parameters = {
+            "fcwwpn": self.fcwwpn,
+            "iscsiname": self.iscsiname,
+            "iogrp": self.iogrp,
+            "protocol": self.protocol,
+            "type": self.type,
+            "site": self.site,
+            "hostcluster": self.hostcluster,
+            "nohostcluster": self.nohostcluster
+        }
+        parameters_exists = [parameter for parameter, value in parameters.items() if value]
+        if parameters_exists:
+            self.module.fail_json(msg="Parameters {0} not supported while renaming a host.".format(parameters_exists))
+
     def duplicate_checker(self, items):
         unique_items = set(items)
         if len(items) != len(unique_items):
@@ -252,11 +287,11 @@ class IBMSVChost(object):
         else:
             return []
 
-    def get_existing_host(self):
+    def get_existing_host(self, host_name):
         merged_result = {}
 
         data = self.restapi.svc_obj_info(cmd='lshost', cmdopts=None,
-                                         cmdargs=[self.name])
+                                         cmdargs=[host_name])
 
         if isinstance(data, list):
             for d in data:
@@ -343,7 +378,7 @@ class IBMSVChost(object):
         result = self.restapi.svc_run_command(cmd, cmdopts, cmdargs=None)
         self.log("create host result '%s'", result)
 
-        if 'message' in result:
+        if result and 'message' in result:
             self.changed = True
             self.log("create host result message '%s'", (result['message']))
         else:
@@ -460,61 +495,83 @@ class IBMSVChost(object):
         # chhost does not output anything when successful.
         self.changed = True
 
+    # function for renaming an existing host with a new name
+    def host_rename(self, host_data):
+        msg = ''
+        self.parameter_handling_while_renaming()
+        old_host_data = self.get_existing_host(self.old_name)
+        if not old_host_data and not host_data:
+            self.module.fail_json(msg="Host [{0}] does not exists.".format(self.old_name))
+        elif old_host_data and host_data:
+            self.module.fail_json(msg="Host [{0}] already exists.".format(self.name))
+        elif not old_host_data and host_data:
+            msg = "Host with name [{0}] already exists.".format(self.name)
+        elif old_host_data and not host_data:
+            # when check_mode is enabled
+            if self.module.check_mode:
+                self.changed = True
+                return
+            self.restapi.svc_run_command('chhost', {'name': self.name}, [self.old_name])
+            self.changed = True
+            msg = "Host [{0}] has been successfully rename to [{1}].".format(self.old_name, self.name)
+        return msg
+
     def apply(self):
         changed = False
         msg = None
         modify = []
 
-        host_data = self.get_existing_host()
+        host_data = self.get_existing_host(self.name)
 
-        if host_data:
-            if self.state == 'absent':
-                self.log("CHANGED: host exists, but requested "
-                         "state is 'absent'")
-                changed = True
-            elif self.state == 'present':
-                # This is where we detect if chhost should be called
-                modify = self.host_probe(host_data)
-                if modify:
+        if self.state == 'present' and self.old_name:
+            msg = self.host_rename(host_data)
+        elif self.state == 'absent' and self.old_name:
+            self.module.fail_json(msg="Rename functionality is not supported when 'state' is absent.")
+        else:
+            if host_data:
+                if self.state == 'absent':
+                    self.log("CHANGED: host exists, but requested state is 'absent'")
                     changed = True
-        else:
-            if self.state == 'present':
-                self.log("CHANGED: host does not exist, "
-                         "but requested state is 'present'")
-                changed = True
-
-        if changed:
-            if self.state == 'present':
-                if self.hostcluster:
-                    hc_data = self.get_existing_hostcluster()
-                    if hc_data is None:
-                        self.module.fail_json(msg="Host cluster must already exist before its usage in this module")
-                    elif not host_data and hc_data:
-                        self.host_create()
-                        self.addhostcluster()
-                        msg = "host %s has been created and added to hostcluster." % self.name
-                elif not host_data:
-                    self.host_create()
-                    msg = "host %s has been created." % self.name
-
-                if host_data and modify:
-                    # This is where we would modify
-                    self.host_update(modify, host_data)
-                    msg = "host [%s] has been modified." % self.name
-            elif self.state == 'absent':
-                self.host_delete()
-                msg = "host [%s] has been deleted." % self.name
-
-            if self.module.check_mode:
-                msg = 'skipping changes due to check mode'
-        else:
-            self.log("exiting with no changes")
-            if self.state == 'absent':
-                msg = "host [%s] did not exist." % self.name
+                elif self.state == 'present':
+                    # This is where we detect if chhost should be called
+                    modify = self.host_probe(host_data)
+                    if modify:
+                        changed = True
             else:
-                msg = "host [%s] already exists." % self.name
+                if self.state == 'present':
+                    self.log("CHANGED: host does not exist, but requested state is 'present'")
+                    changed = True
 
-        self.module.exit_json(msg=msg, changed=changed)
+            if changed:
+                if self.state == 'present':
+                    if self.hostcluster:
+                        hc_data = self.get_existing_hostcluster()
+                        if hc_data is None:
+                            self.module.fail_json(msg="Host cluster must already exist before its usage in this module")
+                        elif not host_data and hc_data:
+                            self.host_create()
+                            self.addhostcluster()
+                            msg = "host %s has been created and added to hostcluster." % self.name
+                    elif not host_data:
+                        self.host_create()
+                        msg = "host %s has been created." % self.name
+                    if host_data and modify:
+                        # This is where we would modify
+                        self.host_update(modify, host_data)
+                        msg = "host [%s] has been modified." % self.name
+                elif self.state == 'absent':
+                    self.host_delete()
+                    msg = "host [%s] has been deleted." % self.name
+            else:
+                self.log("exiting with no changes")
+                if self.state == 'absent':
+                    msg = "host [%s] did not exist." % self.name
+                else:
+                    msg = "host [%s] already exists." % self.name
+        if self.module.check_mode:
+            msg = 'skipping changes due to check mode'
+
+        self.module.exit_json(msg=msg, changed=self.changed)
 
 
 def main():
