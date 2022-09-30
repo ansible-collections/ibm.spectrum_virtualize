@@ -3,7 +3,7 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-""" unit tests IBM Spectrum Virtualize Ansible module: ibm_sv_manage_snapshot """
+""" unit tests IBM Spectrum Virtualize Ansible module: ibm_sv_manage_ssl_certificate """
 
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
@@ -14,7 +14,7 @@ from mock import patch
 from ansible.module_utils import basic
 from ansible.module_utils._text import to_bytes
 from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi
-from ansible_collections.ibm.spectrum_virtualize.plugins.modules.ibm_sv_manage_SSL_certificate import IBMSVSSLCertificate
+from ansible_collections.ibm.spectrum_virtualize.plugins.modules.ibm_sv_manage_ssl_certificate import IBMSVSSLCertificate
 
 
 def set_module_args(args):

@@ -11,7 +11,7 @@ __metaclass__ = type
 
 DOCUMENTATION = '''
 ---
-module: ibm_sv_manage_SSL_certificate
+module: ibm_sv_manage_ssl_certificate
 short_description: This module exports existing system-signed certificate on to IBM Spectrum Virtualize family storage systems
 version_added: '1.10.0'
 description:
@@ -65,7 +65,7 @@ notes:
 
 EXAMPLES = '''
 - name: Export SSL certificate internally
-  ibm_sv_manage_SSL_certificate:
+  ibm.spectrum_virtualize.ibm_sv_manage_ssl_certificate:
     clustername: "x.x.x.x"
     username: "username"
     password: "password"
