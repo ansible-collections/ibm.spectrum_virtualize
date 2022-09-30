@@ -103,7 +103,7 @@ Alternatively, you can add a full namepsace and collection name in the `collecti
 - ibm_sv_manage_replication_policy - Manages policy-based replication configuration on Spectrum Virtualize storage systems
 - ibm_sv_manage_snapshot - Manages snapshots (mutual consistent images of a volume) on Spectrum Virtualize storage systems
 - ibm_sv_manage_snapshotpolicy - Manages snapshot policy configuration on Spectrum Virtualize storage systems
-- ibm_sv_manage_SSL_certificate - Exports an existing system certificate on to Spectrum Virtualize storage systems
+- ibm_sv_manage_ssl_certificate - Exports an existing system certificate on to Spectrum Virtualize storage systems
 - ibm_sv_manage_truststore_for_replication - Manages certificate trust stores for replication on Spectrum Virtualize family storage systems
 - ibm_sv_switch_replication_direction - Switches the replication direction on Spectrum Virtualize storage systems
 
