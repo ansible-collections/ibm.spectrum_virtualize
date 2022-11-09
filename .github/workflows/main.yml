@@ -19,6 +19,7 @@ jobs:
           - stable-2.11
           - stable-2.12
           - stable-2.13
+          - stable-2.14
         python:
           - '2.7'
           - '3.8'
@@ -29,6 +30,8 @@ jobs:
           - ansible: stable-2.12
             python: '2.7'
           - ansible: stable-2.13
+            python: '2.7'
+          - ansible: stable-2.14
             python: '2.7'
     steps:
       - name: Check out code
@@ -66,6 +69,7 @@ jobs:
           - stable-2.11
           - stable-2.12
           - stable-2.13
+          - stable-2.14
         python:
           - '2.7'
           - '3.8'
@@ -76,6 +80,8 @@ jobs:
           - ansible: stable-2.12
             python: '2.7'
           - ansible: stable-2.13
+            python: '2.7'
+          - ansible: stable-2.14
             python: '2.7'
     steps:
       - name: Check out code
@@ -103,4 +109,40 @@ jobs:
 
       - name: Run unit test cases
         run: ansible-test units -v --color --python ${{ matrix.python }} --requirements --coverage
+        working-directory: ./ansible_collections/ibm/spectrum_virtualize
+  galaxy-importer:
+    name: Validate spectrum_virtualize with galaxy-importer tool.
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Python3
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Upgrade PIP
+        run: python3.9 -m pip install --upgrade pip
+
+      - name: Install ansible
+        run: python3.9 -m pip install ansible --disable-pip-version-check
+
+      - name: Install galaxy-importer tool
+        run: python3.9 -m pip install galaxy_importer --disable-pip-version-check
+
+      - name: Make directory to sync
+        run: |
+          pwd
+          mkdir -p ansible_collections/ibm/spectrum_virtualize
+          rsync -av . ansible_collections/ibm/spectrum_virtualize --exclude ansible_collections/ibm/spectrum_virtualize
+      
+      - name: Build the tar package
+        run: ansible-galaxy collection build
+        working-directory: ./ansible_collections/ibm/spectrum_virtualize
+
+      - name: Run galaxy-importer tool on spectrum_virtualize
+        run: python3.9 -m galaxy_importer.main ibm-spectrum_virtualize-*.tar.gz
         working-directory: ./ansible_collections/ibm/spectrum_virtualize
