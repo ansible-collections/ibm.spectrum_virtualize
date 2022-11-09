@@ -32,7 +32,9 @@ jobs:
           - ansible: stable-2.13
             python: '2.7'
           - ansible: stable-2.14
-            python: '2.7'
+            python: 
+              - '2.7'
+              - '3.8'
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -82,7 +84,9 @@ jobs:
           - ansible: stable-2.13
             python: '2.7'
           - ansible: stable-2.14
-            python: '2.7'
+            python: 
+              - '2.7'
+              - '3.8'
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -110,6 +114,7 @@ jobs:
       - name: Run unit test cases
         run: ansible-test units -v --color --python ${{ matrix.python }} --requirements --coverage
         working-directory: ./ansible_collections/ibm/spectrum_virtualize
+  
   galaxy-importer:
     name: Validate spectrum_virtualize with galaxy-importer tool.
     runs-on: ubuntu-latest
