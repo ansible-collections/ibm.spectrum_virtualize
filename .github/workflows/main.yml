@@ -32,9 +32,9 @@ jobs:
           - ansible: stable-2.13
             python: '2.7'
           - ansible: stable-2.14
-            python: 
-              - '2.7'
-              - '3.8'
+            python: '2.7'
+          - ansible: stable-2.14
+            python: '3.8'
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -84,9 +84,9 @@ jobs:
           - ansible: stable-2.13
             python: '2.7'
           - ansible: stable-2.14
-            python: 
-              - '2.7'
-              - '3.8'
+            python: '2.7'
+          - ansible: stable-2.14
+            python: '3.8'
     steps:
       - name: Check out code
         uses: actions/checkout@v2
