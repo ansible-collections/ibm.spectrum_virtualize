@@ -9,7 +9,7 @@ on:
 jobs:
   sanity:
     name: Sanity (${{ matrix.ansible }} on spectrum_virtualize
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
