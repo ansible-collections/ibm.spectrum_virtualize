@@ -152,7 +152,7 @@ class IBMSVCRestApi(object):
     def token(self, value):
         return setattr(self, '_token', value)
 
-    def _svc_rest(self, method, headers, cmd, cmdopts, cmdargs):
+    def _svc_rest(self, method, headers, cmd, cmdopts, cmdargs, timeout=10):
         """ Run SVC command with token info added into header
         :param method: http method, POST or GET
         :type method: string
@@ -163,6 +163,8 @@ class IBMSVCRestApi(object):
         :param cmdopts: svc command options, name paramter and value
         :type cmdopts: dict
         :param cmdargs: svc command arguments, non-named paramaters
+        :type timeout: int
+        :param timeout: open_url argument to set timeout for http gateway
         :return: dict of command results
         :rtype: dict
         """
@@ -189,7 +191,7 @@ class IBMSVCRestApi(object):
         self.log("_svc_rest: payload=%s", payload)
 
         try:
-            o = open_url(url, method=method, headers=headers,
+            o = open_url(url, method=method, headers=headers, timeout=timeout,
                          validate_certs=self.validate_certs, data=bytes(data))
         except HTTPError as e:
             self.log('_svc_rest: httperror %s', str(e))
@@ -236,7 +238,7 @@ class IBMSVCRestApi(object):
 
         return None
 
-    def _svc_token_wrap(self, cmd, cmdopts, cmdargs):
+    def _svc_token_wrap(self, cmd, cmdopts, cmdargs, timeout=10):
         """ Run SVC command with token info added into header
         :param cmd: svc command to run
         :type cmd: string
@@ -244,6 +246,8 @@ class IBMSVCRestApi(object):
         :type cmdopts: dict
         :param cmdargs: svc command arguments, non-named paramaters
         :type cmdargs: list
+        :param timeout: open_url argument to set timeout for http gateway
+        :type timeout: int
         :returns: command results
         """
 
@@ -257,9 +261,9 @@ class IBMSVCRestApi(object):
         }
 
         return self._svc_rest(method='POST', headers=headers, cmd=cmd,
-                              cmdopts=cmdopts, cmdargs=cmdargs)
+                              cmdopts=cmdopts, cmdargs=cmdargs, timeout=timeout)
 
-    def svc_run_command(self, cmd, cmdopts, cmdargs):
+    def svc_run_command(self, cmd, cmdopts, cmdargs, timeout=10):
         """ Generic execute a SVC command
         :param cmd: svc command to run
         :type cmd: string
@@ -267,10 +271,12 @@ class IBMSVCRestApi(object):
         :type cmdopts: dict
         :param cmdargs: svc command arguments, non-named parameters
         :type cmdargs: list
+        :param timeout: open_url argument to set timeout for http gateway
+        :type timeout: int
         :returns: command output
         """
 
-        rest = self._svc_token_wrap(cmd, cmdopts, cmdargs)
+        rest = self._svc_token_wrap(cmd, cmdopts, cmdargs, timeout)
         self.log("svc_run_command rest=%s", rest)
 
         if rest['err']:
@@ -281,7 +287,7 @@ class IBMSVCRestApi(object):
         # Might be None
         return rest['out']
 
-    def svc_obj_info(self, cmd, cmdopts, cmdargs):
+    def svc_obj_info(self, cmd, cmdopts, cmdargs, timeout=10):
         """ Obtain information about an SVC object through the ls command
         :param cmd: svc command to run
         :type cmd: string
@@ -289,11 +295,13 @@ class IBMSVCRestApi(object):
         :type cmdopts: dict
         :param cmdargs: svc command arguments, non-named paramaters
         :type cmdargs: list
+        :param timeout: open_url argument to set timeout for http gateway
+        :type timeout: int
         :returns: command output
         :rtype: dict
         """
 
-        rest = self._svc_token_wrap(cmd, cmdopts, cmdargs)
+        rest = self._svc_token_wrap(cmd, cmdopts, cmdargs, timeout)
         self.log("svc_obj_info rest=%s", rest)
 
         if rest['code']:
