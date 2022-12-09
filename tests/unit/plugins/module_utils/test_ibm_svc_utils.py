@@ -116,7 +116,7 @@ class TestIBMSVModuleUtils(unittest.TestCase):
                      "owner_name": ""}]
         mock_svc_token_wrap.return_value = {'err': '', 'out': host_ret}
         ret = self.restapi.svc_run_command('lshost', {}, [])
-        mock_svc_token_wrap.assert_called_with('lshost', {}, [])
+        mock_svc_token_wrap.assert_called_with('lshost', {}, [], 10)
         self.assertDictEqual(ret[0], host_ret[0])
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
