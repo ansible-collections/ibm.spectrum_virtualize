@@ -3,6 +3,7 @@
 
 # Copyright (C) 2021 IBM CORPORATION
 # Author(s): Rohit kumar <rohit.kumar6@ibm.com>
+#            Shilpi Jain <shilpi.jain1@ibm.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
@@ -16,15 +17,28 @@ description:
   - Ansible interface to manage the migration commands.
 version_added: "1.6.0"
 options:
+  type_of_migration:
+    description:
+    - Specifies the type of migration whether it is migration across pools or migration across clusters
+    choices: [across_pools, across_clusters]
+    default: across_clusters
+    type: str
+    version_added: '1.11.0'
+  new_pool:
+    description:
+    - Specifies the pool on which the volume has to be migrated.
+    - Valid only when I(type_of_migration=across_pools).
+    type: str
+    version_added: '1.11.0'
   source_volume:
     description:
-      - Specifies the name of the existing source volume to be used in migration.
-      - Required when I(state=initiate) or I(state=cleanup).
+    - Specifies the name of the existing source volume to be used in migration.
+    - Required when I(state=initiate) or I(state=cleanup) or I(type_of_migration=across_pools).
     type: str
   target_volume:
     description:
-      - Specifies the name of the volume to be created on the target system.
-      - Required when I(state=initiate).
+    - Specifies the name of the volume to be created on the target system.
+    - Required when I(state=initiate).
     type: str
   clustername:
     description:
@@ -69,12 +83,11 @@ options:
     type: str
   state:
     description:
-      - Specifies the different states of the migration process.
-      - C(initiate), creates a volume on remote cluster; optionally used to replicate hosts, and to create and start a migration relationship.
-      - C(switch), switches the migration relationship direction allowing write access on the target volume.
-      - C(cleanup), deletes the source volume and migration relationship after a 'switch'.
+    - Specifies the different states of the migration process when I(type_of_migration=across_clusters).
+    - C(initiate), creates a volume on remote cluster; optionally used to replicate hosts, and to create and start a migration relationship.
+    - C(switch), switches the migration relationship direction allowing write access on the target volume.
+    - C(cleanup), deletes the source volume and migration relationship after a 'switch'.
     choices: [initiate, switch, cleanup]
-    required: true
     type: str
   token:
     description:
@@ -117,8 +130,12 @@ options:
     type: str
 author:
     - Rohit Kumar(@rohitk-github)
+    - Shilpi Jain(@Shilpi-J)
 notes:
     - This module supports C(check_mode).
+    - This module supports both volume migration across pools and volume migration across clusters.
+    - In case, user does not specify type_of_migration, the module shall proceed with migration across clusters by default.
+    - In case of I(type_of_migration=across_pools), the only parameters allowed are I(new_pool) and I(source_volume) along with cluster credentials.
 '''
 
 EXAMPLES = '''
@@ -152,6 +169,14 @@ EXAMPLES = '''
     source_volume: "src_vol"
     token: "{{ source_cluster_token }}"
     log_path : /tmp/ansible.log
+- name: Migration an existing vol from pool0 to pool1
+  ibm.spectrum_virtualize.ibm_svc_manage_migration:
+    clustername: "{{ source_cluster }}"
+    token: "{{ source_cluster_token }}"
+    log_path : /tmp/ansible.log
+    type_of_migration : across_pools
+    source_volume : vol1
+    new_pool : pool1
 '''
 
 RETURN = '''#'''
@@ -168,10 +193,12 @@ class IBMSVCMigrate(object):
 
         argument_spec.update(
             dict(
+                type_of_migration=dict(type='str', required=False, default='across_clusters',
+                                       choices=['across_clusters', 'across_pools']),
+                new_pool=dict(type='str', required=False),
                 source_volume=dict(type='str', required=False),
                 target_volume=dict(type='str', required=False),
                 state=dict(type='str',
-                           required=True,
                            choices=['initiate', 'switch', 'cleanup']),
                 remote_pool=dict(type='str', required=False),
                 replicate_hosts=dict(type='bool', default=False),
@@ -195,10 +222,14 @@ class IBMSVCMigrate(object):
         log = get_logger(self.__class__.__name__, log_path)
         self.log = log.info
 
-        # Required
+        # Required when migration across clusters
         self.state = self.module.params['state']
 
+        # Required when migration across pools
+        self.new_pool = self.module.params['new_pool']
+
         # Optional
+        self.type_of_migration = self.module.params['type_of_migration']
         self.source_volume = self.module.params['source_volume']
         self.remote_pool = self.module.params['remote_pool']
         self.target_volume = self.module.params['target_volume']
@@ -641,40 +672,95 @@ class IBMSVCMigrate(object):
             self.module.fail_json(
                 msg="Failed to delete the volume [%s]" % self.source_volume)
 
+    def basic_checks_migrate_vdisk(self):
+        self.log("Entering function basic_checks_migrate_vdisk()")
+        invalid_params = {}
+
+        # Check for missing parameters
+        missing = [item[0] for item in [('new_pool', self.new_pool), ('source_volume', self.source_volume)] if not item[1]]
+        if missing:
+            self.module.fail_json(
+                msg='Missing mandatory parameter: [{0}] for migration across pools'.format(', '.join(missing))
+            )
+
+        invalid_params['across_pools'] = ['state', 'relationship_name', 'remote_cluster', 'remote_username',
+                                          'remote_password', 'remote_token', 'remote_pool', 'remote_validate_certs',
+                                          'replicate_hosts']
+        param_list = set(invalid_params['across_pools'])
+
+        # Check for invalid parameters
+        for param in param_list:
+            if self.type_of_migration == 'across_pools':
+                if getattr(self, param):
+                    if param in invalid_params['across_pools']:
+                        self.module.fail_json(msg="Invalid parameter [%s] for volume migration 'across_pools'" % param)
+
+    def migrate_pools(self):
+        self.basic_checks_migrate_vdisk()
+
+        if self.module.check_mode:
+            self.changed = True
+            return
+
+        source_data, target_data = self.get_existing_vdisk()
+        if not source_data:
+            msg = "Source volume [%s] does not exist" % self.source_volume
+            self.module.fail_json(msg=msg)
+        elif source_data[0]['mdisk_grp_name'] != self.new_pool:
+            cmd = 'migratevdisk'
+            cmdopts = {}
+            cmdopts['mdiskgrp'] = self.new_pool
+            cmdopts['vdisk'] = self.source_volume
+            self.log("Command %s opts %s", cmd, cmdopts)
+            result = self.restapi.svc_run_command(cmd, cmdopts, cmdargs=None)
+
+            if result == '':
+                self.changed = True
+            else:
+                self.module.fail_json(msg="Failed to migrate volume in different pool.")
+        else:
+            msg = "No modifications done. New pool [%s] is same" % self.new_pool
+            self.module.exit_json(msg=msg, changed=False)
+
     def apply(self):
         changed = False
         msg = None
-        self.basic_checks()
-        if self.state == 'initiate' or self.state == 'switch':
-            existing_rc_data = self.existing_rc()
-            if not existing_rc_data:
-                if self.state == 'initiate':
-                    self.verify_target()
-                    self.create_relationship()
-                    if self.replicate_hosts:
-                        hosts_data = self.get_source_hosts()
-                        self.replicate_source_hosts(hosts_data)
-                    self.start_relationship()
-                    changed = True
-                    msg = "Migration Relationship [%s] has been started." % self.relationship_name
-                elif self.state == 'switch':
-                    msg = "Relationship [%s] does not exist." % self.relationship_name
-                    changed = False
-                    self.module.fail_json(msg=msg)
-            elif self.state == 'initiate':
-                self.verify_existing_rel(existing_rc_data)
-                self.start_relationship()
-                msg = "Migration Relationship [%s] has been started." % self.relationship_name
-                changed = True
-            elif self.state == 'switch':
-                self.switch()
-                msg = "Migration Relationship [%s] successfully switched." % self.relationship_name
-                changed = True
-        elif self.state == 'cleanup':
-            self.source_vol_relationship(self.source_volume)
-            self.delete()
-            msg = "Source Volume [%s] deleted successfully." % self.source_volume
+        if self.type_of_migration == 'across_pools':
+            self.migrate_pools()
+            msg = "Source Volume migrated successfully to new pool [%s]." % self.new_pool
             changed = True
+        else:
+            self.basic_checks()
+            if self.state == 'initiate' or self.state == 'switch':
+                existing_rc_data = self.existing_rc()
+                if not existing_rc_data:
+                    if self.state == 'initiate':
+                        self.verify_target()
+                        self.create_relationship()
+                        if self.replicate_hosts:
+                            hosts_data = self.get_source_hosts()
+                            self.replicate_source_hosts(hosts_data)
+                        self.start_relationship()
+                        changed = True
+                        msg = "Migration Relationship [%s] has been started." % self.relationship_name
+                    elif self.state == 'switch':
+                        msg = "Relationship [%s] does not exist." % self.relationship_name
+                        changed = False
+                        self.module.fail_json(msg=msg)
+                elif self.state == 'initiate':
+                    self.verify_existing_rel(existing_rc_data)
+                    self.start_relationship()
+                    msg = "Migration Relationship [%s] has been started." % self.relationship_name
+                    changed = True
+                elif self.state == 'switch':
+                    self.switch()
+                    msg = "Migration Relationship [%s] successfully switched." % self.relationship_name
+                    changed = True
+            elif self.state == 'cleanup':
+                self.source_vol_relationship(self.source_volume)
+                self.delete()
+                msg = "Source Volume [%s] deleted successfully." % self.source_volume
+                changed = True
         if self.module.check_mode:
             msg = "skipping changes due to check mode."
         self.module.exit_json(msg=msg, changed=changed)

@@ -120,6 +120,18 @@ options:
       - Valid when I(state=present), to rename an existing volume.
     type: str
     version_added: '1.9.0'
+  enable_cloud_snapshot:
+    description:
+      - Specify to enable or disable cloud snapshot.
+      - Valid when I(state=present), to modify an existing volume.
+    type: bool
+    version_added: '1.11.0'
+  cloud_account_name:
+    description:
+      - Specifies the name of the cloud account name.
+      - Valid when I(enable_cloud_snapshot=true).
+    type: str
+    version_added: '1.11.0'
   validate_certs:
     description:
       - Validates certification.
@@ -215,6 +227,16 @@ EXAMPLES = '''
     old_name: "volume_name"
     name: "new_volume_name"
     state: "present"
+- name: Enable cloud backup in an existing volume
+  ibm.spectrum_virtualize.ibm_svc_manage_volume:
+    clustername: "{{ clustername }}"
+    domain: "{{ domain }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    name: "volume_name"
+    enable_cloud_snapshot: true
+    cloud_account_name: "aws_acc"
+    state: "present"
 - name: Delete a volume
   ibm.spectrum_virtualize.ibm_svc_manage_volume:
     clustername: "{{ clustername }}"
@@ -230,7 +252,12 @@ RETURN = '''#'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi, svc_argument_spec, get_logger
+from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import (
+    IBMSVCRestApi,
+    svc_argument_spec,
+    get_logger,
+    strtobool
+)
 from ansible.module_utils._text import to_native
 
 
@@ -254,7 +281,9 @@ class IBMSVCvolume(object):
                 thin=dict(type='bool', required=False),
                 compressed=dict(type='bool', required=False),
                 deduplicated=dict(type='bool', required=False),
-                old_name=dict(type='str', required=False)
+                old_name=dict(type='str', required=False),
+                enable_cloud_snapshot=dict(type='bool'),
+                cloud_account_name=dict(type='str')
             )
         )
 
@@ -281,6 +310,8 @@ class IBMSVCvolume(object):
         self.compressed = self.module.params['compressed']
         self.deduplicated = self.module.params['deduplicated']
         self.old_name = self.module.params['old_name']
+        self.enable_cloud_snapshot = self.module.params['enable_cloud_snapshot']
+        self.cloud_account_name = self.module.params['cloud_account_name']
 
         # internal variable
         self.changed = False
@@ -334,8 +365,15 @@ class IBMSVCvolume(object):
 
     # for validating parameter while creating a volume
     def volume_creation_parameter_validation(self):
+        if self.enable_cloud_snapshot in {True, False}:
+            self.module.fail_json(msg='Following parameter not applicable for creation: enable_cloud_snapshot')
+
+        if self.cloud_account_name:
+            self.module.fail_json(msg='Following parameter not applicable for creation: cloud_account_name')
+
         if self.old_name:
             self.module.fail_json(msg='Parameter [old_name] is not supported during volume creation.')
+
         missing = [item[0] for item in [('pool', self.pool), ('size', self.size)] if not item[1]]
         if missing:
             self.module.fail_json(msg='Missing required parameter while creating: [{0}]'.format(', '.join(missing)))
@@ -511,6 +549,17 @@ class IBMSVCvolume(object):
                 props['pool'] = {
                     'status': True
                 }
+        # Check for change in cloud backup
+        if self.enable_cloud_snapshot is True:
+            if not strtobool(data[0].get('cloud_backup_enabled')):
+                props['cloud_backup'] = {'status': True}
+        elif self.enable_cloud_snapshot is False:
+            if strtobool(data[0].get('cloud_backup_enabled')):
+                props['cloud_backup'] = {'status': True}
+
+        if self.cloud_account_name:
+            if self.cloud_account_name != data[0].get('cloud_account_name'):
+                props['cloud_backup'] = {'status': True}
 
         return props
 
@@ -550,6 +599,27 @@ class IBMSVCvolume(object):
         )
         self.changed = True
 
+    def update_cloud_backup(self):
+        cmdopts = {}
+
+        if self.enable_cloud_snapshot is True:
+            cmdopts['backup'] = 'cloud'
+            cmdopts['enable'] = True
+
+        if self.enable_cloud_snapshot is False:
+            cmdopts['backup'] = 'cloud'
+            cmdopts['disable'] = True
+
+        if self.cloud_account_name:
+            cmdopts['account'] = self.cloud_account_name
+
+        self.restapi.svc_run_command(
+            'chvdisk',
+            cmdopts,
+            [self.name]
+        )
+        self.changed = True
+
     # function to update an existing volume
     def update_volume(self, modify):
         # raise error for unsupported parameter
@@ -576,6 +646,10 @@ class IBMSVCvolume(object):
                 self.expand_volume(modify['size']['expand'])
             elif 'shrink' in modify['size']:
                 self.shrink_volume(modify['size']['shrink'])
+
+        if 'cloud_backup' in modify:
+            self.update_cloud_backup()
+
         # updating volumegroup, novolumegroup of a volume
         cmdopts = {}
         if 'volumegroup' in modify:

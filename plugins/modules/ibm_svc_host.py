@@ -5,7 +5,7 @@
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
 #            Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
 #            Rohit Kumar <rohit.kumar6@ibm.com>
-#
+#            Sudheesh Reddy Satti<Sudheesh.Reddy.Satti@ibm.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
@@ -64,7 +64,7 @@ options:
         type: str
     iscsiname:
         description:
-            - Initiator IQN to be added to the host.
+            - List of Initiator IQNs to be added to the host. IQNs are separated by comma. The complete list of IQNs must be provided.
             - The parameters I(fcwwpn) and I(iscsiname) are mutually exclusive.
             - Valid when I(state=present), to create host.
         type: str
@@ -174,6 +174,16 @@ EXAMPLES = '''
     old_name: "host4test"
     name: "new_host_name"
     state: "present"
+- name: Create an iSCSI host
+  ibm.spectrum_virtualize.ibm_svc_host:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    log_path: /tmp/playbook.debug
+    name: host_name
+    iscsiname: iqn.1994-05.com.redhat:2e358e438b8a,iqn.localhost.hostid.7f000001
+    state: present
 - name: Delete a host
   ibm.spectrum_virtualize.ibm_svc_host:
     clustername: "{{clustername}}"
@@ -245,6 +255,12 @@ class IBMSVChost(object):
             dup_fcwwpn = self.duplicate_checker(self.fcwwpn.split(':'))
             if dup_fcwwpn:
                 self.module.fail_json(msg='The parameter {0} has been entered multiple times. Enter the parameter only one time.'.format(dup_fcwwpn))
+
+        # Handling duplicate iscsiname
+        if self.iscsiname:
+            dup_iscsiname = self.duplicate_checker(self.iscsiname.split(','))
+            if dup_iscsiname:
+                self.module.fail_json(msg='The parameter {0} has been entered multiple times. Enter the parameter only one time.'.format(dup_iscsiname))
         # Handling for missing mandatory parameter name
         if not self.name:
             self.module.fail_json(msg='Missing mandatory parameter: name')
@@ -325,6 +341,12 @@ class IBMSVChost(object):
             if set(self.existing_fcwwpn).symmetric_difference(set(self.input_fcwwpn)):
                 props += ['fcwwpn']
 
+        if self.iscsiname:
+            self.existing_iscsiname = [node["iscsi_name"] for node in data['nodes'] if "iscsi_name" in node]
+            self.input_iscsiname = self.iscsiname.split(",")
+            if set(self.existing_iscsiname).symmetric_difference(set(self.input_iscsiname)):
+                props += ['iscsiname']
+
         if self.site:
             if self.site != data['site_name']:
                 props += ['site']
@@ -403,6 +425,24 @@ class IBMSVChost(object):
             )
             self.log('%s added to %s', to_be_added, self.name)
 
+    def host_iscsiname_update(self):
+        to_be_removed = ','.join(list(set(self.existing_iscsiname) - set(self.input_iscsiname)))
+        if to_be_removed:
+            self.restapi.svc_run_command(
+                'rmhostport',
+                {'iscsiname': to_be_removed, 'force': True},
+                [self.name]
+            )
+            self.log('%s removed from %s', to_be_removed, self.name)
+        to_be_added = ','.join(list(set(self.input_iscsiname) - set(self.existing_iscsiname)))
+        if to_be_added:
+            self.restapi.svc_run_command(
+                'addhostport',
+                {'iscsiname': to_be_added, 'force': True},
+                [self.name]
+            )
+            self.log('%s added to %s', to_be_added, self.name)
+
     def host_update(self, modify, host_data):
         # update the host
         self.log("updating host '%s'", self.name)
@@ -417,6 +457,10 @@ class IBMSVChost(object):
             self.host_fcwwpn_update()
             self.changed = True
             self.log("fcwwpn of %s updated", self.name)
+        if 'iscsiname' in modify:
+            self.host_iscsiname_update()
+            self.changed = True
+            self.log("iscsiname of %s updated", self.name)
         if 'type' in modify:
             cmdopts['type'] = self.type
         if 'site' in modify:
