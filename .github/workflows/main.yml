@@ -145,8 +145,11 @@ jobs:
           rsync -av . ansible_collections/ibm/spectrum_virtualize --exclude ansible_collections/ibm/spectrum_virtualize
 
       - name: Set environment variable
-        run: export GALAXY_IMPORTER_CONFIG=/home/runner/work/ibm.spectrum_virtualize/ibm.spectrum_virtualize/galaxy-importer.cfg
-      
+        run: |
+          export GALAXY_IMPORTER_CONFIG=/home/runner/work/ibm.spectrum_virtualize/ibm.spectrum_virtualize/galaxy-importer.cfg
+          ~
+          ls /home/runner/work/ibm.spectrum_virtualize/ibm.spectrum_virtualize
+
       - name: Build the tar package
         run: ansible-galaxy collection build
         working-directory: ./ansible_collections/ibm/spectrum_virtualize
