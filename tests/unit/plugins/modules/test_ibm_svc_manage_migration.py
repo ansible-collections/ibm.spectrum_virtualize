@@ -88,19 +88,19 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
         cmd1.return_value = {
-            "id": "0000010022206192", "name": "Cluster_9.71.42.198", "location": "remote",
+            "id": "0000010022206192", "name": "Cluster_x.x.x.x", "location": "remote",
             "partnership": "fully_configured", "code_level": "8.4.2.0 (build 154.19.2106231326000)",
             "console_IP": "9.71.42.198:443", "gm_link_tolerance": "300",
             "gm_inter_cluster_delay_simulation": "0", "gm_intra_cluster_delay_simulation": "0",
@@ -121,19 +121,19 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
         cmd1.return_value = {
-            "id": "0000010022206192", "name": "Cluster_9.71.42.198", "location": "local",
+            "id": "0000010022206192", "name": "Cluster_x.x.x.x", "location": "local",
             "partnership": "fully_configured", "code_level": "8.4.2.0 (build 154.19.2106231326000)",
             "console_IP": "9.71.42.198:443", "gm_link_tolerance": "300",
             "gm_inter_cluster_delay_simulation": "0", "gm_intra_cluster_delay_simulation": "0",
@@ -155,14 +155,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -180,14 +180,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -207,14 +207,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -267,14 +267,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -287,14 +287,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            # "username": "superuser",
-            # "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            # "username": "username",
+            # "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -309,14 +309,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             # "source_volume": "tesla",
             # "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            # "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            # "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            # "remote_username": "superuser",
-            # "remote_password": "passw0rd",
+            # "remote_username": "remote_username",
+            # "remote_password": "remote_password",
             # "relationship_name": "migrate_tesla",
             # "remote_pool": "site2pool1"
         })
@@ -331,14 +331,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             # "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -353,14 +353,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             # "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -377,14 +377,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -431,14 +431,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -461,14 +461,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -536,14 +536,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -613,14 +613,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -692,14 +692,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -760,14 +760,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -787,14 +787,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -852,14 +852,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -881,14 +881,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -948,14 +948,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -1053,14 +1053,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -1156,14 +1156,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -1182,9 +1182,9 @@ class TestIBMSVCMigrate(unittest.TestCase):
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
     def test_vol_relationsip(self, auth, cmd1, cmd2):
         set_module_args({
-            "clustername": "9.71.42.119",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "cleanup",
             "source_volume": "tesla"
         })
@@ -1233,11 +1233,11 @@ class TestIBMSVCMigrate(unittest.TestCase):
             "id": "69",
             "name": "migrate_tesla",
             "master_cluster_id": "0000020420603B5C",
-            "master_cluster_name": "Cluster_9.71.42.119",
+            "master_cluster_name": "Cluster_x.x.x.x",
             "master_vdisk_id": "69",
             "master_vdisk_name": "tesla",
             "aux_cluster_id": "0000010022206192",
-            "aux_cluster_name": "Cluster_9.71.42.198",
+            "aux_cluster_name": "Cluster_x.x.x.x",
             "aux_vdisk_id": "77",
             "aux_vdisk_name": "tesla_target",
             "primary": "aux",
@@ -1272,9 +1272,9 @@ class TestIBMSVCMigrate(unittest.TestCase):
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
     def test_vol_relationsip_fail_when_source_missng(self, auth, cmd1, cmd2):
         set_module_args({
-            "clustername": "9.71.42.119",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "cleanup",
             "source_volume": "tesla"
         })
@@ -1285,11 +1285,11 @@ class TestIBMSVCMigrate(unittest.TestCase):
             "id": "69",
             "name": "migrate_tesla",
             "master_cluster_id": "0000020420603B5C",
-            "master_cluster_name": "Cluster_9.71.42.119",
+            "master_cluster_name": "Cluster_x.x.x.x",
             "master_vdisk_id": "69",
             "master_vdisk_name": "tesla",
             "aux_cluster_id": "0000010022206192",
-            "aux_cluster_name": "Cluster_9.71.42.198",
+            "aux_cluster_name": "Cluster_x.x.x.x",
             "aux_vdisk_id": "77",
             "aux_vdisk_name": "tesla_target",
             "primary": "aux",
@@ -1324,9 +1324,9 @@ class TestIBMSVCMigrate(unittest.TestCase):
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
     def test_vol_relationsip_fail_when_source_copytype_not_migration(self, auth, cmd1, cmd2):
         set_module_args({
-            "clustername": "9.71.42.119",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "cleanup",
             "source_volume": "tesla"
         })
@@ -1375,11 +1375,11 @@ class TestIBMSVCMigrate(unittest.TestCase):
             "id": "69",
             "name": "migrate_tesla",
             "master_cluster_id": "0000020420603B5C",
-            "master_cluster_name": "Cluster_9.71.42.119",
+            "master_cluster_name": "Cluster_x.x.x.x",
             "master_vdisk_id": "69",
             "master_vdisk_name": "tesla",
             "aux_cluster_id": "0000010022206192",
-            "aux_cluster_name": "Cluster_9.71.42.198",
+            "aux_cluster_name": "Cluster_x.x.x.x",
             "aux_vdisk_id": "77",
             "aux_vdisk_name": "tesla_target",
             "primary": "aux",
@@ -1414,14 +1414,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -1435,14 +1435,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -1450,11 +1450,11 @@ class TestIBMSVCMigrate(unittest.TestCase):
             "id": "69",
             "name": "migrate_tesla",
             "master_cluster_id": "0000020420603B5C",
-            "master_cluster_name": "Cluster_9.71.42.119",
+            "master_cluster_name": "Cluster_x.x.x.x",
             "master_vdisk_id": "69",
             "master_vdisk_name": "tesla",
             "aux_cluster_id": "0000010022206192",
-            "aux_cluster_name": "Cluster_9.71.42.198",
+            "aux_cluster_name": "Cluster_x.x.x.x",
             "aux_vdisk_id": "77",
             "aux_vdisk_name": "tesla_target",
             "primary": "aux",
@@ -1487,14 +1487,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -1510,14 +1510,14 @@ class TestIBMSVCMigrate(unittest.TestCase):
         set_module_args({
             "source_volume": "tesla",
             "target_volume": "tesla_target",
-            "clustername": "9.71.42.119",
-            "remote_cluster": "Cluster_9.71.42.198",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "remote_cluster": "Cluster_x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "initiate",
             "replicate_hosts": True,
-            "remote_username": "superuser",
-            "remote_password": "passw0rd",
+            "remote_username": "remote_username",
+            "remote_password": "remote_password",
             "relationship_name": "migrate_tesla",
             "remote_pool": "site2pool1"
         })
@@ -1531,15 +1531,82 @@ class TestIBMSVCMigrate(unittest.TestCase):
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
     def test_delete(self, auth, cmd1):
         set_module_args({
-            "clustername": "9.71.42.119",
-            "username": "superuser",
-            "password": "passw0rd",
+            "clustername": "x.x.x.x",
+            "username": "username",
+            "password": "password",
             "state": "cleanup",
             "source_volume": "tesla"
         })
         cmd1.return_value = ''
         m = IBMSVCMigrate()
         m.delete()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_migrate_across_pool_without_mandatory_params(self, svc_authorize_mock, svc_obj_info_mock, svc_run_command_mock):
+        set_module_args({
+            "clustername": "x.x.x.x",
+            "username": "username",
+            "password": "password",
+            "type_of_migration": "across_pools"
+        })
+
+        m = IBMSVCMigrate()
+        with pytest.raises(AnsibleFailJson) as exc:
+            m.apply()
+        self.assertEqual(
+            'Missing mandatory parameter: [new_pool, source_volume] for migration across pools',
+            exc.value.args[0]['msg']
+        )
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_migrate_across_pool(self, svc_authorize_mock, svc_obj_info_mock, svc_run_command_mock):
+        set_module_args({
+            "clustername": "x.x.x.x",
+            "username": "username",
+            "password": "password",
+            "type_of_migration": "across_pools",
+            "new_pool": "pool0",
+            "source_volume": "vol1"
+        })
+
+        svc_obj_info_mock.return_value = [{'name': 'vol1', 'mdisk_grp_name': 'pool1'}, {}]
+        svc_run_command_mock.return_value = ''
+        m = IBMSVCMigrate()
+        with pytest.raises(AnsibleExitJson) as exc:
+            m.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_migrate_across_pool_idempotency(self, svc_authorize_mock, svc_obj_info_mock, svc_run_command_mock):
+        set_module_args({
+            "clustername": "x.x.x.x",
+            "username": "username",
+            "password": "password",
+            "type_of_migration": "across_pools",
+            "new_pool": "pool0",
+            "source_volume": "vol1"
+        })
+
+        svc_obj_info_mock.return_value = [{'name': 'vol1', 'mdisk_grp_name': 'pool0'}, {}]
+        m = IBMSVCMigrate()
+        with pytest.raises(AnsibleExitJson) as exc:
+            m.apply()
+        self.assertFalse(exc.value.args[0]['changed'])
 
 
 if __name__ == "__main__":

@@ -98,6 +98,8 @@ Alternatively, you can add a full namepsace and collection name in the `collecti
 - ibm_svc_vol_map - Manages volume mapping for Spectrum Virtualize storage systems
 - ibm_svcinfo_command - Runs svcinfo CLI command on Spectrum Virtualize storage systems over SSH session
 - ibm_svctask_command - Runs svctask CLI command(s) on Spectrum Virtualize storage systems over SSH session
+- ibm_sv_manage_awss3_cloudaccount - Manages Amazon S3 cloud account configuration on Spectrum Virtualize storage systems
+- ibm_sv_manage_cloud_backup - Manages cloud backups on Spectrum Virtualize storage systems
 - ibm_sv_manage_ip_partnership - Manages IP partnership configuration on Spectrum Virtualize storage systems
 - ibm_sv_manage_provisioning_policy - Manages provisioning policy configuration on Spectrum Virtualize storage systems
 - ibm_sv_manage_replication_policy - Manages policy-based replication configuration on Spectrum Virtualize storage systems
@@ -105,6 +107,7 @@ Alternatively, you can add a full namepsace and collection name in the `collecti
 - ibm_sv_manage_snapshotpolicy - Manages snapshot policy configuration on Spectrum Virtualize storage systems
 - ibm_sv_manage_ssl_certificate - Exports an existing system certificate on to Spectrum Virtualize storage systems
 - ibm_sv_manage_truststore_for_replication - Manages certificate trust stores for replication on Spectrum Virtualize family storage systems
+- ibm_sv_restore_cloud_backup - Restores cloud backups on Spectrum Virtualize storage systems
 - ibm_sv_switch_replication_direction - Switches the replication direction on Spectrum Virtualize storage systems
 
 ### Other Feature Information
@@ -140,6 +143,7 @@ The modules in the IBM Spectrum Virtualize Ansible collection leverage REST APIs
 
 Currently we are not accepting community contributions.
 Though, you may periodically review this content to learn when and how contributions can be made in the future.
+IBM Spectrum Virtualize Ansible Collection maintainers can follow the [Maintainer guidelines](https://docs.ansible.com/ansible/devel/community/maintainers.html).
 
 ## License
 
