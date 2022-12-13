@@ -146,9 +146,10 @@ jobs:
 
       - name: Set environment variable
         run: |
-          export GALAXY_IMPORTER_CONFIG=/home/runner/work/ibm.spectrum_virtualize/ibm.spectrum_virtualize/galaxy-importer.cfg
-          ~
-          ls /home/runner/work/ibm.spectrum_virtualize/ibm.spectrum_virtualize
+          readlink -f galaxy-importer.cfg
+          export GALAXY_IMPORTER_CONFIG=$(readlink -f galaxy-importer.cfg)
+          env | grep galaxy
+        working-directory: ./ansible_collections/ibm/spectrum_virtualize
 
       - name: Build the tar package
         run: ansible-galaxy collection build
