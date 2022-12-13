@@ -22,7 +22,7 @@ description:
   - Once transfer is done successfully, it also adds the certificate to the trust store of the local system.
   - This module can be used to set up mutual TLS (mTLS) for policy-based replication inter-system communication
     using cluster endpoint certificates (usually system-signed which are exported by the
-    M(ibm.spectrum_virtualize.ibm_sv_manage_SSL_certificate) module).
+    M(ibm.spectrum_virtualize.ibm_sv_manage_ssl_certificate) module).
 options:
     clustername:
         description:

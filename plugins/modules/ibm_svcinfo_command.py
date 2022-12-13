@@ -58,8 +58,6 @@ options:
     description:
     - Path of debug log file.
     type: str
-notes:
-    - This module supports C(check_mode).
 '''
 
 EXAMPLES = '''

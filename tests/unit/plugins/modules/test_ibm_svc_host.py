@@ -1,6 +1,7 @@
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
 #            Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
+#            Sudheesh Reddy Satti<Sudheesh.Reddy.Satti@ibm.com>
 #
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -493,6 +494,86 @@ class TestIBMSVChost(unittest.TestCase):
             v = IBMSVChost()
             v.apply()
         self.assertTrue(exc.value.args[0]['failed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.host_iscsiname_update')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.get_existing_host')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_iscsiname_update_when_existing_absent(self, svc_authorize_mock, get_existing_host_mock, host_iscsinmae_update_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test',
+            'state': 'present',
+            'iscsiname': 'iqn.1994-05.com.redhat:2e358e438b8a',
+            'protocol': 'scsi',
+            'type': 'generic'
+        })
+        lshost_data = {'id': '24', 'name': 'test', 'port_count': '5', 'type': 'generic',
+                       'mask': '1111111', 'iogrp_count': '4', 'status': 'offline',
+                       'site_id': '', 'site_name': '', 'host_cluster_id': '', 'host_cluster_name': '',
+                       'protocol': 'scsi', 'nodes': [{'iscsi_name': 'iqn.1994-05.com.redhat:2e358e438b8a', 'node_logged_in_count': '0', 'state': 'offline'},
+                                                     {'iscsi_name': 'iqn.localhost.hostid.7f000001', 'node_logged_in_count': '0', 'state': 'offline'},
+                                                     {'iscsi_name': 'iqn.localhost.hostid.7f000002', 'node_logged_in_count': '0', 'state': 'offline'}]}
+        get_existing_host_mock.return_value = lshost_data
+        host_created = IBMSVChost()
+        with pytest.raises(AnsibleExitJson) as exc:
+            host_created.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.host_iscsiname_update')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.get_existing_host')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_iscsiname_update_when_new_added(self, svc_authorize_mock, get_existing_host_mock, host_iscsiname_update_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test',
+            'state': 'present',
+            'iscsiname': 'iqn.1994-05.com.redhat:2e358e438b8a,iqn.localhost.hostid.7f000001,iqn.localhost.hostid.7f000002',
+            'protocol': 'scsi',
+            'type': 'generic'
+        })
+        lshost_data = {'id': '24', 'name': 'test', 'port_count': '5', 'type': 'generic',
+                       'mask': '1111111', 'iogrp_count': '4', 'status': 'offline',
+                       'site_id': '', 'site_name': '', 'host_cluster_id': '', 'host_cluster_name': '',
+                       'protocol': 'scsi', 'nodes': [{'iscsi_name': 'iqn.1994-05.com.redhat:2e358e438b8a', 'node_logged_in_count': '0', 'state': 'offline'},
+                                                     {'iscsi_name': 'iqn.localhost.hostid.7f000001', 'node_logged_in_count': '0', 'state': 'offline'}]}
+        get_existing_host_mock.return_value = lshost_data
+        host_created = IBMSVChost()
+        with pytest.raises(AnsibleExitJson) as exc:
+            host_created.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_host_iscsiname_update(self, svc_authorize_mock, svc_run_command_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test',
+            'state': 'present',
+            'iscsiname': 'iqn.1994-05.com.redhat:2e358e438b8a,iqn.localhost.hostid.7f000002',
+            'protocol': 'scsi',
+            'type': 'generic'
+        })
+        obj = IBMSVChost()
+        obj.existing_iscsiname = ['iqn.1994-05.com.redhat:2e358e438b8a', 'iqn.localhost.hostid.7f000001']
+        obj.input_iscsiname = ['iqn.1994-05.com.redhat:2e358e438b8a', 'iqn.localhost.hostid.7f000002']
+        self.assertEqual(obj.host_iscsiname_update(), None)
 
 
 if __name__ == '__main__':

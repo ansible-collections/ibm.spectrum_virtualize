@@ -1423,6 +1423,124 @@ class TestIBMSVCvolume(unittest.TestCase):
             v.apply()
         self.assertTrue(exc.value.args[0]['failed'])
 
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_cloud_backup_validation(self, auth, obj_mock, src):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'name',
+            'enable_cloud_snapshot': True,
+            'cloud_account_name': 'aws_acc',
+            'state': 'present',
+        })
+
+        obj_mock.return_value = {}
+        with pytest.raises(AnsibleFailJson) as exc:
+            v = IBMSVCvolume()
+            v.apply()
+        self.assertTrue(exc.value.args[0]['failed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_enable_cloud_backup(self, auth, obj_mock, src):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'name',
+            'enable_cloud_snapshot': True,
+            'cloud_account_name': 'aws_acc',
+            'state': 'present',
+        })
+
+        obj_mock.return_value = [{'name': 'name', 'cloud_backup_enabled': 'no', 'type': 'striped', 'RC_name': ''}, {}]
+        with pytest.raises(AnsibleExitJson) as exc:
+            v = IBMSVCvolume()
+            v.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_enable_cloud_backup_idempotency(self, auth, obj_mock, src):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'name',
+            'enable_cloud_snapshot': True,
+            'cloud_account_name': 'aws_acc',
+            'state': 'present',
+        })
+
+        obj_mock.return_value = [{'name': 'name', 'cloud_backup_enabled': 'yes', 'cloud_account_name': 'aws_acc', 'type': 'striped', 'RC_name': ''}, {}]
+        with pytest.raises(AnsibleExitJson) as exc:
+            v = IBMSVCvolume()
+            v.apply()
+        self.assertFalse(exc.value.args[0]['changed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_disable_cloud_backup(self, auth, obj_mock, src):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'name',
+            'enable_cloud_snapshot': False,
+            'state': 'present',
+        })
+
+        obj_mock.return_value = [{'name': 'name', 'cloud_backup_enabled': 'yes', 'type': 'striped', 'RC_name': ''}, {}]
+        with pytest.raises(AnsibleExitJson) as exc:
+            v = IBMSVCvolume()
+            v.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_disable_cloud_backup_idempotency(self, auth, obj_mock, src):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'name',
+            'enable_cloud_snapshot': False,
+            'state': 'present',
+        })
+
+        obj_mock.return_value = [{'name': 'name', 'cloud_backup_enabled': 'no', 'type': 'striped', 'RC_name': ''}, {}]
+        with pytest.raises(AnsibleExitJson) as exc:
+            v = IBMSVCvolume()
+            v.apply()
+        self.assertFalse(exc.value.args[0]['changed'])
+
 
 if __name__ == '__main__':
     unittest.main()
