@@ -143,7 +143,9 @@ jobs:
           pwd
           mkdir -p ansible_collections/ibm/spectrum_virtualize
           rsync -av . ansible_collections/ibm/spectrum_virtualize --exclude ansible_collections/ibm/spectrum_virtualize
-          export GALAXY_IMPORTER_CONFIG=./ansible_collections/ibm/spectrum_virtualize/galaxy-importer.cfg
+
+      - name: Set environment variable 
+        run: export GALAXY_IMPORTER_CONFIG=~/ansible_collections/ibm/spectrum_virtualize/galaxy-importer.cfg
       
       - name: Build the tar package
         run: ansible-galaxy collection build
