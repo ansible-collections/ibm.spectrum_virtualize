@@ -143,11 +143,14 @@ jobs:
           pwd
           mkdir -p ansible_collections/ibm/spectrum_virtualize
           rsync -av . ansible_collections/ibm/spectrum_virtualize --exclude ansible_collections/ibm/spectrum_virtualize
-      
+
       - name: Build the tar package
         run: ansible-galaxy collection build
         working-directory: ./ansible_collections/ibm/spectrum_virtualize
 
       - name: Run galaxy-importer tool on spectrum_virtualize
-        run: python3.9 -m galaxy_importer.main ibm-spectrum_virtualize-*.tar.gz
+        run: |
+          export GALAXY_IMPORTER_CONFIG=$(readlink -f galaxy-importer.cfg)
+          env | grep galaxy
+          python3.9 -m galaxy_importer.main ibm-spectrum_virtualize-*.tar.gz
         working-directory: ./ansible_collections/ibm/spectrum_virtualize
