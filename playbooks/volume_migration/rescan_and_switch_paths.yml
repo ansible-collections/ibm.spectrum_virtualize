@@ -110,7 +110,7 @@
         scsi: 0
 
     - name: Rescan the paths on the host and run multipath 
-        shell: "ssh root@{{application_host_ip}} rescan-scsi-bus.sh -i --forcerescan;sleep 40;"
+      shell: "ssh root@{{application_host_ip}} rescan-scsi-bus.sh -i --forcerescan;sleep 40;"
 
     - shell: "ssh root@{{application_host_ip}} multipath -ll"
       register: ps
