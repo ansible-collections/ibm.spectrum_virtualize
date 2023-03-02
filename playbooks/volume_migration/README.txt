@@ -12,14 +12,14 @@ These playbooks migrate a volume from a source cluster to the destination cluste
 There are total 3 files used for this use-case.
   1. vol_migration_vars:
      This file has all the variables required for playbooks.
-	   - src_cluster_*     : Parameters starting with src_cluster contain source cluster details from where user wants to migrate volume
-	   - dest_cluster*     : Parameters starting with dest_cluster contain destination cluster details to where volume will be migrated
-	   - brocade_switch_*  : Parameters starting with brocade_switch contain brocade switch details 
-	   - application_host_*: Parameters starting with application_host contain application host details which is performing read/write of data
-     - volume_details    : It consists of volume to be migrated with its source and destination name with host it is attached to
+	 - src_cluster_*     : Parameters starting with src_cluster contain source cluster details from where user wants to migrate volume
+	 - dest_cluster*     : Parameters starting with dest_cluster contain destination cluster details to where volume will be migrated
+	 - brocade_switch_*  : Parameters starting with brocade_switch contain brocade switch details 
+	 - application_host_*: Parameters starting with application_host contain application host details which is performing read/write of data
+         - volume_details    : It consists of volume to be migrated with its source and destination name with host it is attached to
   2. initiate_migration_for_given_volume:
      - This playbook initiates the migration, creates fc host with the same name as source cluster and adds it to the default portset.
-	   - Most importantly, it also starts data copy from source cluster to destination cluster
+	 - Most importantly, it also starts data copy from source cluster to destination cluster
   Note:
      User should not run playbook create_zone_map_volume_and_rescan until relationship is in consistent_syncronized state     	 
   3. create_zone_map_volume_and_rescan
