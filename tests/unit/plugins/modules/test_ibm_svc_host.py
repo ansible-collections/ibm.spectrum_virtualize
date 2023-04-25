@@ -575,6 +575,55 @@ class TestIBMSVChost(unittest.TestCase):
         obj.input_iscsiname = ['iqn.1994-05.com.redhat:2e358e438b8a', 'iqn.localhost.hostid.7f000002']
         self.assertEqual(obj.host_iscsiname_update(), None)
 
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.get_existing_host')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_host.IBMSVChost.host_create')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_rdmanvme_nqn_update_when_new_added(self, svc_authorize_mock, host_create_mock, get_existing_host_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test',
+            'state': 'present',
+            'nqn': 'nqn.2014-08.com.example:nvme:nvm-example-sn-d78434,nqn.2014-08.com.example:nvme:nvm-example-sn-d78433',
+            'protocol': 'rdmanvme',
+            'portset': 'portset0',
+            'type': 'generic'
+        })
+
+        host = {u'message': u'Host, id [14], '
+                            u'successfully created', u'id': u'14'}
+        host_create_mock.return_value = host
+        get_existing_host_mock.return_value = []
+        host_created = IBMSVChost()
+        with pytest.raises(AnsibleExitJson) as exc:
+            host_created.apply()
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_host_nqn_update(self, svc_authorize_mock, svc_run_command_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test',
+            'state': 'present',
+            'nqn': 'nqn.2014-08.com.example:nvme:nvm-example-sn-d78434,nqn.2014-08.com.example:nvme:nvm-example-sn-d78431',
+            'protocol': 'rdmanvme',
+            'type': 'generic'
+        })
+        obj = IBMSVChost()
+        obj.existing_nqn = ['nqn.2014-08.com.example:nvme:nvm-example-sn-d78434', 'nqn.2014-08.com.example:nvme:nvm-example-sn-d78433']
+        obj.input_nqn = ['nqn.2014-08.com.example:nvme:nvm-example-sn-d78434', 'nqn.2014-08.com.example:nvme:nvm-example-sn-d78431']
+        self.assertEqual(obj.host_nqn_update(), None)
+
 
 if __name__ == '__main__':
     unittest.main()

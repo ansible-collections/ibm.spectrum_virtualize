@@ -105,6 +105,34 @@ class TestIBMSVCPortset(unittest.TestCase):
            'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_create_fc_portset_with_replication_type_params(self,
+                                                            svc_authorize_mock,
+                                                            svc_run_command_mock,
+                                                            portset_exist_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'portset0',
+            'porttype': 'fc',
+            'portset_type': 'replication',
+            'state': 'present'
+        })
+
+        portset_exist_mock.return_value = {}
+        p = IBMSVCPortset()
+
+        with pytest.raises(AnsibleExitJson) as exc:
+            p.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_manage_portset.IBMSVCPortset.is_portset_exists')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
     def test_create_portset_without_optional_params(self,
                                                     svc_authorize_mock,
                                                     svc_run_command_mock,
@@ -131,8 +159,7 @@ class TestIBMSVCPortset(unittest.TestCase):
            'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_create_portset_with_optional_params(self,
-                                                 svc_authorize_mock,
+    def test_create_portset_with_optional_params(self, svc_authorize_mock,
                                                  svc_run_command_mock,
                                                  portset_exist_mock):
         set_module_args({
@@ -143,6 +170,35 @@ class TestIBMSVCPortset(unittest.TestCase):
             'name': 'portset0',
             'ownershipgroup': 'new_owner',
             'portset_type': 'replication',
+            'state': 'present'
+        })
+
+        portset_exist_mock.return_value = {}
+        p = IBMSVCPortset()
+
+        with pytest.raises(AnsibleExitJson) as exc:
+            p.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_manage_portset.IBMSVCPortset.is_portset_exists')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_create_fc_portset_with_optional_params(self,
+                                                    svc_authorize_mock,
+                                                    svc_run_command_mock,
+                                                    portset_exist_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'portset0',
+            'porttype': 'fc',
+            'ownershipgroup': 'new_owner',
+            'portset_type': 'host',
             'state': 'present'
         })
 
@@ -232,6 +288,40 @@ class TestIBMSVCPortset(unittest.TestCase):
            'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_portset_rename(self, svc_authorize_mock,
+                            svc_run_command_mock,
+                            svc_obj_info_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'name': 'new_name',
+            'old_name': 'portset0',
+            'state': 'present'
+        })
+        svc_obj_info_mock.return_value = {
+            "id": "4",
+            "name": "portset0",
+            "type": "host",
+            "port_count": "0",
+            "host_count": "0",
+            "lossless": "",
+            "owner_id": "0",
+            "owner_name": "new_owner"
+        }
+
+        arg_data = []
+        v = IBMSVCPortset()
+        data = v.portset_rename(arg_data)
+        self.assertEqual(data, 'Portset [portset0] has been successfully rename to [new_name].')
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_manage_portset.IBMSVCPortset.is_portset_exists')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
     def test_delete_portset_with_extra_param(self,
                                              svc_authorize_mock,
                                              svc_run_command_mock,
@@ -283,7 +373,6 @@ class TestIBMSVCPortset(unittest.TestCase):
         portset_exist_mock.return_value = {
             "id": "4",
             "name": "portset0",
-            "type": "host",
             "port_count": "0",
             "host_count": "0",
             "lossless": "",

@@ -82,11 +82,11 @@ class TestIBMSVCGatherInfo(unittest.TestCase):
         print('Info: %s' % exc.value.args[0]['msg'])
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
-           'ibm_svc_info.IBMSVCGatherInfo.get_hosts_list')
+           'ibm_svc_info.IBMSVCGatherInfo.get_list')
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
     def test_get_host_list_called(self, mock_svc_authorize,
-                                  get_hosts_list_mock):
+                                  get_list_mock):
         set_module_args({
             'clustername': 'clustername',
             'domain': 'domain',
@@ -97,33 +97,7 @@ class TestIBMSVCGatherInfo(unittest.TestCase):
         with pytest.raises(AnsibleExitJson) as exc:
             IBMSVCGatherInfo().apply()
         self.assertFalse(exc.value.args[0]['changed'])
-        get_hosts_list_mock.assert_called_with()
-
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
-           'ibm_svc_info.IBMSVCGatherInfo.get_pools_list')
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
-           'ibm_svc_info.IBMSVCGatherInfo.get_volumes_list')
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
-           'ibm_svc_info.IBMSVCGatherInfo.get_hosts_list')
-    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
-           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
-    def test_get_pool_vol_host_list_called(self, mock_svc_authorize,
-                                           get_hosts_list_mock,
-                                           get_volumes_list_mock,
-                                           get_pools_list_mock):
-        set_module_args({
-            'clustername': 'clustername',
-            'domain': 'domain',
-            'username': 'username',
-            'password': 'password',
-            'gather_subset': 'pool,host,vol',
-        })
-        with pytest.raises(AnsibleExitJson) as exc:
-            IBMSVCGatherInfo().apply()
-            get_hosts_list_mock.assert_called_with()
-            get_pools_list_mock.assert_called_with()
-            get_volumes_list_mock.assert_called_with()
-        self.assertFalse(exc.value.args[0]['changed'])
+        get_list_mock.assert_called_with('host', 'Host', 'lshost', False)
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
@@ -185,7 +159,7 @@ class TestIBMSVCGatherInfo(unittest.TestCase):
                     "encrypt": "no", "volume_id": "0",
                     "volume_name": "volume_Ansible_collections",
                     "function": "", "protocol": "scsi"}]
-        svc_obj_info_mock.side_effect = [vol_ret, host_ret]
+        svc_obj_info_mock.side_effect = [host_ret, vol_ret]
         with pytest.raises(AnsibleExitJson) as exc:
             IBMSVCGatherInfo().apply()
         self.assertFalse(exc.value.args[0]['changed'])
