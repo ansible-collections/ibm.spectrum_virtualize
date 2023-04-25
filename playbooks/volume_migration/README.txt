@@ -31,3 +31,6 @@ There are total 3 files used for this use-case.
      - Again rescan the volume on the host to get the updated path details.
      - Delete source volume and migration relationship which was created.
      - Again rescan the volume on the host to get the reduced paths.
+  
+ Authors: Ajinkya Nanavati (ananava1@in.ibm.com)
+          Mohit Chitlange  (mochitla@in.ibm.com)
