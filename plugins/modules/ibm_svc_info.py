@@ -2,6 +2,7 @@
 # Copyright (C) 2020 IBM CORPORATION
 # Author(s): Peng Wang <wangpww@cn.ibm.com>
 #            Sreshtant Bohidar <sreshtant.bohidar@ibm.com>
+#            Sanjaikumaar M <sanjaikumaar.m@ibm.com>
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
@@ -75,8 +76,8 @@ options:
     - node - lists information for nodes.
     - iog - lists information for I/O groups.
     - host - lists information for hosts.
-    - hostvdiskmap - lists all vdisks mapped to host 'objectname'
-    - vdiskhostmap - lists all hosts vdisk 'objectname' is mapped to
+    - hostvdiskmap - lists all VDisks mapped to host 'objectname'
+    - vdiskhostmap - lists all hosts VDisk 'objectname' is mapped to
     - hc - lists information for host clusters.
     - fc - lists information for FC connectivity.
     - fcport - lists information for FC ports.
@@ -93,9 +94,54 @@ options:
     - vdiskcopy - lists information for volume copy.
     - array - lists information for array MDisks.
     - system - displays the storage system information.
+    - cloudaccount - lists all the configured cloud accounts.
+    - cloudaccountusage - lists the usage information about the configured cloud storage accounts.
+    - cloudimportcandidate - lists information about systems that have data that is stored in the cloud accounts.
+    - ldapserver - lists the most recent details for all configured Lightweight Directory Access Protocol (LDAP) servers.
+    - drive - lists the configuration information and drive vital product data (VPD).
+    - user - lists all the users that are created on the system.
+    - usergroup - lists the user groups that is created on the system.
+    - ownershipgroup - displays the ownership groups that are available in the system.
+    - partnership - lists all the clustered systems (systems) that are associated with the local system.
+    - replicationpolicy - lists all the replication policies on the system.
+    - cloudbackup - lists the volumes that have cloud snapshot enabled and volumes that have cloud snapshots in the cloud account.
+    - cloudbackupgeneration - lists any volume snapshots available on the specified volume. I(objectname) is a mandatory parameter.
+    - snapshotpolicy - lists all the snapshot policies on the system.
+    - snapshotpolicyschedule - lists all snapshot schedules on the system.
+    - volumegroup - lists all volume groups on the system.
+    - volumegroupsnapshotpolicy - lists the snapshot policy attributes associated with a volume group on the system.
+    - volumesnapshot - lists all volume snapshots.
+    - dnsserver - lists the information for any Domain Name System (DNS) servers in the system.
+    - systemcertificate - lists the information about the current system Secure Sockets Layer (SSL) certificate.
+    - truststore - lists the current certificate stores.
+    - sra - command to check both secure remote assistance status and the time of the last login.
+    - syslogserver - lists the syslog servers that are configured on the clustered system.
+    - emailserver - lists the email servers that are configured on the system.
+    - emailuser - lists the Email event notification settings for all Email recipients,
+                  an individual Email recipient, or a specified type (local or support) of an Email recipient.
+    - provisioningpolicy - lists the provisioning policies available on the system.
+    - volumegroupsnapshot - lists the snapshot objects available on the system.
+    - callhome - displays the status of the Call Home information that is sent to a server in the Cloud.
+    - ip - lists the currently configured IP addresses.
+    - portset - lists the currently configured portset on the system.
+    - safeguardedpolicy - lists the Safeguarded policies available on the system.
+    - mdisk - displays a concise list or a detailed view of managed disks (MDisks) visible to the system.
+    - safeguardedpolicyschedule - displays the Safeguarded backup schedule that is associated with Safeguarded policies.
+    - eventlog - displays the concise view of system event log
+    - enclosurestats - lists the most recent values (averaged) of all enclosure statistics.
+    - enclosurestatshistory - lists the history values of all enclosure statistics including power consumed,
+                              temperature in fahrenheit and temperature in celsius.
     choices: [vol, pool, node, iog, host, hostvdiskmap, vdiskhostmap, hc, fcport
               , iscsiport, fc, fcmap, fcconsistgrp, rcrelationship, rcconsistgrp
-              , vdiskcopy, targetportfc, array, system, all]
+              , vdiskcopy, targetportfc, array, system, 'cloudaccount', 'cloudaccountusage',
+               'ldapserver', 'drive', 'user', 'usergroup', 'ownershipgroup',
+               'partnership', 'replicationpolicy', 'cloudbackup', 'enclosurestats',
+               'cloudbackupgeneration', 'snapshotpolicy', 'snapshotpolicyschedule',
+               'volumegroup', 'volumegroupsnapshotpolicy', 'volumesnapshot',
+               'dnsserver', 'systemcertificate', 'sra', 'syslogserver', 'enclosurestatshistory',
+               'emailserver', 'emailuser', 'provisioningpolicy', 'volumegroupsnapshot',
+               'truststore', 'callhome', 'ip', 'portset', 'safeguardedpolicy',
+               'mdisk', 'safeguardedpolicyschedule', 'cloudimportcandidate', 'eventlog', all]
     default: "all"
 notes:
     - This module supports C(check_mode).
@@ -129,7 +175,443 @@ EXAMPLES = '''
     gather_subset: pool
 '''
 
-RETURN = '''#'''
+RETURN = '''
+Array:
+    description:
+        - Data will be populated when I(gather_subset=array) or I(gather_subset=all)
+        - Lists information for array MDisks
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+CallHome:
+    description:
+        - Data will be populated when I(gather_subset=callhome) or I(gather_subset=all)
+        - Displays the status of the Call Home information that is sent to a server in the Cloud
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+CloudAccount:
+    description:
+        - Data will be populated when I(gather_subset=cloudaccount) or I(gather_subset=all)
+        - Lists all the configured cloud accounts
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+CloudAccountUsage:
+    description:
+        - Data will be populated when I(gather_subset=cloudaccountusage) or I(gather_subset=all)
+        - Lists the usage information about the configured cloud storage accounts
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+CloudBackup:
+    description:
+        - Data will be populated when I(gather_subset=cloudbackup) or I(gather_subset=all)
+        - Lists the volumes that have cloud snapshot that enabled and volumes that have cloud snapshots in the cloud account
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+CloudBackupGeneration:
+    description:
+        - Data will be populated when I(gather_subset=cloudbackupgeneration)
+        - List any volume snapshots available on the specified volume
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+CloudImportCandidate:
+    description:
+        - Data will be populated when I(gather_subset=cloudimportcandidate) or I(gather_subset=all)
+        - Lists information about systems that have data that is stored in the cloud accounts
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+DnsServer:
+    description:
+        - Data will be populated when I(gather_subset=dnsserver) or I(gather_subset=all)
+        - Lists the information for any Domain Name System (DNS) servers in the system
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+Drive:
+    description:
+        - Data will be populated when I(gather_subset=drive) or I(gather_subset=all)
+        - Lists the configuration information and drive vital product data (VPD)
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+EmailServer:
+    description:
+        - Data will be populated when I(gather_subset=emailserver) or I(gather_subset=all)
+        - Lists the Email servers that are configured on the system
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+EmailUser:
+    description:
+        - Data will be populated when I(gather_subset=emailuser) or I(gather_subset=all)
+        - Lists the Email event notification settings for all Email recipients,
+          an individual Email recipient, or a specified type (local or support) of Email recipient
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+FCConnectivitie:
+    description:
+        - Data will be populated when I(gather_subset=fc) or I(gather_subset=all)
+        - Lists information for FC connectivity
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+FCConsistgrp:
+    description:
+        - Data will be populated when I(gather_subset=fcconsistgrp) or I(gather_subset=all)
+        - Displays a concise list or a detailed view of flash copy consistency groups
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+FCMap:
+    description:
+        - Data will be populated when I(gather_subset=fcmap) or I(gather_subset=all)
+        - Lists information for FC maps
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+FCPort:
+    description:
+        - Data will be populated when I(gather_subset=fcport) or I(gather_subset=all)
+        - Lists information for FC ports
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+Host:
+    description:
+        - Data will be populated when I(gather_subset=host) or I(gather_subset=all)
+        - Lists information for hosts
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+HostCluster:
+    description:
+        - Data will be populated when I(gather_subset=hc) or I(gather_subset=all)
+        - Lists information for host clusters
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+HostVdiskMap:
+    description:
+        - Data will be populated when I(gather_subset=hostvdiskmap) or I(gather_subset=all)
+        - Lists all VDisks mapped to host 'objectname'
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+IOGroup:
+    description:
+        - Data will be populated when I(gather_subset=iog) or I(gather_subset=all)
+        - Lists information for I/O groups
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+IP:
+    description:
+        - Data will be populated when I(gather_subset=ip) or I(gather_subset=all)
+        - Lists the currently configured IP addresses
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+LdapServer:
+    description:
+        - Data will be populated when I(gather_subset=ldapserver) or I(gather_subset=all)
+        - Lists the most recent details for all configured Lightweight Directory Access Protocol (LDAP) servers
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+Mdisk:
+    description:
+        - Data will be populated when I(gather_subset=mdisk) or I(gather_subset=all)
+        - Displays a concise list or a detailed view of managed disks (MDisks) visible to the system
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+Node:
+    description:
+        - Data will be populated when I(gather_subset=node) or I(gather_subset=all)
+        - Lists information for nodes
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+Ownershipgroup:
+    description:
+        - Data will be populated when I(gather_subset=ownershipgroup) or I(gather_subset=all)
+        - Displays the ownership groups that are available in the system
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+Partnership:
+    description:
+        - Data will be populated when I(gather_subset=partnership) or I(gather_subset=all)
+        - Lists all the clustered systems (systems) that are associated with the local system
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+Pool:
+    description:
+        - Data will be populated when I(gather_subset=pool) or I(gather_subset=all)
+        - Lists information for mdiskgrps
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+Portset:
+    description:
+        - Data will be populated when I(gather_subset=portset) or I(gather_subset=all)
+        - Lists the currently configured portset on the system
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+ProvisioningPolicy:
+    description:
+        - Data will be populated when I(gather_subset=provisioningpolicy) or I(gather_subset=all)
+        - Lists the provisioning policies available on the system
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+RCConsistgrp:
+    description:
+        - Data will be populated when I(gather_subset=rcconsistgrp) or I(gather_subset=all)
+        - Displays a concise list or a detailed view of remote copy consistency groups
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+RemoteCopy:
+    description:
+        - Data will be populated when I(gather_subset=rcrelationship) or I(gather_subset=all)
+        - Lists information for remote copy relationships
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+ReplicationPolicy:
+    description:
+        - Data will be populated when I(gather_subset=replicationpolicy) or I(gather_subset=all)
+        - Lists all the replication policies on the system
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+SafeguardedPolicy:
+    description:
+        - Data will be populated when I(gather_subset=safeguardedpolicy) or I(gather_subset=all)
+        - Lists the Safeguarded policies available on the system
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+SafeguardedSchedule:
+    description:
+        - Data will be populated when I(gather_subset=safeguardedpolicyschedule) or I(gather_subset=all)
+        - Displays the Safeguarded backup schedule that is associated with Safeguarded policies
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+SnapshotPolicy:
+    description:
+        - Data will be populated when I(gather_subset=snapshotpolicy) or I(gather_subset=all)
+        - Lists all the snapshot policies on the system
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+SnapshotSchedule:
+    description:
+        - Data will be populated when I(gather_subset=snapshotpolicyschedule) or I(gather_subset=all)
+        - Lists all snapshot schedules on the system
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+Sra:
+    description:
+        - Data will be populated when I(gather_subset=sra) or I(gather_subset=all)
+        - Command to check both secure remote assistance status and the time of the last login
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+SysLogServer:
+    description:
+        - Data will be populated when I(gather_subset=syslogserver) or I(gather_subset=all)
+        - Lists the syslog servers that are configured on the clustered system
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+System:
+    description:
+        - Data will be populated when I(gather_subset=system) or I(gather_subset=all)
+        - Displays the storage system information
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+SystemCert:
+    description:
+        - Data will be populated when I(gather_subset=systemcertificate) or I(gather_subset=all)
+        - Lists the information about the current system Secure Sockets Layer (SSL) certificate
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+TargetPortFC:
+    description:
+        - Data will be populated when I(gather_subset=targetportfc) or I(gather_subset=all)
+        - Lists information for WWPN which is required to set up FC zoning and to display
+          the current failover status of host I/O ports
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+TrustStore:
+    description:
+        - Data will be populated when I(gather_subset=truststore) or I(gather_subset=all)
+        - Lists the current certificate stores
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+User:
+    description:
+        - Data will be populated when I(gather_subset=user) or I(gather_subset=all)
+        - Lists all the users that are created on the system
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+UserGrp:
+    description:
+        - Data will be populated when I(gather_subset=usergroup) or I(gather_subset=all)
+        - Lists the user groups that is created on the system
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+VdiskCopy:
+    description:
+        - Data will be populated when I(gather_subset=vdiskcopy) or I(gather_subset=all)
+        - Lists information for volume copy
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+VdiskHostMap:
+    description:
+        - Data will be populated when I(gather_subset=vdiskhostmap) or I(gather_subset=all)
+        - Lists all hosts the VDisk 'objectname' is mapped to
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+Volume:
+    description:
+        - Data will be populated when I(gather_subset=vol) or I(gather_subset=all)
+        - Lists information for VDisks
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+VolumeGroup:
+    description:
+        - Data will be populated when I(gather_subset=volumegroup) or I(gather_subset=all)
+        - Lists all volume groups on the system
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+VolumeGroupSnapshot:
+    description:
+        - Data will be populated when I(gather_subset=volumegroupsnapshot) or I(gather_subset=all)
+        - Lists the snapshot objects available on the system based on volume group
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+VolumeGroupSnapshotPolicy:
+    description:
+        - Data will be populated when I(gather_subset=volumegroupsnapshotpolicy) or I(gather_subset=all)
+        - Lists view snapshot objects on the system
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+VolumeSnapshot:
+    description:
+        - Data will be populated when I(gather_subset=volumesnapshot) or I(gather_subset=all)
+        - Lists all volume snapshots
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+iSCSIPort:
+    description:
+        - Data will be populated when I(gather_subset=iscsiport) or I(gather_subset=all)
+        - Lists information for iSCSI ports
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+EventLog:
+    description:
+        - Data will be populated when I(gather_subset=eventlog) or I(gather_subset=all)
+        - Lists information about the system event log
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+EnclosureStats:
+    description:
+        - Data will be populated when I(gather_subset=enclosurestats) or I(gather_subset=all)
+        - Lists the most recent values (averaged) of all enclosure statistics.
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+EnclosureStatsHistory:
+    description:
+        - Data will be populated when I(gather_subset=enclosurestatshistory) or I(gather_subset=all)
+        - Lists the history values of all enclosure statistics including power consumed,
+          temperature in fahrenheit and temperature in celsius.
+    returned: success
+    type: list
+    elements: dict
+    sample: [{...}]
+'''
 
 from traceback import format_exc
 from ansible.module_utils.basic import AnsibleModule
@@ -165,6 +647,41 @@ class IBMSVCGatherInfo(object):
                                             'vdiskcopy',
                                             'array',
                                             'system',
+                                            'cloudaccount',
+                                            'cloudaccountusage',
+                                            'cloudimportcandidate',
+                                            'ldapserver',
+                                            'drive',
+                                            'user',
+                                            'usergroup',
+                                            'ownershipgroup',
+                                            'partnership',
+                                            'replicationpolicy',
+                                            'cloudbackup',
+                                            'cloudbackupgeneration',
+                                            'snapshotpolicy',
+                                            'snapshotpolicyschedule',
+                                            'volumegroup',
+                                            'volumegroupsnapshotpolicy',
+                                            'volumesnapshot',
+                                            'dnsserver',
+                                            'systemcertificate',
+                                            'truststore',
+                                            'sra',
+                                            'syslogserver',
+                                            'emailserver',
+                                            'emailuser',
+                                            'provisioningpolicy',
+                                            'volumegroupsnapshot',
+                                            'callhome',
+                                            'ip',
+                                            'portset',
+                                            'safeguardedpolicy',
+                                            'mdisk',
+                                            'safeguardedpolicyschedule',
+                                            'eventlog',
+                                            'enclosurestats',
+                                            'enclosurestatshistory',
                                             'all'
                                             ]),
             )
@@ -189,292 +706,50 @@ class IBMSVCGatherInfo(object):
             token=self.module.params['token']
         )
 
-    def get_volumes_list(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            vols = self.restapi.svc_obj_info(cmd='lsvdisk', cmdopts=None,
-                                             cmdargs=cmdargs)
-            self.log.info("Successfully listed %d volumes from array %s",
-                          len(vols), self.module.params['clustername'])
-            return vols
-        except Exception as e:
-            msg = ('Get Volumes from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
+    def validate(self, subset):
+        if not self.objectname:
+            self.module.fail_json(msg='Following paramter is mandatory to execute {0}: objectname'.format(subset))
 
-    def get_pools_list(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            pools = self.restapi.svc_obj_info(cmd='lsmdiskgrp', cmdopts=None,
-                                              cmdargs=cmdargs)
-            self.log.info('Successfully listed %d pools from array '
-                          '%s', len(pools), self.module.params['clustername'])
-            return pools
-        except Exception as e:
-            msg = ('Get Pools from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
+    @property
+    def cloudbackupgeneration(self):
+        return self.restapi.svc_obj_info(
+            cmd='lsvolumebackupgeneration',
+            cmdopts={'volume': self.objectname},
+            cmdargs=None
+        )
 
-    def get_nodes_list(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            nodes = self.restapi.svc_obj_info(cmd='lsnode', cmdopts=None,
-                                              cmdargs=cmdargs)
-            self.log.info('Successfully listed %d pools from array %s',
-                          len(nodes), self.module.params['clustername'])
-            return nodes
-        except Exception as e:
-            msg = ('Get Nodes from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
+    @property
+    def enclosurestatshistory(self):
+        return self.restapi.svc_obj_info(
+            cmd='lsenclosurestats',
+            cmdopts={'history': 'power_w:temp_c:temp_f'},
+            cmdargs=[self.objectname]
+        )
 
-    def get_hosts_list(self):
+    def get_list(self, subset, op_key, cmd, validate):
         try:
-            cmdargs = [self.objectname] if self.objectname else None
-            hosts = self.restapi.svc_obj_info(cmd='lshost', cmdopts=None,
-                                              cmdargs=cmdargs)
-            self.log.info('Successfully listed %d hosts from array '
-                          '%s', len(hosts), self.module.params['clustername'])
-            return hosts
-        except Exception as e:
-            msg = ('Get Hosts from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_vdisk_host_map(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            vhmaps = self.restapi.svc_obj_info(cmd='lsvdiskhostmap', cmdopts=None,
-                                               cmdargs=cmdargs)
-            self.log.info('Successfully listed %d vdisk host maps from array '
-                          '%s', len(vhmaps), self.module.params['clustername'])
-            return vhmaps
-        except Exception as e:
-            msg = ('Get Vdisk Host Maps from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_host_vdisk_map(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            hvmaps = self.restapi.svc_obj_info(cmd='lshostvdiskmap', cmdopts=None,
-                                               cmdargs=cmdargs)
-            self.log.info('Successfully listed %d host vdisk maps from array '
-                          '%s', len(hvmaps), self.module.params['clustername'])
-            return hvmaps
-        except Exception as e:
-            msg = ('Get Host Vdisk Maps from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_iogroups_list(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            iogrps = self.restapi.svc_obj_info(cmd='lsiogrp', cmdopts=None,
-                                               cmdargs=cmdargs)
-            self.log.info('Successfully listed %d hosts from array '
-                          '%s', len(iogrps), self.module.params['clustername'])
-            return iogrps
-        except Exception as e:
-            msg = ('Get IO Groups from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_host_clusters_list(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            hcs = self.restapi.svc_obj_info(cmd='lshostcluster', cmdopts=None,
-                                            cmdargs=cmdargs)
-            self.log.info('Successfully listed %d host clusters from array '
-                          '%s', len(hcs), self.module.params['clustername'])
-            return hcs
-        except Exception as e:
-            msg = ('Get Host Cluster from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_fc_connectivity_list(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            fc = self.restapi.svc_obj_info(cmd='lsfabric', cmdopts=None,
-                                           cmdargs=cmdargs)
-            self.log.info('Successfully listed %d fc connectivity from array '
-                          '%s', len(fc), self.module.params['clustername'])
-            return fc
-        except Exception as e:
-            msg = ('Get FC Connectivity from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_fc_ports_list(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            fcports = self.restapi.svc_obj_info(cmd='lsportfc', cmdopts=None,
-                                                cmdargs=cmdargs)
-            self.log.info('Successfully listed %d fc ports from array %s',
-                          len(fcports), self.module.params['clustername'])
-            return fcports
-        except Exception as e:
-            msg = ('Get fc ports from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_target_port_fc_list(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            targetportfc = self.restapi.svc_obj_info(cmd='lstargetportfc',
-                                                     cmdopts=None,
-                                                     cmdargs=cmdargs)
-            self.log.info('Successfully listed %d target port fc '
-                          'from array %s', len(targetportfc),
+            if validate:
+                self.validate(subset)
+            output = {}
+            exceptions = {'cloudbackupgeneration', 'enclosurestatshistory'}
+            if subset in exceptions:
+                output[op_key] = getattr(self, subset)
+            else:
+                cmdargs = [self.objectname] if self.objectname else None
+                output[op_key] = self.restapi.svc_obj_info(cmd=cmd,
+                                                           cmdopts=None,
+                                                           cmdargs=cmdargs)
+            self.log.info('Successfully listed %d %s info '
+                          'from cluster %s', len(subset), subset,
                           self.module.params['clustername'])
-            return targetportfc
+            return output
         except Exception as e:
-            msg = ('Get target port fc from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_iscsi_ports_list(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            ipports = self.restapi.svc_obj_info(cmd='lsportip', cmdopts=None,
-                                                cmdargs=cmdargs)
-            self.log.info('Successfully listed %d iscsi ports from array %s',
-                          len(ipports), self.module.params['clustername'])
-            return ipports
-        except Exception as e:
-            msg = ('Get iscsi ports from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_fc_map_list(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            fcmaps = self.restapi.svc_obj_info(cmd='lsfcmap', cmdopts=None,
-                                               cmdargs=cmdargs)
-            self.log.info('Successfully listed %d fc maps from array %s',
-                          len(fcmaps), self.module.params['clustername'])
-            return fcmaps
-        except Exception as e:
-            msg = ('Get fc maps from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_rcrel_list(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            rcrel = self.restapi.svc_obj_info(cmd='lsrcrelationship',
-                                              cmdopts=None,
-                                              cmdargs=cmdargs)
-            self.log.info('Successfully listed %d remotecopy from array %s',
-                          len(rcrel), self.module.params['clustername'])
-            return rcrel
-        except Exception as e:
-            msg = ('Get remotecopies from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_array_list(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            array = self.restapi.svc_obj_info(cmd='lsarray', cmdopts=None,
-                                              cmdargs=cmdargs)
-            self.log.info('Successfully listed %d array info from array %s',
-                          len(array), self.module.params['clustername'])
-            return array
-        except Exception as e:
-            msg = ('Get Array info from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_system_list(self):
-        try:
-            if self.objectname:
-                self.log.warn('The objectname %s is ignored when retrieving '
-                              'the system information', self.objectname)
-            system = self.restapi.svc_obj_info(cmd='lssystem', cmdopts=None,
-                                               cmdargs=None)
-            self.log.info('Successfully listed %d system info from array %s',
-                          len(system), self.module.params['clustername'])
-            return system
-        except Exception as e:
-            msg = ('Get System info from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_fcconsistgrp_list(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            fcconsistgrp = self.restapi.svc_obj_info(cmd='lsfcconsistgrp',
-                                                     cmdopts=None,
-                                                     cmdargs=cmdargs)
-            self.log.info('Successfully listed %d fcconsistgrp info '
-                          'from array %s', len(fcconsistgrp),
-                          self.module.params['clustername'])
-            return fcconsistgrp
-        except Exception as e:
-            msg = ('Get fcconsistgrp info from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_rcconsistgrp_list(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            rcconsistgrp = self.restapi.svc_obj_info(cmd='lsrcconsistgrp',
-                                                     cmdopts=None,
-                                                     cmdargs=cmdargs)
-            self.log.info('Successfully listed %d rcconsistgrp info '
-                          'from array %s', len(rcconsistgrp),
-                          self.module.params['clustername'])
-            return rcconsistgrp
-        except Exception as e:
-            msg = ('Get rcconsistgrp info from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
-            self.log.error(msg)
-            self.module.fail_json(msg=msg)
-
-    def get_vdiskcopy_list(self):
-        try:
-            cmdargs = [self.objectname] if self.objectname else None
-            vdiskcopy = self.restapi.svc_obj_info(cmd='lsvdiskcopy',
-                                                  cmdopts=None,
-                                                  cmdargs=cmdargs)
-            self.log.info('Successfully listed %d vdiskcopy info '
-                          'from array %s', len(vdiskcopy),
-                          self.module.params['clustername'])
-            return vdiskcopy
-        except Exception as e:
-            msg = ('Get vdiskcopy info from array %s failed with error %s ',
-                   self.module.params['clustername'], str(e))
+            msg = 'Get %s info from cluster %s failed with error %s ' % \
+                  (subset, self.module.params['clustername'], str(e))
             self.log.error(msg)
             self.module.fail_json(msg=msg)
 
     def apply(self):
-        all = ['vol', 'pool', 'node', 'iog', 'host', 'hc', 'fc',
-               'fcport', 'iscsiport', 'fcmap', 'rcrelationship',
-               'fcconsistgrp', 'rcconsistgrp', 'vdiskcopy',
-               'targetportfc', 'array', 'system']
-
-        # host/vdiskmap not added to all as they require an objectname
-        # in order to run, so only use these as gather_subset
-
         subset = self.module.params['gather_subset']
         if self.objectname and len(subset) != 1:
             msg = ("objectname(%s) is specified while gather_subset(%s) is not "
@@ -482,87 +757,133 @@ class IBMSVCGatherInfo(object):
             self.module.fail_json(msg=msg)
         if len(subset) == 0 or 'all' in subset:
             self.log.info("The default value for gather_subset is all")
-            subset = all
 
-        vol = []
-        pool = []
-        node = []
-        iog = []
-        host = []
-        hostvdiskmap = []
-        vdiskhostmap = []
-        hc = []
-        fc = []
-        fcport = []
-        targetportfc = []
-        iscsiport = []
-        fcmap = []
-        fcconsistgrp = []
-        rcrelationship = []
-        rcconsistgrp = []
-        vdiskcopy = []
-        array = []
-        system = []
+        result = {
+            'Volume': [],
+            'Pool': [],
+            'Node': [],
+            'IOGroup': [],
+            'Host': [],
+            'HostVdiskMap': [],
+            'VdiskHostMap': [],
+            'HostCluster': [],
+            'FCConnectivitie': [],
+            'FCConsistgrp': [],
+            'RCConsistgrp': [],
+            'VdiskCopy': [],
+            'FCPort': [],
+            'TargetPortFC': [],
+            'iSCSIPort': [],
+            'FCMap': [],
+            'RemoteCopy': [],
+            'Array': [],
+            'System': [],
+            'CloudAccount': [],
+            'CloudAccountUsage': [],
+            'CloudImportCandidate': [],
+            'LdapServer': [],
+            'Drive': [],
+            'User': [],
+            'Partnership': [],
+            'ReplicationPolicy': [],
+            'SnapshotPolicy': [],
+            'VolumeGroup': [],
+            'SnapshotSchedule': [],
+            'VolumeGroupSnapshotPolicy': [],
+            'VolumeSnapshot': [],
+            'DnsServer': [],
+            'SystemCert': [],
+            'TrustStore': [],
+            'Sra': [],
+            'SysLogServer': [],
+            'UserGrp': [],
+            'EmailServer': [],
+            'EmailUser': [],
+            'CloudBackup': [],
+            'CloudBackupGeneration': [],
+            'ProvisioningPolicy': [],
+            'VolumeGroupSnapshot': [],
+            'CallHome': [],
+            'IP': [],
+            'Ownershipgroup': [],
+            'Portset': [],
+            'SafeguardedPolicy': [],
+            'Mdisk': [],
+            'SafeguardedSchedule': [],
+            'EventLog': []
+        }
 
-        if 'vol' in subset:
-            vol = self.get_volumes_list()
-        if 'pool' in subset:
-            pool = self.get_pools_list()
-        if 'node' in subset:
-            node = self.get_nodes_list()
-        if 'iog' in subset:
-            iog = self.get_iogroups_list()
-        if 'host' in subset:
-            host = self.get_hosts_list()
-        if 'hostvdiskmap' in subset:
-            hostvdiskmap = self.get_host_vdisk_map()
-        if 'vdiskhostmap' in subset:
-            vdiskhostmap = self.get_vdisk_host_map()
-        if 'hc' in subset:
-            hc = self.get_host_clusters_list()
-        if 'fc' in subset:
-            fc = self.get_fc_connectivity_list()
-        if 'targetportfc' in subset:
-            targetportfc = self.get_target_port_fc_list()
-        if 'fcport' in subset:
-            fcport = self.get_fc_ports_list()
-        if 'iscsiport' in subset:
-            iscsiport = self.get_iscsi_ports_list()
-        if 'fcmap' in subset:
-            fcmap = self.get_fc_map_list()
-        if 'fcconsistgrp' in subset:
-            fcconsistgrp = self.get_fcconsistgrp_list()
-        if 'rcrelationship' in subset:
-            rcrelationship = self.get_rcrel_list()
-        if 'rcconsistgrp' in subset:
-            rcconsistgrp = self.get_rcconsistgrp_list()
-        if 'vdiskcopy' in subset:
-            vdiskcopy = self.get_vdiskcopy_list()
-        if 'array' in subset:
-            array = self.get_array_list()
-        if 'system' in subset:
-            system = self.get_system_list()
+        cmd_mappings = {
+            'vol': ('Volume', 'lsvdisk', False),
+            'pool': ('Pool', 'lsmdiskgrp', False),
+            'node': ('Node', 'lsnode', False),
+            'iog': ('IOGroup', 'lsiogrp', False),
+            'host': ('Host', 'lshost', False),
+            'hostvdiskmap': ('HostVdiskMap', 'lshostvdiskmap', False),
+            'vdiskhostmap': ('VdiskHostMap', 'lsvdiskhostmap', False),
+            'hc': ('HostCluster', 'lshostcluster', False),
+            'fc': ('FCConnectivitie', 'lsfabric', False),
+            'fcport': ('FCPort', 'lsportfc', False),
+            'iscsiport': ('iSCSIPort', 'lsportip', False),
+            'fcmap': ('FCMap', 'lsfcmap', False),
+            'rcrelationship': ('RemoteCopy', 'lsrcrelationship', False),
+            'fcconsistgrp': ('FCConsistgrp', 'lsfcconsistgrp', False),
+            'rcconsistgrp': ('RCConsistgrp', 'lsrcconsistgrp', False),
+            'vdiskcopy': ('VdiskCopy', 'lsvdiskcopy', False),
+            'targetportfc': ('TargetPortFC', 'lstargetportfc', False),
+            'array': ('Array', 'lsarray', False),
+            'system': ('System', 'lssystem', False),
+            'cloudaccount': ('CloudAccount', 'lscloudaccount', False),
+            'cloudaccountusage': ('CloudAccountUsage', 'lscloudaccountusage', False),
+            'cloudimportcandidate': ('CloudImportCandidate', 'lscloudaccountimportcandidate', False),
+            'ldapserver': ('LdapServer', 'lsldapserver', False),
+            'drive': ('Drive', 'lsdrive', False),
+            'user': ('User', 'lsuser', False),
+            'usergroup': ('UserGrp', 'lsusergrp', False),
+            'ownershipgroup': ('Ownershipgroup', 'lsownershipgroup', False),
+            'partnership': ('Partnership', 'lspartnership', False),
+            'replicationpolicy': ('ReplicationPolicy', 'lsreplicationpolicy', False),
+            'cloudbackup': ('CloudBackup', 'lsvolumebackup', False),
+            'cloudbackupgeneration': ('CloudBackupGeneration', 'lsvolumebackupgeneration', True),
+            'snapshotpolicy': ('SnapshotPolicy', 'lssnapshotpolicy', False),
+            'snapshotpolicyschedule': ('SnapshotSchedule', 'lssnapshotschedule', False),
+            'volumegroup': ('VolumeGroup', 'lsvolumegroup', False),
+            'volumegroupsnapshotpolicy': ('VolumeGroupSnapshotPolicy', 'lsvolumegroupsnapshotpolicy', False),
+            'volumesnapshot': ('VolumeSnapshot', 'lsvolumesnapshot', False),
+            'dnsserver': ('DnsServer', 'lsdnsserver', False),
+            'systemcertificate': ('SystemCert', 'lssystemcert', False),
+            'truststore': ('TrustStore', 'lstruststore', False),
+            'sra': ('Sra', 'lssra', False),
+            'syslogserver': ('SysLogServer', 'lssyslogserver', False),
+            'emailserver': ('EmailServer', 'lsemailserver', False),
+            'emailuser': ('EmailUser', 'lsemailuser', False),
+            'provisioningpolicy': ('ProvisioningPolicy', 'lsprovisioningpolicy', False),
+            'volumegroupsnapshot': ('VolumeGroupSnapshot', 'lsvolumegroupsnapshot', False),
+            'callhome': ('CallHome', 'lscloudcallhome', False),
+            'ip': ('IP', 'lsip', False),
+            'portset': ('Portset', 'lsportset', False),
+            'safeguardedpolicy': ('SafeguardedPolicy', 'lssafeguardedpolicy', False),
+            'mdisk': ('Mdisk', 'lsmdisk', False),
+            'safeguardedpolicyschedule': ('SafeguardedSchedule', 'lssafeguardedschedule', False),
+            'eventlog': ('EventLog', 'lseventlog', False),
+            'enclosurestats': ('EnclosureStats', 'lsenclosurestats', False),
+            'enclosurestatshistory': ('EnclosureStatsHistory', 'lsenclosurestats -history power_w:temp_c:temp_f', True)
+        }
 
-        self.module.exit_json(
-            Volume=vol,
-            Pool=pool,
-            Node=node,
-            IOGroup=iog,
-            Host=host,
-            HostVdiskMap=hostvdiskmap,
-            VdiskHostMap=vdiskhostmap,
-            HostCluster=hc,
-            FCConnectivitie=fc,
-            FCConsistgrp=fcconsistgrp,
-            RCConsistgrp=rcconsistgrp,
-            VdiskCopy=vdiskcopy,
-            FCPort=fcport,
-            TargetPortFC=targetportfc,
-            iSCSIPort=iscsiport,
-            FCMap=fcmap,
-            RemoteCopy=rcrelationship,
-            Array=array,
-            System=system)
+        if subset == ['all']:
+            current_set = cmd_mappings.keys()
+        else:
+            current_set = subset
+
+        for key in current_set:
+            value_tuple = cmd_mappings[key]
+            if subset == ['all'] and value_tuple[2]:
+                continue
+
+            op = self.get_list(key, *value_tuple)
+            result.update(op)
+
+        self.module.exit_json(**result)
 
 
 def main():

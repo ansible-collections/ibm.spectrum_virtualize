@@ -341,6 +341,7 @@ class IBMSVTrustStore:
             self.raise_error(stderr)
         else:
             self.log('Truststore (%s) created', self.name)
+            self.log(result)
             self.changed = True
 
     def delete_truststore(self):
@@ -359,6 +360,7 @@ class IBMSVTrustStore:
             self.raise_error(stderr)
         else:
             self.log('Truststore (%s) deleted', self.name)
+            self.log(result)
             self.changed = True
 
     def apply(self):
