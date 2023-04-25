@@ -74,10 +74,18 @@ options:
               Once specified, this parameter cannot be modified.
             - Valid when I(state=present), to create a host.
         type: str
+    nqn:
+        description:
+           - List of initiator NQNs to be added to the host. Each NQN is separated by a comma. The complete list of NQNs must be provided.
+           - Required when I(protocol=rdmanvme), to create.
+           - Valid when I(state=present), to create or modify a host.
+        type: str
+        version_added: '1.12.0'
     protocol:
         description:
             - Specifies the protocol used by the host to communicate with the storage system. Only 'scsi' protocol is supported.
             - Valid when I(state=present), to create a host.
+        choices: [scsi, rdmanvme ]
         type: str
     type:
         description:
@@ -110,6 +118,12 @@ options:
             - Valid when I(state=present), to rename an existing host.
         type: str
         version_added: '1.9.0'
+    portset:
+       description:
+           - Specifies the portset to be associated with the host.
+           - Valid when I(state=present), to create or modify a host.
+       type : str
+       version_added: '1.12.0'
     log_path:
         description:
             - Path of debug log file.
@@ -141,6 +155,7 @@ EXAMPLES = '''
     protocol: scsi
     type: generic
     site: site-name
+    portset: portset0
 - name: Add a host to an existing host cluster
   ibm.spectrum_virtualize.ibm_svc_host:
     clustername: "{{clustername}}"
@@ -215,12 +230,15 @@ class IBMSVChost(object):
                 fcwwpn=dict(type='str', required=False),
                 iscsiname=dict(type='str', required=False),
                 iogrp=dict(type='str', required=False),
-                protocol=dict(type='str', required=False),
+                protocol=dict(type='str', required=False, choices=['scsi',
+                                                                   'rdmanvme']),
                 type=dict(type='str'),
                 site=dict(type='str'),
                 hostcluster=dict(type='str'),
                 nohostcluster=dict(type='bool'),
-                old_name=dict(type='str', required=False)
+                old_name=dict(type='str', required=False),
+                nqn=dict(type='str', required=False),
+                portset=dict(type='str', required=False)
             )
         )
 
@@ -246,6 +264,10 @@ class IBMSVChost(object):
         self.hostcluster = self.module.params.get('hostcluster', '')
         self.nohostcluster = self.module.params.get('nohostcluster', '')
         self.old_name = self.module.params.get('old_name', '')
+        self.nqn = self.module.params.get('nqn', '')
+        self.portset = self.module.params.get('portset', '')
+
+        self.basic_checks()
 
         # internal variable
         self.changed = False
@@ -261,13 +283,23 @@ class IBMSVChost(object):
             dup_iscsiname = self.duplicate_checker(self.iscsiname.split(','))
             if dup_iscsiname:
                 self.module.fail_json(msg='The parameter {0} has been entered multiple times. Enter the parameter only one time.'.format(dup_iscsiname))
+
+        # Handling duplicate nqn
+        if self.nqn:
+            dup_nqn = self.duplicate_checker(self.nqn.split(','))
+            if dup_nqn:
+                self.module.fail_json(
+                    msg='The parameter {0} has been entered multiple times. Enter the parameter only one time.'.format(
+                        dup_nqn))
+
         # Handling for missing mandatory parameter name
         if not self.name:
             self.module.fail_json(msg='Missing mandatory parameter: name')
         # Handling for parameter protocol
         if self.protocol:
-            if self.protocol != 'scsi':
-                self.module.fail_json(msg="[{0}] is not supported. Only 'scsi' protocol is supported.".format(self.protocol))
+            if self.protocol not in ('scsi', 'rdmanvme'):
+                self.module.fail_json(msg="[{0}] is not supported for iscsiname. only 'scsi' and 'rdmanvme' "
+                                          "protocol is supported.".format(self.protocol))
 
         self.restapi = IBMSVCRestApi(
             module=self.module,
@@ -279,6 +311,13 @@ class IBMSVChost(object):
             log_path=log_path,
             token=self.module.params['token']
         )
+
+    def basic_checks(self):
+        if self.state == 'absent':
+            fields = [f for f in ['protocol', 'portset', 'nqn', 'type'] if getattr(self, f)]
+
+            if any(fields):
+                self.module.fail_json(msg='Parameters {0} not supported while deleting a host'.format(', '.join(fields)))
 
     # for validating parameter while renaming a volume
     def parameter_handling_while_renaming(self):
@@ -347,6 +386,12 @@ class IBMSVChost(object):
             if set(self.existing_iscsiname).symmetric_difference(set(self.input_iscsiname)):
                 props += ['iscsiname']
 
+        if self.nqn:
+            self.existing_nqn = [node["nqn"] for node in data['nodes'] if "nqn" in node]
+            self.input_nqn = self.nqn.split(",")
+            if set(self.existing_nqn).symmetric_difference(set(self.input_nqn)):
+                props += ['nqn']
+
         if self.site:
             if self.site != data['site_name']:
                 props += ['site']
@@ -355,15 +400,20 @@ class IBMSVChost(object):
             if data['host_cluster_name'] != '':
                 props += ['nohostcluster']
 
+        if self.portset:
+            if self.portset != data['portset_name']:
+                props += ['portset']
+
         self.log("host_probe props='%s'", props)
         return props
 
     def host_create(self):
-        if (not self.fcwwpn) and (not self.iscsiname):
-            self.module.fail_json(msg="You must pass in fcwwpn or iscsiname "
+        if (not self.fcwwpn) and (not self.iscsiname) and (not self.nqn):
+            self.module.fail_json(msg="You must pass in fcwwpn or iscsiname or nqn "
                                       "to the module.")
-        if self.fcwwpn and self.iscsiname:
-            self.module.fail_json(msg="You must not pass in both fcwwpn and "
+
+        if (self.fcwwpn and self.iscsiname) or (self.nqn and self.iscsiname) or (self.fcwwpn and self.nqn):
+            self.module.fail_json(msg="You have to pass only one parameter among fcwwpn, nqn and "
                                       "iscsiname to the module.")
 
         if self.hostcluster and self.nohostcluster:
@@ -383,15 +433,18 @@ class IBMSVChost(object):
             cmdopts['fcwwpn'] = self.fcwwpn
         elif self.iscsiname:
             cmdopts['iscsiname'] = self.iscsiname
+        else:
+            cmdopts['nqn'] = self.nqn
 
-        if self.protocol:
-            cmdopts['protocol'] = self.protocol
+        cmdopts['protocol'] = self.protocol if self.protocol else 'scsi'
         if self.iogrp:
             cmdopts['iogrp'] = self.iogrp
         if self.type:
             cmdopts['type'] = self.type
         if self.site:
             cmdopts['site'] = self.site
+        if self.portset:
+            cmdopts['portset'] = self.portset
 
         self.log("creating host command '%s' opts '%s'",
                  self.fcwwpn, self.type)
@@ -443,6 +496,24 @@ class IBMSVChost(object):
             )
             self.log('%s added to %s', to_be_added, self.name)
 
+    def host_nqn_update(self):
+        to_be_removed = ','.join(list(set(self.existing_nqn) - set(self.input_nqn)))
+        if to_be_removed:
+            self.restapi.svc_run_command(
+                'rmhostport',
+                {'nqn': to_be_removed, 'force': True},
+                [self.name]
+            )
+            self.log('%s removed from %s', to_be_removed, self.name)
+        to_be_added = ','.join(list(set(self.input_nqn) - set(self.existing_nqn)))
+        if to_be_added:
+            self.restapi.svc_run_command(
+                'addhostport',
+                {'nqn': to_be_added, 'force': True},
+                [self.name]
+            )
+            self.log('%s added to %s', to_be_added, self.name)
+
     def host_update(self, modify, host_data):
         # update the host
         self.log("updating host '%s'", self.name)
@@ -461,10 +532,16 @@ class IBMSVChost(object):
             self.host_iscsiname_update()
             self.changed = True
             self.log("iscsiname of %s updated", self.name)
+        if 'nqn' in modify:
+            self.host_nqn_update()
+            self.changed = True
+            self.log("nqn of %s updated", self.name)
         if 'type' in modify:
             cmdopts['type'] = self.type
         if 'site' in modify:
             cmdopts['site'] = self.site
+        if 'portset' in modify:
+            cmdopts['portset'] = self.portset
         if cmdopts:
             cmdargs = [self.name]
             self.restapi.svc_run_command(cmd, cmdopts, cmdargs)

@@ -3,7 +3,7 @@
 
 # Copyright (C) 2022 IBM CORPORATION
 # Author(s): Sanjaikumaar M <sanjaikumaar.m@ibm.com>
-#
+#            Sudheesh Reddy Satti<Sudheesh.Reddy.Satti@ibm.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
@@ -15,7 +15,7 @@ module: ibm_svc_manage_portset
 short_description: This module manages portset configuration on IBM Spectrum Virtualize family storage systems
 version_added: "1.8.0"
 description:
-  - Ansible interface to manage IP portsets 'mkportset', 'chportset' and 'rmportset' commands.
+  - Ansible interface to manage IP and Fibre Channel (FC) portsets using 'mkportset', 'chportset', and 'rmportset' commands.
 options:
     clustername:
         description:
@@ -57,12 +57,20 @@ options:
             - Specifies the name of portset.
         type: str
         required: true
+    porttype:
+        description:
+            - Specifies the type of port that can be mapped to the portset.
+            - Applies when I(state=present).
+            - If not specified, I(porttype=ethernet) will be used to manage IP portset.
+        choices: [ fc, ethernet ]
+        type: str
+        version_added: '1.12.0'
     portset_type:
         description:
             - Specifies the type for the portset.
             - Applies only during creation of portset.
+            - If not specified, I(portset_type=host) will be used.
         choices: [ host, replication ]
-        default: host
         type: str
     ownershipgroup:
         description:
@@ -76,6 +84,12 @@ options:
             - Parameters I(ownershipgroup) and I(noownershipgroup) are mutually exclusive.
             - Applies only during updation of portset.
         type: bool
+    old_name:
+        description:
+            - Specifies the old name of the portset while renaming.
+            - Valid when I(state=present), to rename an existing host.
+        type: str
+        version_added: '1.12.0'
     validate_certs:
         description:
             - Validates certification.
@@ -83,6 +97,7 @@ options:
         type: bool
 author:
     - Sanjaikumaar M (@sanjaikumaar)
+    - Sudheesh Reddy Satti (@sudheeshreddy)
 notes:
     - This module supports C(check_mode).
 '''
@@ -104,6 +119,24 @@ EXAMPLES = '''
    password: "{{password}}"
    name: portset1
    noownershipgroup: true
+   state: present
+- name: Create an FC portset
+  ibm.spectrum_virtualize.ibm_svc_manage_portset:
+   clustername: "{{cluster}}"
+   username: "{{username}}"
+   password: "{{password}}"
+   name: fcportset1
+   porttype: fc
+   portset_type: host
+   ownershipgroup: owner1
+   state: present
+- name: Rename the portset
+  ibm.spectrum_virtualize.ibm_svc_manage_portset:
+   clustername: "{{cluster}}"
+   username: "{{username}}"
+   password: "{{password}}"
+   name: portset2
+   old_name: portset1
    state: present
 - name: Delete a portset
   ibm.spectrum_virtualize.ibm_svc_manage_portset:
@@ -142,7 +175,6 @@ class IBMSVCPortset:
                 ),
                 portset_type=dict(
                     type='str',
-                    default='host',
                     choices=['host', 'replication']
                 ),
                 ownershipgroup=dict(
@@ -150,6 +182,13 @@ class IBMSVCPortset:
                 ),
                 noownershipgroup=dict(
                     type='bool',
+                ),
+                porttype=dict(
+                    type='str',
+                    choices=['fc', 'ethernet']
+                ),
+                old_name=dict(
+                    type='str',
                 )
             )
         )
@@ -164,6 +203,8 @@ class IBMSVCPortset:
         self.portset_type = self.module.params.get('portset_type', '')
         self.ownershipgroup = self.module.params.get('ownershipgroup', '')
         self.noownershipgroup = self.module.params.get('noownershipgroup', '')
+        self.porttype = self.module.params.get('porttype', '')
+        self.old_name = self.module.params.get('old_name', '')
 
         self.basic_checks()
 
@@ -195,18 +236,34 @@ class IBMSVCPortset:
 
             if self.ownershipgroup and self.noownershipgroup:
                 self.module.fail_json(msg='Mutually exclusive parameter: ownershipgroup, noownershipgroup')
+
         else:
-            fields = [f for f in ['ownershipgroup', 'noownershipgroup'] if getattr(self, f)]
+            if not self.name:
+                self.module.fail_json(msg='Missing mandatory parameter: name')
+
+            fields = [f for f in ['ownershipgroup', 'noownershipgroup', 'porttype', 'portset_type', 'old_name'] if getattr(self, f)]
 
             if any(fields):
-                self.module.fail_json(msg='{0} should not be passed when state=absent'.format(', '.join(fields)))
+                self.module.fail_json(msg='Parameters {0} not supported while deleting a porset'.format(', '.join(fields)))
 
-    def is_portset_exists(self):
+    # for validating parameter while renaming a portset
+    def parameter_handling_while_renaming(self):
+        parameters = {
+            "ownershipgroup": self.ownershipgroup,
+            "noownershipgroup": self.noownershipgroup,
+            "porttype": self.porttype,
+            "portset_type": self.portset_type
+        }
+        parameters_exists = [parameter for parameter, value in parameters.items() if value]
+        if parameters_exists:
+            self.module.fail_json(msg="Parameters {0} not supported while renaming a portset.".format(', '.join(parameters_exists)))
+
+    def is_portset_exists(self, portset_name):
         merged_result = {}
         data = self.restapi.svc_obj_info(
             cmd='lsportset',
             cmdopts=None,
-            cmdargs=[self.name]
+            cmdargs=[portset_name]
         )
 
         if isinstance(data, list):
@@ -227,7 +284,8 @@ class IBMSVCPortset:
         cmd = 'mkportset'
         cmdopts = {
             'name': self.name,
-            'type': self.portset_type if self.portset_type else 'host'
+            'type': self.portset_type if self.portset_type else 'host',
+            'porttype': self.porttype if self.porttype else 'ethernet'
         }
 
         if self.ownershipgroup:
@@ -240,13 +298,16 @@ class IBMSVCPortset:
     def portset_probe(self):
         updates = []
 
+        if self.portset_type and self.portset_type != self.portset_details['type']:
+            self.module.fail_json(msg="portset_type can't be updated for portset")
+        if self.porttype and self.porttype != self.portset_details['port_type']:
+            self.module.fail_json(msg="porttype can't be updated for portset")
         if self.ownershipgroup and self.ownershipgroup != self.portset_details['owner_name']:
             updates.append('ownershipgroup')
         if self.noownershipgroup:
             updates.append('noownershipgroup')
 
         self.log("Modifications to be done: %s", updates)
-
         return updates
 
     def update_portset(self, updates):
@@ -274,24 +335,53 @@ class IBMSVCPortset:
         self.log('Portset (%s) deleted', self.name)
         self.changed = True
 
+    # function for renaming an existing portset with a new name
+    def portset_rename(self, portset_data):
+        msg = ''
+        self.parameter_handling_while_renaming()
+        old_portset_data = self.is_portset_exists(self.old_name)
+        if not old_portset_data and not portset_data:
+            self.module.fail_json(msg="Portset with old name {0} doesn't exist.".format(self.old_name))
+        elif old_portset_data and portset_data:
+            self.module.fail_json(msg="Portset [{0}] already exists.".format(self.name))
+        elif not old_portset_data and portset_data:
+            msg = "Portset with name [{0}] already exists.".format(self.name)
+        elif old_portset_data and not portset_data:
+            # when check_mode is enabled
+            if self.module.check_mode:
+                self.changed = True
+                return
+            self.restapi.svc_run_command('chportset', {'name': self.name}, [self.old_name])
+            self.changed = True
+            msg = "Portset [{0}] has been successfully rename to [{1}].".format(self.old_name, self.name)
+        return msg
+
     def apply(self):
-        if self.is_portset_exists():
-            if self.state == 'present':
-                modifications = self.portset_probe()
-                if any(modifications):
-                    self.update_portset(modifications)
-                    self.msg = 'Portset ({0}) updated.'.format(self.name)
-                else:
-                    self.msg = 'Portset ({0}) already exists. No modifications done.'.format(self.name)
-            else:
-                self.delete_portset()
-                self.msg = 'Portset ({0}) deleted.'.format(self.name)
+
+        portset_data = self.is_portset_exists(self.name)
+
+        if self.state == 'present' and self.old_name:
+            self.msg = self.portset_rename(portset_data)
+        elif self.state == 'absent' and self.old_name:
+            self.module.fail_json(msg="Rename functionality is not supported when 'state' is absent.")
         else:
-            if self.state == 'absent':
-                self.msg = 'Portset ({0}) does not exist. No modifications done.'.format(self.name)
+            if portset_data:
+                if self.state == 'present':
+                    modifications = self.portset_probe()
+                    if any(modifications):
+                        self.update_portset(modifications)
+                        self.msg = 'Portset ({0}) updated.'.format(self.name)
+                    else:
+                        self.msg = 'Portset ({0}) already exists. No modifications done.'.format(self.name)
+                else:
+                    self.delete_portset()
+                    self.msg = 'Portset ({0}) deleted successfully.'.format(self.name)
             else:
-                self.create_portset()
-                self.msg = 'Portset ({0}) created.'.format(self.name)
+                if self.state == 'absent':
+                    self.msg = 'Portset ({0}) does not exist. No modifications done.'.format(self.name)
+                else:
+                    self.create_portset()
+                    self.msg = 'Portset ({0}) created successfully.'.format(self.name)
 
         if self.module.check_mode:
             self.msg = 'skipping changes due to check mode.'
