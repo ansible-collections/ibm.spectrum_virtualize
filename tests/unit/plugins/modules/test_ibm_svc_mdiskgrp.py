@@ -118,7 +118,7 @@ class TestIBMSVCmdiskgrp(unittest.TestCase):
                     "reclaimable_capacity": "0.00MB",
                     "easy_tier_fcm_over_allocation_max": "100%"}
         svc_obj_info_mock.return_value = pool_ret
-        pool = IBMSVCmdiskgrp().mdiskgrp_exists()
+        pool = IBMSVCmdiskgrp().mdiskgrp_exists('test_get_existing_pool')
         self.assertEqual('Pool_Ansible_collections', pool['name'])
         self.assertEqual('0', pool['id'])
 
@@ -139,7 +139,7 @@ class TestIBMSVCmdiskgrp(unittest.TestCase):
         with pytest.raises(AnsibleExitJson) as exc:
             pool_created.apply()
         self.assertFalse(exc.value.args[0]['changed'])
-        get_existing_pool_mock.assert_called_with()
+        get_existing_pool_mock.assert_called_with("test_pool_create_get_existing_pool_called")
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
@@ -171,7 +171,7 @@ class TestIBMSVCmdiskgrp(unittest.TestCase):
         with pytest.raises(AnsibleExitJson) as exc:
             pool_created.apply()
         self.assertTrue(exc.value.args[0]['changed'])
-        get_existing_pool_mock.assert_called_with()
+        get_existing_pool_mock.assert_called_with("test_pool_create_get_existing_pool_called")
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
@@ -202,7 +202,70 @@ class TestIBMSVCmdiskgrp(unittest.TestCase):
         with pytest.raises(AnsibleExitJson) as exc:
             pool_created.apply()
         self.assertFalse(exc.value.args[0]['changed'])
-        get_existing_pool_mock.assert_called_with()
+        get_existing_pool_mock.assert_called_with("test_pool_create_get_existing_pool_called")
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_pool_create_with_ownership_group(self,
+                                              svc_authorize_mock,
+                                              svc_run_command_mock,
+                                              get_existing_pool_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test_pool_create_get_existing_pool_called',
+            'ownershipgroup': 'owner0',
+            'ext': True
+        })
+        get_existing_pool_mock.return_value = {}
+        svc_run_command_mock.return_value = {
+            u'message': u'Storage pool, id [0], '
+                        u'successfully created',
+            u'id': u'0'
+        }
+        pool_created = IBMSVCmdiskgrp()
+        with pytest.raises(AnsibleExitJson) as exc:
+            pool_created.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+        get_existing_pool_mock.assert_called_with("test_pool_create_get_existing_pool_called")
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_pool_create_with_ownership_group_idempotency(self,
+                                                          svc_authorize_mock,
+                                                          svc_run_command_mock,
+                                                          get_existing_pool_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test_pool_create_get_existing_pool_called',
+            'ownershipgroup': 'owner0',
+            'ext': True
+        })
+        get_existing_pool_mock.return_value = {
+            "id": "0",
+            "name": "test_pool_create_get_existing_pool_called",
+            "owner_name": "owner0"
+        }
+        pool_created = IBMSVCmdiskgrp()
+        with pytest.raises(AnsibleExitJson) as exc:
+            pool_created.apply()
+        self.assertFalse(exc.value.args[0]['changed'])
+        get_existing_pool_mock.assert_called_with("test_pool_create_get_existing_pool_called")
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
            'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
@@ -264,7 +327,7 @@ class TestIBMSVCmdiskgrp(unittest.TestCase):
         with pytest.raises(AnsibleExitJson) as exc:
             pool_created.apply()
         self.assertTrue(exc.value.args[0]['changed'])
-        get_existing_pool_mock.assert_called_with()
+        get_existing_pool_mock.assert_called_with("test_pool_create_get_existing_pool_called")
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
@@ -311,7 +374,7 @@ class TestIBMSVCmdiskgrp(unittest.TestCase):
         with pytest.raises(AnsibleExitJson) as exc:
             pool_created.apply()
         self.assertFalse(exc.value.args[0]['changed'])
-        get_existing_pool_mock.assert_called_with()
+        get_existing_pool_mock.assert_called_with("test_pool_create_get_existing_pool_called")
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
@@ -358,7 +421,7 @@ class TestIBMSVCmdiskgrp(unittest.TestCase):
         with pytest.raises(AnsibleExitJson) as exc:
             pool_created.apply()
         self.assertTrue(exc.value.args[0]['changed'])
-        get_existing_pool_mock.assert_called_with()
+        get_existing_pool_mock.assert_called_with("test_pool_create_get_existing_pool_called")
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
@@ -405,7 +468,7 @@ class TestIBMSVCmdiskgrp(unittest.TestCase):
         with pytest.raises(AnsibleExitJson) as exc:
             pool_created.apply()
         self.assertFalse(exc.value.args[0]['changed'])
-        get_existing_pool_mock.assert_called_with()
+        get_existing_pool_mock.assert_called_with("test_pool_create_get_existing_pool_called")
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
@@ -435,7 +498,7 @@ class TestIBMSVCmdiskgrp(unittest.TestCase):
         with pytest.raises(AnsibleExitJson) as exc:
             pool_created.apply()
         self.assertTrue(exc.value.args[0]['changed'])
-        get_existing_pool_mock.assert_called_with()
+        get_existing_pool_mock.assert_called_with("test_pool_create_get_existing_pool_called")
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
@@ -465,7 +528,127 @@ class TestIBMSVCmdiskgrp(unittest.TestCase):
         with pytest.raises(AnsibleExitJson) as exc:
             pool_created.apply()
         self.assertTrue(exc.value.args[0]['changed'])
-        get_existing_pool_mock.assert_called_with()
+        get_existing_pool_mock.assert_called_with("test_pool_create_get_existing_pool_called")
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_pool_update_with_ownership_group(self,
+                                              svc_authorize_mock,
+                                              svc_run_command_mock,
+                                              get_existing_pool_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test_pool_create_get_existing_pool_called',
+            'ownershipgroup': 'owner0'
+        })
+        get_existing_pool_mock.return_value = {
+            "id": "0",
+            "name": "test_pool_create_get_existing_pool_called",
+            "owner_name": ""
+        }
+        pool_updated = IBMSVCmdiskgrp()
+        with pytest.raises(AnsibleExitJson) as exc:
+            pool_updated.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+        get_existing_pool_mock.assert_called_with("test_pool_create_get_existing_pool_called")
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_discard_ownership_group_from_pool(self,
+                                               svc_authorize_mock,
+                                               svc_run_command_mock,
+                                               get_existing_pool_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test_pool_create_get_existing_pool_called',
+            'noownershipgroup': True
+        })
+        get_existing_pool_mock.return_value = {
+            "id": "0",
+            "name": "test_pool_create_get_existing_pool_called",
+            "owner_name": "owner0"
+        }
+        pool_updated = IBMSVCmdiskgrp()
+        with pytest.raises(AnsibleExitJson) as exc:
+            pool_updated.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+        get_existing_pool_mock.assert_called_with("test_pool_create_get_existing_pool_called")
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_pool_update_with_warning(self,
+                                      svc_authorize_mock,
+                                      svc_run_command_mock,
+                                      get_existing_pool_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test_pool_create_get_existing_pool_called',
+            'warning': '1'
+        })
+        get_existing_pool_mock.return_value = {
+            "id": "0",
+            "name": "test_pool_create_get_existing_pool_called",
+            "warning": ""
+        }
+        pool_updated = IBMSVCmdiskgrp()
+        with pytest.raises(AnsibleExitJson) as exc:
+            pool_updated.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+        get_existing_pool_mock.assert_called_with("test_pool_create_get_existing_pool_called")
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
+           'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_pool_update_with_vdiskprotectionenabled(self,
+                                                     svc_authorize_mock,
+                                                     svc_run_command_mock,
+                                                     get_existing_pool_mock):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'state': 'present',
+            'username': 'username',
+            'password': 'password',
+            'name': 'test_pool_create_get_existing_pool_called',
+            'vdiskprotectionenabled': 'no'
+        })
+        get_existing_pool_mock.return_value = {
+            "id": "0",
+            "name": "test_pool_create_get_existing_pool_called",
+            "vdisk_protectionenabled": ""
+        }
+        pool_updated = IBMSVCmdiskgrp()
+        with pytest.raises(AnsibleExitJson) as exc:
+            pool_updated.apply()
+        self.assertTrue(exc.value.args[0]['changed'])
+        get_existing_pool_mock.assert_called_with("test_pool_create_get_existing_pool_called")
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
@@ -487,7 +670,7 @@ class TestIBMSVCmdiskgrp(unittest.TestCase):
         with pytest.raises(AnsibleFailJson) as exc:
             pool_created.apply()
         self.assertTrue(exc.value.args[0]['failed'])
-        get_existing_pool_mock.assert_called_with()
+        get_existing_pool_mock.assert_called_with("ansible_pool")
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
@@ -539,7 +722,7 @@ class TestIBMSVCmdiskgrp(unittest.TestCase):
         with pytest.raises(AnsibleExitJson) as exc:
             pool_created.apply()
         self.assertFalse(exc.value.args[0]['changed'])
-        get_existing_pool_mock.assert_called_with()
+        get_existing_pool_mock.assert_called_with("ansible_pool")
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
@@ -571,7 +754,7 @@ class TestIBMSVCmdiskgrp(unittest.TestCase):
         with pytest.raises(AnsibleExitJson) as exc:
             pool_created.apply()
         self.assertTrue(exc.value.args[0]['changed'])
-        get_existing_pool_mock.assert_called_with()
+        get_existing_pool_mock.assert_called_with("ansible_pool")
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
@@ -601,7 +784,34 @@ class TestIBMSVCmdiskgrp(unittest.TestCase):
         pool_created = IBMSVCmdiskgrp()
         with pytest.raises(AnsibleFailJson) as exc:
             pool_created.apply()
-        get_existing_pool_mock.assert_called_with()
+        get_existing_pool_mock.assert_called_with("ansible_pool")
+
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_run_command')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi.svc_obj_info')
+    @patch('ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.'
+           'ibm_svc_utils.IBMSVCRestApi._svc_authorize')
+    def test_mdiskgrp_rename(self, mock_auth, mock_old, mock_cmd):
+        set_module_args({
+            'clustername': 'clustername',
+            'domain': 'domain',
+            'username': 'username',
+            'password': 'password',
+            'old_name': 'name',
+            'name': 'new_name',
+            'state': 'present',
+        })
+        mock_old.return_value = [
+            {
+                "id": "1", "name": "ansible_pool"
+            }
+        ]
+        arg_data = []
+        mock_cmd.return_value = None
+        v = IBMSVCmdiskgrp()
+        data = v.mdiskgrp_rename(arg_data)
+        self.assertTrue(data, 'mdiskgrp [name] has been successfully rename to [new_name].')
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
@@ -627,7 +837,7 @@ class TestIBMSVCmdiskgrp(unittest.TestCase):
         with pytest.raises(AnsibleExitJson) as exc:
             pool_deleted.apply()
         self.assertFalse(exc.value.args[0]['changed'])
-        get_existing_pool_mock.assert_called_with()
+        get_existing_pool_mock.assert_called_with("ansible_pool")
 
     @patch('ansible_collections.ibm.spectrum_virtualize.plugins.modules.'
            'ibm_svc_mdiskgrp.IBMSVCmdiskgrp.mdiskgrp_exists')
@@ -677,7 +887,7 @@ class TestIBMSVCmdiskgrp(unittest.TestCase):
         with pytest.raises(AnsibleExitJson) as exc:
             pool_deleted.apply()
         self.assertTrue(exc.value.args[0]['changed'])
-        get_existing_pool_mock.assert_called_with()
+        get_existing_pool_mock.assert_called_with("ansible_pool")
 
 
 if __name__ == '__main__':

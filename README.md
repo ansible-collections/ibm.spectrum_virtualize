@@ -100,6 +100,8 @@ Alternatively, you can add a full namepsace and collection name in the `collecti
 - ibm_svctask_command - Runs svctask CLI command(s) on Spectrum Virtualize storage systems over SSH session
 - ibm_sv_manage_awss3_cloudaccount - Manages Amazon S3 cloud account configuration on Spectrum Virtualize storage systems
 - ibm_sv_manage_cloud_backup - Manages cloud backups on Spectrum Virtualize storage systems
+- ibm_sv_manage_fc_partnership - Manages Fibre Channel (FC) partnership on Spectrum Virtualize storage systems
+- ibm_sv_manage_fcportsetmember - Manages addition or removal of ports from the Fibre Channel (FC) portsets on Spectrum Virtualize storage systems
 - ibm_sv_manage_ip_partnership - Manages IP partnership configuration on Spectrum Virtualize storage systems
 - ibm_sv_manage_provisioning_policy - Manages provisioning policy configuration on Spectrum Virtualize storage systems
 - ibm_sv_manage_replication_policy - Manages policy-based replication configuration on Spectrum Virtualize storage systems
@@ -129,7 +131,7 @@ Alternatively, you can add a full namepsace and collection name in the `collecti
 The modules in the IBM Spectrum Virtualize Ansible collection leverage REST APIs to connect to the IBM Spectrum Virtualize storage system. This has following limitations:
 1. Using the REST APIs to list more than 2000 objects may create a loss of service from the API side, as it automatically restarts due to memory constraints.
 2. It is not possible to access REST APIs using an IPv6 address on a cluster.
-3. The Ansible collection can run on all IBM Spectrum Virtualize storage system versions above 8.1.3, except versions 8.3.1.3 and 8.3.1.4.
+3. The Ansible collection can run on all IBM Spectrum Virtualize storage system versions above 8.1.3, except versions 8.3.1.3, 8.3.1.4 and 8.3.1.5.
 4. At time of release of the SV Ansible v1.8.0 collection, no module is available for non LMC systems to automate license agreements acceptance, including EULA.
    User will be presented with a GUI setup wizard upon user-interface login, whether the Ansible modules have been used for initial configuration or not.
 

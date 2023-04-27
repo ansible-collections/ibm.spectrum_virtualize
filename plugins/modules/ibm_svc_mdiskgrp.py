@@ -150,9 +150,51 @@ options:
         a numeric value (and an integer multiple of the extent size).
       - Applies when I(state=present), to create a pool.
     type: int
+  warning:
+    description:
+      - If specified, generates a warning when the used disk capacity in the storage pool first exceeds the specified threshold.
+      - The default value is 80. To disable it, specify the value as 0.
+      - Applies when I(state=present) while creating the pool.
+    type: int
+    version_added: '1.12.0'
+  ownershipgroup:
+    description:
+      - Specifies the name of the ownershipgroup to map it with the pool.
+      - Applies when I(state=present).
+    type: str
+    version_added: '1.12.0'
+  noownershipgroup:
+    description:
+      - Specifies to unmap ownershipgroup from the pool.
+      - Applies when I(state=present) to modify an existing pool.
+    type: bool
+    version_added: '1.12.0'
+  vdiskprotectionenabled:
+    description:
+      - Specifies whether volume protection is enabled for this storage pool. The default value is 'yes'.
+      - Applies when I(state=present).
+    type: str
+    choices: ['yes', 'no']
+    version_added: '1.12.0'
+  etfcmoverallocationmax:
+    description:
+      - Specifies the maximum over allocation which Easy Tier can migrate onto FlashCore Module arrays, when the array is used as the top
+        tier in a multitier pool. The value acts as a multiplier of the physically available space.
+      - The allowed values are a percentage in the range of 100% (default) to 400% or off. Setting the value to off disables this feature.
+      - Applies when I(state=present).
+    type: str
+    version_added: '1.12.0'
+  old_name:
+    description:
+      - Specifies the old name of an existing pool.
+      - Applies when I(state=present), to rename the existing pool.
+    type: str
+    version_added: '1.12.0'
+
 author:
     - Peng Wang(@wangpww)
     - Sanjaikumaar M (@sanjaikumaar)
+    - Lavanya C R(@lavanya)
 notes:
     - This module supports C(check_mode).
 '''
@@ -167,6 +209,21 @@ EXAMPLES = '''
     provisioningpolicy: pp0
     replicationpoollinkuid: 000000000000000
     replication_partner_clusterid: 000000000032432342
+    etfcmoverallocationmax: 120
+    state: present
+    datareduction: no
+    easytier: auto
+    encrypt: no
+    ext: 1024
+- name: Create childpool with ownershipgroup
+  ibm.spectrum_virtualize.ibm_svc_mdiskgrp:
+    clustername: "{{clustername}}"
+    domain: "{{domain}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    name: childpool0
+    ownershipgroup: owner0
+    parentmdiskgrp: pool1
     state: present
     datareduction: no
     easytier: auto
@@ -235,6 +292,12 @@ class IBMSVCmdiskgrp(object):
                 replicationpoollinkuid=dict(type='str'),
                 resetreplicationpoollinkuid=dict(type='bool'),
                 replication_partner_clusterid=dict(type='str'),
+                warning=dict(type='int'),
+                vdiskprotectionenabled=dict(type='str', choices=['yes', 'no']),
+                ownershipgroup=dict(type='str'),
+                noownershipgroup=dict(type='bool'),
+                etfcmoverallocationmax=dict(type='str'),
+                old_name=dict(type='str')
             )
         )
 
@@ -264,10 +327,19 @@ class IBMSVCmdiskgrp(object):
         self.replicationpoollinkuid = self.module.params.get('replicationpoollinkuid', '')
         self.resetreplicationpoollinkuid = self.module.params.get('resetreplicationpoollinkuid', False)
         self.replication_partner_clusterid = self.module.params.get('replication_partner_clusterid', '')
+        self.warning = self.module.params.get('warning', None)
+        self.ownershipgroup = self.module.params.get('ownershipgroup', '')
+        self.noownershipgroup = self.module.params.get('noownershipgroup', False)
+        self.vdiskprotectionenabled = self.module.params.get('vdiskprotectionenabled', None)
+        self.etfcmoverallocationmax = self.module.params.get('etfcmoverallocationmax', '')
+        self.old_name = self.module.params.get('old_name', '')
 
         self.parentmdiskgrp = self.module.params.get('parentmdiskgrp', None)
         self.size = self.module.params.get('size', None)
         self.unit = self.module.params.get('unit', None)
+
+        # internal variable
+        self.changed = False
 
         # Dynamic variable
         self.partnership_index = None
@@ -303,12 +375,50 @@ class IBMSVCmdiskgrp(object):
                     msg='Mutually exclusive parameters: replicationpoollinkuid, resetreplicationpoollinkuid'
                 )
 
-    def mdiskgrp_exists(self):
+        elif self.state == 'absent':
+            invalids = ('warning', 'ownershipgroup', 'noownershipgroup', 'vdiskprotectionenabled', 'etfcmoverallocationmax', 'old_name')
+            invalid_exists = ', '.join((var for var in invalids if getattr(self, var) not in {'', None}))
+
+            if invalid_exists:
+                self.module.fail_json(
+                    msg='state=absent but following parameters have been passed: {0}'.format(invalid_exists))
+
+    def create_validation(self):
+        invalids = ('noownershipgroup', 'old_name')
+        invalid_exists = ', '.join((var for var in invalids if getattr(self, var) not in {'', None}))
+
+        if invalid_exists:
+            self.module.fail_json(
+                msg='Following parameters not supported during creation: {0}'.format(invalid_exists)
+            )
+
+    def mdiskgrp_rename(self, mdiskgrp_data):
+        msg = None
+        old_mdiskgrp_data = self.mdiskgrp_exists(self.old_name)
+        if not old_mdiskgrp_data and not mdiskgrp_data:
+            self.module.fail_json(msg="mdiskgrp [{0}] does not exists.".format(self.old_name))
+        elif old_mdiskgrp_data and mdiskgrp_data:
+            self.module.fail_json(msg="mdiskgrp with name [{0}] already exists.".format(self.name))
+        elif not old_mdiskgrp_data and mdiskgrp_data:
+            msg = "mdiskgrp [{0}] already renamed.".format(self.name)
+        elif old_mdiskgrp_data and not mdiskgrp_data:
+            if (self.old_name == self.parentmdiskgrp):
+                self.module.fail_json("Old name shouldn't be same as parentmdiskgrp while renaming childmdiskgrp")
+            # when check_mode is enabled
+            if self.module.check_mode:
+                self.changed = True
+                return
+            self.restapi.svc_run_command('chmdiskgrp', {'name': self.name}, [self.old_name])
+            self.changed = True
+            msg = "mdiskgrp [{0}] has been successfully rename to [{1}].".format(self.old_name, self.name)
+        return msg
+
+    def mdiskgrp_exists(self, name):
         merged_result = {}
         data = self.restapi.svc_obj_info(
             cmd='lsmdiskgrp',
             cmdopts=None,
-            cmdargs=['-gui', self.name]
+            cmdargs=['-gui', name]
         )
 
         if isinstance(data, list):
@@ -324,6 +434,8 @@ class IBMSVCmdiskgrp(object):
         # until all options for create are implemented.
         # if not self.ext:
         #    self.module.fail_json(msg="You must pass in ext to the module.")
+
+        self.create_validation()
 
         self.log("creating mdisk group '%s'", self.name)
 
@@ -367,6 +479,18 @@ class IBMSVCmdiskgrp(object):
             cmdopts['datareduction'] = self.datareduction
         if self.replicationpoollinkuid:
             cmdopts['replicationpoollinkuid'] = self.replicationpoollinkuid
+        if self.ownershipgroup:
+            cmdopts['ownershipgroup'] = self.ownershipgroup
+        if self.vdiskprotectionenabled:
+            cmdopts['vdiskprotectionenabled'] = self.vdiskprotectionenabled
+        if self.etfcmoverallocationmax:
+            if "%" not in self.etfcmoverallocationmax and self.etfcmoverallocationmax != "off":
+                cmdopts['etfcmoverallocationmax'] = self.etfcmoverallocationmax + "%"
+            else:
+                cmdopts['etfcmoverallocationmax'] = self.etfcmoverallocationmax
+
+        if self.warning:
+            cmdopts['warning'] = str(self.warning) + "%"
         cmdopts['name'] = self.name
         self.log("creating mdisk group command %s opts %s", cmd, cmdopts)
 
@@ -378,7 +502,6 @@ class IBMSVCmdiskgrp(object):
             self.set_bit_mask()
 
         if 'message' in result:
-            self.changed = True
             self.log("creating mdisk group command result message %s",
                      result['message'])
         else:
@@ -428,7 +551,6 @@ class IBMSVCmdiskgrp(object):
 
         # Any error will have been raised in svc_run_command
         # chmkdiskgrp does not output anything when successful.
-        self.changed = True
 
     def mdiskgrp_update(self, modify):
         # updte the mdisk group
@@ -457,10 +579,23 @@ class IBMSVCmdiskgrp(object):
             props['noprovisioningpolicy'] = self.noprovisioningpolicy
         if self.provisioningpolicy and self.provisioningpolicy != data.get('provisioning_policy_name', ''):
             props['provisioningpolicy'] = self.provisioningpolicy
+        if self.noownershipgroup and data.get('owner_name', ''):
+            props['noownershipgroup'] = self.noownershipgroup
+        if self.ownershipgroup and self.ownershipgroup != data.get('owner_name', ''):
+            props['ownershipgroup'] = self.ownershipgroup
+        if self.vdiskprotectionenabled and self.vdiskprotectionenabled != data.get('vdisk_protectionenabled', ''):
+            props['vdiskprotectionenabled'] = self.vdiskprotectionenabled
+        if self.warning and self.warning != data.get('warning', ''):
+            props['warning'] = str(self.warning) + "%"
         if self.replicationpoollinkuid and self.replicationpoollinkuid != data.get('replication_pool_link_uid', ''):
             props['replicationpoollinkuid'] = self.replicationpoollinkuid
         if self.resetreplicationpoollinkuid:
             props['resetreplicationpoollinkuid'] = self.resetreplicationpoollinkuid
+        if self.etfcmoverallocationmax:
+            if "%" not in self.etfcmoverallocationmax and self.etfcmoverallocationmax != "off":
+                self.etfcmoverallocationmax += "%"
+            if self.etfcmoverallocationmax != data.get('easy_tier_fcm_over_allocation_max', ''):
+                props['etfcmoverallocationmax'] = self.etfcmoverallocationmax
         if self.replication_partner_clusterid:
             self.check_partnership()
             bit_mask = '1'.ljust(int(self.partnership_index) + 1, '0')
@@ -475,48 +610,55 @@ class IBMSVCmdiskgrp(object):
         msg = None
         modify = []
 
-        mdiskgrp_data = self.mdiskgrp_exists()
+        mdiskgrp_data = self.mdiskgrp_exists(self.name)
+        if self.state == 'present' and self.old_name:
+            msg = self.mdiskgrp_rename(mdiskgrp_data)
+        elif self.state == 'absent' and self.old_name:
+            self.module.fail_json(msg="Rename functionality is not supported when 'state' is absent.")
 
-        if mdiskgrp_data:
-            if self.state == 'absent':
-                self.log("CHANGED: mdisk group exists, "
-                         "but requested state is 'absent'")
-                changed = True
-            elif self.state == 'present':
-                # This is where we detect if chmdiskgrp should be called.
-                modify = self.mdiskgrp_probe(mdiskgrp_data)
-                if modify:
+        else:
+            if mdiskgrp_data:
+                if self.state == 'absent':
+                    self.log("CHANGED: mdisk group exists, "
+                             "but requested state is 'absent'")
                     changed = True
-        else:
-            if self.state == 'present':
-                self.log("CHANGED: mdisk group does not exist, "
-                         "but requested state is 'present'")
-                changed = True
-
-        if changed:
-            if self.state == 'present':
-                if not mdiskgrp_data:
-                    self.mdiskgrp_create()
-                    msg = "Mdisk group [%s] has been created." % self.name
-                else:
-                    # This is where we would modify
-                    self.mdiskgrp_update(modify)
-                    msg = "Mdisk group [%s] has been modified." % self.name
-
-            elif self.state == 'absent':
-                self.mdiskgrp_delete()
-                msg = "Volume [%s] has been deleted." % self.name
-
-            if self.module.check_mode:
-                msg = 'skipping changes due to check mode'
-        else:
-            self.log("exiting with no changes")
-            if self.state == 'absent':
-                msg = "Mdisk group [%s] did not exist." % self.name
+                elif self.state == 'present':
+                    # This is where we detect if chmdiskgrp should be called.
+                    modify = self.mdiskgrp_probe(mdiskgrp_data)
+                    if modify:
+                        changed = True
             else:
-                msg = "Mdisk group [%s] already exists. No modifications done" % self.name
+                if self.state == 'present':
+                    self.log("CHANGED: mdisk group does not exist, "
+                             "but requested state is 'present'")
+                    changed = True
+            if changed:
+                if self.state == 'present':
+                    if not mdiskgrp_data:
+                        self.mdiskgrp_create()
+                        self.changed = True
+                        msg = "Mdisk group [%s] has been created." % self.name
+                    else:
+                        # This is where we would modify
+                        self.mdiskgrp_update(modify)
+                        msg = "Mdisk group [%s] has been modified." % self.name
 
-        self.module.exit_json(msg=msg, changed=changed)
+                elif self.state == 'absent':
+                    self.mdiskgrp_delete()
+                    self.changed = True
+                    msg = "mdiskgrp [%s] has been deleted." % self.name
+
+            else:
+                self.log("exiting with no changes")
+                if self.state == 'absent':
+                    msg = "Mdisk group [%s] did not exist." % self.name
+                else:
+                    msg = "Mdisk group [%s] already exists. No modifications done" % self.name
+
+        if self.module.check_mode:
+            msg = 'skipping changes due to check mode'
+
+        self.module.exit_json(msg=msg, changed=self.changed)
 
 
 def main():
