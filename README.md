@@ -66,6 +66,8 @@ Alternatively, you can add a full namepsace and collection name in the `collecti
 
 ## Supported Resources
 
+For guides and reference, please review the [documentation](https://docs.ansible.com/ansible/latest/collections/ibm/spectrum_virtualize/index.html).
+
 ### Modules
 
 - ibm_svc_auth - Generates an authentication token for a user on Spectrum Virtualize storage systems
