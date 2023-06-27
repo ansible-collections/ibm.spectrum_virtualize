@@ -132,11 +132,11 @@
     - name: map Host to Vdisk
       ibm_svc_vol_map:
         clustername: "{{cluster_ip}}"
-        token: "{{ specv_token.token }}"		
+        token: "{{ specv_token.token }}"
         domain: 
         state: present
         volname: "{{item.vol_name}}"
-        host: "{{host_name}}"        
+        host: "{{host_name}}"
       loop: "{{ volume_details }}"
 
     - name: Rescan the paths on the host and run multipath
