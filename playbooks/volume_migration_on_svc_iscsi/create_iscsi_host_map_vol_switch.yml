@@ -123,7 +123,7 @@
         state: cleanup
         source_volume:  "{{ src_vol_name }}"
         token: "{{ src_token.token }}"
-        log_path : /tmp/ansible.log
+        log_path: /tmp/ansible.log
 
     - shell: ssh {{ application_host_username }}@{{ application_host_ip }} "rescan-scsi-bus.sh -i --forcerescan; sleep 40;"
     - shell: ssh {{ application_host_username }}@{{ application_host_ip }} "multipath -ll"
