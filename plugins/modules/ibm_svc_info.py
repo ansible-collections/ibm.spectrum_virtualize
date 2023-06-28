@@ -618,6 +618,8 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.ibm.spectrum_virtualize.plugins.module_utils.ibm_svc_utils import IBMSVCRestApi, svc_argument_spec, get_logger
 from ansible.module_utils._text import to_native
 
+import time
+
 
 class IBMSVCGatherInfo(object):
     def __init__(self):
@@ -739,6 +741,15 @@ class IBMSVCGatherInfo(object):
                 output[op_key] = self.restapi.svc_obj_info(cmd=cmd,
                                                            cmdopts=None,
                                                            cmdargs=cmdargs)
+                if cmd == "lsdrive":
+                    drive = []
+                    for d in output[op_key]:
+                        self.log.info("log iteration %s", d["id"])
+                        cmdargs = [d["id"]]
+                        time.sleep(0.08)
+                        d.update(self.restapi.svc_obj_info(cmd=cmd,
+                                                               cmdopts=None,
+                                                               cmdargs=cmdargs))            
             self.log.info('Successfully listed %d %s info '
                           'from cluster %s', len(subset), subset,
                           self.module.params['clustername'])
