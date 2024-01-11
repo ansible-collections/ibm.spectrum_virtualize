@@ -3,3 +3,5 @@
 .coverage
 .project
 .DS_Store
+.vscode
+all_play.json

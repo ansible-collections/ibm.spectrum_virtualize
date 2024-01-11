@@ -9,7 +9,7 @@ namespace: ibm
 name: spectrum_virtualize
 
 # The version of the collection. Must be compatible with semantic versioning
-version: 1.12.0
+version: 3.0.0
 
 # The path to the Markdown (.md) readme file. This path is relative to the root of the collection
 readme: README.md
@@ -17,10 +17,7 @@ readme: README.md
 # A list of the collection's content authors. Can be just the name or in the format 'Full Name <email> (url)
 # @nicks:irc/im.site#channel'
 authors:
-- Shilpi Jain <shilpi.jain1@ibm.com>
-- Sanjaikumaar M <sanjaikumaar.m@ibm.com>
-- Rohit Kumar <rohit.kumar6@ibm.com>
-
+- Sumit Kumar Gupta <sumit.gupta16@ibm.com>
 
 ### OPTIONAL but strongly recommended
 
@@ -45,15 +42,3 @@ tags:
 # L(specifiers,https://python-semanticversion.readthedocs.io/en/latest/#requirement-specification). Multiple version
 # range specifiers can be set and are separated by ','
 dependencies: {}
-
-# The URL of the originating SCM repository
-repository: https://github.com/ansible-collections/ibm.spectrum_virtualize
-
-# The URL to any online docs
-documentation: https://github.com/ansible-collections/ibm.spectrum_virtualize
-
-# The URL to the homepage of the collection/project
-homepage:
-
-# The URL to the collection issue tracker
-issues: https://github.com/ansible-collections/ibm.spectrum_virtualize/issues
