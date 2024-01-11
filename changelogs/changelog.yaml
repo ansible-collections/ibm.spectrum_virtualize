@@ -146,3 +146,4 @@ releases:
     release_date: '2024-01-11'
     changes: 
       release_summary: This collection is now deprecated. Users must use ibm.storage_virtualize instead.
+

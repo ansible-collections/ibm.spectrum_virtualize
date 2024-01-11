@@ -21,18 +21,11 @@ jobs:
           - stable-2.13
           - stable-2.14
         python:
-          - '2.7'
           - '3.8'
           - '3.9'
         exclude:
           - ansible: stable-2.9
             python: '3.9'
-          - ansible: stable-2.12
-            python: '2.7'
-          - ansible: stable-2.13
-            python: '2.7'
-          - ansible: stable-2.14
-            python: '2.7'
           - ansible: stable-2.14
             python: '3.8'
     steps:
@@ -73,18 +66,11 @@ jobs:
           - stable-2.13
           - stable-2.14
         python:
-          - '2.7'
           - '3.8'
           - '3.9'
         exclude:
           - ansible: stable-2.9
             python: '3.9'
-          - ansible: stable-2.12
-            python: '2.7'
-          - ansible: stable-2.13
-            python: '2.7'
-          - ansible: stable-2.14
-            python: '2.7'
           - ansible: stable-2.14
             python: '3.8'
     steps:
