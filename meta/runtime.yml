@@ -3,98 +3,237 @@ requires_ansible: '>=2.9.0'
 plugin_routing:
     modules:
         ibm_svc_vdisk:
-            deprecation:
+            tombstone:
                 removal_version: 2.0.0
-                warning_text: Use ibm_svc_manage_volume instead.
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_volume instead.
         ibm_svc_auth:
             redirect: ibm.storage_virtualize.ibm_svc_auth
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_auth instead.
         ibm_svc_complete_initial_setup:
             redirect: ibm.storage_virtualize.ibm_svc_complete_initial_setup
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_complete_initial_setup instead.
         ibm_svc_host:
             redirect: ibm.storage_virtualize.ibm_svc_host
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_host instead.
         ibm_svc_hostcluster:
             redirect: ibm.storage_virtualize.ibm_svc_hostcluster
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_hostcluster instead.
         ibm_svc_info:
             redirect: ibm.storage_virtualize.ibm_svc_info
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_info instead.
         ibm_svc_initial_setup:
             redirect: ibm.storage_virtualize.ibm_svc_initial_setup
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_initial_setup instead.
         ibm_svc_manage_callhome:
             redirect: ibm.storage_virtualize.ibm_svc_manage_callhome
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_callhome instead.
         ibm_svc_manage_consistgrp_flashcopy:
             redirect: ibm.storage_virtualize.ibm_svc_manage_consistgrp_flashcopy
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_consistgrp_flashcopy instead.
         ibm_svc_manage_cv:
             redirect: ibm.storage_virtualize.ibm_svc_manage_cv
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_cv instead.
         ibm_svc_manage_flashcopy:
             redirect: ibm.storage_virtualize.ibm_svc_manage_flashcopy
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_flashcopy instead.
         ibm_svc_manage_ip:
             redirect: ibm.storage_virtualize.ibm_svc_manage_ip
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_ip instead.
         ibm_svc_manage_migration:
             redirect: ibm.storage_virtualize.ibm_svc_manage_migration
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_migration instead.
         ibm_svc_manage_mirrored_volume:
             redirect: ibm.storage_virtualize.ibm_svc_manage_mirrored_volume
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_mirrored_volume instead.
         ibm_svc_manage_ownershipgroup:
             redirect: ibm.storage_virtualize.ibm_svc_manage_ownershipgroup
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_ownershipgroup instead.
         ibm_svc_manage_portset:
             redirect: ibm.storage_virtualize.ibm_svc_manage_portset
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_portset instead.
         ibm_svc_manage_replication:
             redirect: ibm.storage_virtualize.ibm_svc_manage_replication
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_replication instead.
         ibm_svc_manage_replicationgroup:
             redirect: ibm.storage_virtualize.ibm_svc_manage_replicationgroup
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_replicationgroup instead.
         ibm_svc_manage_safeguarded_policy:
             redirect: ibm.storage_virtualize.ibm_svc_manage_safeguarded_policy
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_safeguarded_policy instead.
         ibm_svc_manage_sra:
             redirect: ibm.storage_virtualize.ibm_svc_manage_sra
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_sra instead.
         ibm_svc_manage_user:
             redirect: ibm.storage_virtualize.ibm_svc_manage_user
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_user instead.
         ibm_svc_manage_usergroup:
             redirect: ibm.storage_virtualize.ibm_svc_manage_usergroup
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_usergroup instead.
         ibm_svc_manage_volume:
             redirect: ibm.storage_virtualize.ibm_svc_manage_volume
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_volume instead.
         ibm_svc_manage_volumegroup:
             redirect: ibm.storage_virtualize.ibm_svc_manage_volumegroup
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_manage_volumegroup instead.
         ibm_svc_mdisk:
             redirect: ibm.storage_virtualize.ibm_svc_mdisk
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_mdisk instead.
         ibm_svc_mdiskgrp:
             redirect: ibm.storage_virtualize.ibm_svc_mdiskgrp
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_mdiskgrp instead.
         ibm_svc_start_stop_flashcopy:
             redirect: ibm.storage_virtualize.ibm_svc_start_stop_flashcopy
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_start_stop_flashcopy instead.
         ibm_svc_start_stop_replication:
             redirect: ibm.storage_virtualize.ibm_svc_start_stop_replication
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_start_stop_replication instead.
         ibm_svc_vol_map:
             redirect: ibm.storage_virtualize.ibm_svc_vol_map
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svc_vol_map instead.
         ibm_svcinfo_command:
             redirect: ibm.storage_virtualize.ibm_svcinfo_command
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svcinfo_command instead.
         ibm_svctask_command:
             redirect: ibm.storage_virtualize.ibm_svctask_command
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_svctask_command instead.
         ibm_sv_manage_awss3_cloudaccount:
             redirect: ibm.storage_virtualize.ibm_sv_manage_awss3_cloudaccount
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_sv_manage_awss3_cloudaccount instead.
         ibm_sv_manage_cloud_backup:
             redirect: ibm.storage_virtualize.ibm_sv_manage_cloud_backup
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_sv_manage_cloud_backup instead.
         ibm_sv_manage_fc_partnership:
             redirect: ibm.storage_virtualize.ibm_sv_manage_fc_partnership
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_sv_manage_fc_partnership instead.
         ibm_sv_manage_fcportsetmember:
             redirect: ibm.storage_virtualize.ibm_sv_manage_fcportsetmember
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_sv_manage_fcportsetmember instead.
         ibm_sv_manage_ip_partnership:
-            redirect: ibm.storage_virtualize.ibm_sv_manage_ip_partnership
+          redirect: ibm.storage_virtualize.ibm_sv_manage_ip_partnership
+          deprecation:
+              removal_version: 2.0.0
+              warning_text: Use ibm.storage_virtualize.ibm_sv_manage_ip_partnership instead.
         ibm_sv_manage_provisioning_policy:
             redirect: ibm.storage_virtualize.ibm_sv_manage_provisioning_policy
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_sv_manage_provisioning_policy instead.
         ibm_sv_manage_replication_policy:
             redirect: ibm.storage_virtualize.ibm_sv_manage_replication_policy
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_sv_manage_replication_policy instead.
         ibm_sv_manage_security:
             redirect: ibm.storage_virtualize.ibm_sv_manage_security
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_sv_manage_security instead.
         ibm_sv_manage_snapshot:
             redirect: ibm.storage_virtualize.ibm_sv_manage_snapshot
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_sv_manage_snapshot instead.
         ibm_sv_manage_snapshotpolicy:
             redirect: ibm.storage_virtualize.ibm_sv_manage_snapshotpolicy
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_sv_manage_snapshotpolicy instead.
         ibm_sv_manage_ssl_certificate:
             redirect: ibm.storage_virtualize.ibm_sv_manage_ssl_certificate
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_sv_manage_ssl_certificate instead.
         ibm_sv_manage_storage_partition:
             redirect: ibm.storage_virtualize.ibm_sv_manage_storage_partition
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_sv_manage_storage_partition instead.
         ibm_sv_manage_syslog_server:
             redirect: ibm.storage_virtualize.ibm_sv_manage_syslog_server
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_sv_manage_syslog_server instead.
         ibm_sv_manage_truststore_for_replication:
             redirect: ibm.storage_virtualize.ibm_sv_manage_truststore_for_replication
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_sv_manage_truststore_for_replication instead.
         ibm_sv_restore_cloud_backup:
             redirect: ibm.storage_virtualize.ibm_sv_restore_cloud_backup
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_sv_restore_cloud_backup instead.
         ibm_sv_switch_replication_direction:
             redirect: ibm.storage_virtualize.ibm_sv_switch_replication_direction
+            deprecation:
+                removal_version: 2.0.0
+                warning_text: Use ibm.storage_virtualize.ibm_sv_switch_replication_direction instead.
+
